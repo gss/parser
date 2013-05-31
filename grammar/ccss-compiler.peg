@@ -1,0 +1,186 @@
+{
+  var parser, flatten; 
+
+  parser = this;
+
+  flattenEq = function (a) {            
+      if(a[0] === "c") {
+        var c, results;          
+        results = [];
+        if(a[2][0] === "c") {
+          c = a.splice(2,1,a[2][3])[0]
+          results.push(flattenEq(c));      
+        }
+        results.push(a);
+        return results;
+      }
+      else {
+        return a;
+      }
+  }
+
+  parser.flattenEqs = function (eqs) {
+    var results = []
+    eqs.forEach(function(a,i){
+      eqs[i] = flattenEq(a)
+    })    
+    return eqs;
+  }
+
+}
+
+start
+  = __ statements:(Statement*) __ { return parser.flattenEqs(statements); }
+
+Statement
+  = exp:LinearExpression EOS __ { return exp; }
+
+LinearExpression
+  = head:AdditiveExpression
+    tail:(__ EqOperator __ AdditiveExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          "c",
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
+EqOperator
+  = "==" { return "eq" }
+  / "<=" { return "lte" }
+  / ">=" { return "gte" }
+  / "<"  { return "lt"  }
+  / ">"  { return "gt"  }
+
+AdditiveExpression
+  = head:MultiplicativeExpression
+    tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
+AdditiveOperator
+  = "+" { return "plus" }
+  / "-" { return "minus" }
+
+MultiplicativeExpression
+  = head:UnaryExpression
+    tail:(__ MultiplicativeOperator __ UnaryExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
+MultiplicativeOperator
+  = "*" {return "multiply"}
+  / "/" {return "divide"}
+
+UnaryExpression
+  = PrimaryExpression
+  / operator:UnaryOperator __ expression:UnaryExpression {
+      return {
+        type:       "UnaryExpression",
+        operator:   operator,
+        expression: expression
+      };
+    }
+
+UnaryOperator
+  = "+"
+  / "-"
+  /  "!"
+
+PrimaryExpression
+  = name:Identifier { return name; }
+  / Literal
+  / "(" __ expression:LinearExpression __ ")" { return expression; }
+
+
+Identifier "identifier"
+  = selector:NameChars+ "[" varn:NameChars+ "]" { 
+      return ['get',varn.join(""), ['$',selector.join("")]]; 
+    }
+
+NameChars
+  = [a-zA-Z0-9#.\-_$]
+
+
+Literal
+  = val:(Real / Integer) {
+    return [ "number",
+      val
+    ]
+  }
+
+Integer
+  = digits:[0-9]+ {
+    return parseInt(digits.join(""));
+  }
+
+Real
+  = digits:(Integer "." Integer) {
+    return parseFloat(digits.join(""));
+  }
+
+SignedInteger
+  = [-+]? [0-9]+
+
+SourceCharacter
+  = .
+
+WhiteSpace "whitespace"
+  = [\t\v\f \u00A0\uFEFF]
+
+LineTerminator
+  = [\n\r\u2028\u2029]
+
+LineTerminatorSequence "end of line"
+  = "\n"
+  / "\r\n"
+  / "\r"
+  / "\u2028" // line separator
+  / "\u2029" // paragraph separator
+
+EOS
+  = __ ";"
+  / _ LineTerminatorSequence
+  / __ EOF
+
+EOF
+  = !.
+
+Comment "comment"
+  = MultiLineComment
+  / SingleLineComment
+
+MultiLineComment
+  = "/*" (!"*/" SourceCharacter)* "*/"
+
+MultiLineCommentNoLineTerminator
+  = "/*" (!("*/" / LineTerminator) SourceCharacter)* "*/"
+
+SingleLineComment
+  = "//" (!LineTerminator SourceCharacter)* (LineTerminator / EOF)
+_
+  = (WhiteSpace / MultiLineCommentNoLineTerminator / SingleLineComment)*
+
+__
+  = (WhiteSpace / LineTerminatorSequence / Comment)*

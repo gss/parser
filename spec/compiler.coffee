@@ -56,3 +56,19 @@ describe 'CCSS compiler', ->
       chai.expect(result).to.be.an 'array'
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect
+
+  describe 'with a simple statement and a constraint strength', ->
+    source = """
+    4 == 5 !strong:10
+    """
+    expect =
+      selectors: []
+      vars: []
+      constraints: [
+        ['eq', ['number', 4], ['number', 5], 'strong', 10]
+      ]
+    it 'should be able to produce a result', ->
+      result = parser.parse source
+      chai.expect(result).to.be.an 'array'
+    it 'the result should match the expectation', ->
+      chai.expect(result).to.eql expect

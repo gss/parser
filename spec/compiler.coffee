@@ -37,14 +37,12 @@ describe 'CCSS compiler', ->
         '#box2'
       ],
       vars: [
-        ['get', 'grid-height']
-        ['get', 'width', ['$', '#box2']]
+        ['get', 'grid-height', 'grid-height']
+        ['get', '#box2[width]','width', ['$id', '#box2']]
       ],
       constraints: [
         ['lte', [
-          'multiply', ['get', 'grid-height'], ['get', 'width', [
-            '$', '#box2'
-          ]]
+          'multiply', ['get', 'grid-height'], ['get', '#box2[width]']
         ], ['number', 2]]
         ['eq', ['number', 2], ['number', 3]]
         ['lt', ['number', 3], ['number', 4]]
@@ -83,14 +81,11 @@ describe 'CCSS compiler', ->
         '#box'
       ]
       vars: [
-        ['get', 'width', [
-          '$', '#box']]
+        ['get', '#box[width]', 'width', ['$id', '#box']]
         ['get', 'grid-height']
       ]
       constraints: [
-        ['stay', ['get', 'width', [
-          '$', '#box']
-        ], ['get', 'grid-height']]
+        ['stay', ['get', '#box[width]'], ['get', 'grid-height']]
       ]
     result = null
     it 'should be able to produce a result', ->

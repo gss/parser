@@ -1,66 +1,106 @@
 {
-  var parser, flatten; 
+  var parser, flatten, cs, $s, vars, _varsCache; 
 
   parser = this;
 
-  flattenEq = function (a) {            
-      if(a[0] === "c") {
-        var c, results;          
-        results = [];
-        if(a[2][0] === "c") {
-          c = a.splice(2,1,a[2][3])[0]
-          results.push(flattenEq(c));      
-        }
-        results.push(a);
-        return results;
-      }
-      else {
-        return a;
-      }
+  cs = parser.cs = [];
+  parser.addC    = function (c) {
+    cs.push(c);
+  };
+  
+  $s = parser.$s = [];
+  parser.add$    = function ($) {
+    if ($s.indexOf($) === -1) {$s.push($);}
+    return $;
   }
 
-  parser.registered = [];
-  parser.register = function (c) {
-    this.registered.push(c);
-  };
+  _varsCache = [];
+  vars = parser.vars = [];
+  parser.addVar      = function (ast,$,v) {
+    var varNameCache;
+    if ($ === undefined) {$="global"}
+    varNameCache = $ + "." + "v";
+    if (_varsCache.indexOf(varNameCache) === -1) {_varsCache.push(varNameCache);vars.push(ast);}
+    return ast;
+  }
 
-  parser.flattenEqs = function (eqs) {
-    var results = []
-    eqs.forEach(function(a,i){
-      eqs[i] = flattenEq(a)
-    })    
-    return eqs;
+  parser.getResults = function () {
+    return {
+      "selectors": this.$s,
+      "vars": this.vars,
+      "constraints": this.cs      
+    }
+  }
+
+  parser.error = function (m,l,c) {
+    if (!!l && !!c) {m = m+ " {line:" + l + ", col:" + c + "}"} 
+    console.error(m);
+    return m;
   }
 
 }
 
 start
-  = __ statements:(Statement*) __ { return (parser.registered); }
+  = __ statements:(Statement*) __ { return (parser.getResults()); }
 
 Statement
   = exp:LinearExpression EOS __ { return exp; }
+  / stay:Stay                 { return stay; }
+
+Stay 
+  =  StayStart vars:StayVars+ EOS __ {
+      var stay = ["stay"].concat(vars)
+      parser.addC(stay)
+      return stay;
+    }
+
+StayVars
+  = __ v:Var __ ","?  {return v}
+
+StayStart
+  = ("@-gss-stay" / "@stay")
 
 LinearExpression
   = head:AdditiveExpression
-    tail:(__ EqOperator __ AdditiveExpression)* {
+    tail:(__ EqOperator __ AdditiveExpression)*
+    __ s:StrengthAndWeight? {
       var result = head;
+      if (s.length === 0) {s = [];}
       for (var i = 0; i < tail.length; i++) {
         result = [
-          "c",
+          //"c",
           tail[i][1],
           result,
           tail[i][3]
         ];
-        parser.register([
-          "c",
+        parser.addC([
+          //"c",
           tail[i][1],
           head,
           tail[i][3]
-        ]);
+        ].concat(s));
         head = tail[i][3];
       }
       return result;
     }
+
+StrengthAndWeight
+  = "!" s:Strength w:Weight?  {
+      if (w.length === 0) {return [s];}
+      return [s,w];
+    }
+  / "!" .? {return parser.error("Invalid Strength",line,column)}
+
+Weight
+  = ":" w:[0-9]+   {return Number(w.join(""))}
+  / ":" . {return parser.error("Invalid Weight",line,column)}
+
+Strength
+  = ("require"  / "REQUIRE"  / "Require")  {return "require"}
+  / ("strong"   / "STRONG"   / "Strong")   {return "strong"}
+  / ("medium"   / "MEDIUM"   / "Medium")   {return "medium"}
+  / ("weak"     / "WEAK"     / "Weak")     {return "weak"}
+  / ("required" / "REQUIRED" / "Required") {return "require"}
 
 EqOperator
   = "==" { return "eq" }
@@ -121,19 +161,30 @@ UnaryOperator
   /  "!"
 
 PrimaryExpression
-  = name:Identifier { return name; }
+  = name:Var { return name; }
   / Literal
   / "(" __ expression:LinearExpression __ ")" { return expression; }
 
 
-Identifier "identifier"
-  = selector:NameChars+ "[" varn:NameChars+ "]" { 
-      return ['get',varn.join(""), ['$',selector.join("")]]; 
+Var "variable"
+  = $:NameChars* "[" v:NameChars+ "]" {       
+      var result;
+      v = v.join("");     
+      if ($.length !== 0) {
+        $ = $.join("");
+        parser.add$($)
+        result = ['get',v, ['$',$]]; 
+      }
+      else {
+        result = ['get',v]; 
+      }
+      parser.addVar(result,$,v);
+      return result;
+      
     }
 
 NameChars
   = [a-zA-Z0-9#.\-_$]
-
 
 Literal
   = val:(Real / Integer) {

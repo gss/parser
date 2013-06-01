@@ -24,7 +24,7 @@ describe 'CCSS compiler', ->
     result = null
     it 'should be able to produce a result', ->
       result = parser.parse source
-      chai.expect(result).to.be.an 'array'
+      chai.expect(result).to.be.an 'object'
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect
 
@@ -45,7 +45,7 @@ describe 'CCSS compiler', ->
           'multiply', ['get', 'grid-height'], ['get', 'width', [
             '$', '#box2'
           ]]
-        ], 'number', 2]
+        ], ['number', 2]]
         ['eq', ['number', 2], ['number', 3]]
         ['lt', ['number', 3], ['number', 4]]
         ['eq', ['number', 4], ['number', 5]]
@@ -53,7 +53,7 @@ describe 'CCSS compiler', ->
     result = null
     it 'should be able to produce a result', ->
       result = parser.parse source
-      chai.expect(result).to.be.an 'array'
+      chai.expect(result).to.be.an 'object'
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect
 
@@ -67,8 +67,9 @@ describe 'CCSS compiler', ->
       constraints: [
         ['eq', ['number', 4], ['number', 5], 'strong', 10]
       ]
+    result = null
     it 'should be able to produce a result', ->
       result = parser.parse source
-      chai.expect(result).to.be.an 'array'
+      chai.expect(result).to.be.an 'object'
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect

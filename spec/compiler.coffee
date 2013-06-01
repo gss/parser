@@ -73,3 +73,28 @@ describe 'CCSS compiler', ->
       chai.expect(result).to.be.an 'object'
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect
+
+  describe 'with a stay rule', ->
+    source = """
+    @-gss-stay #box[width], [grid-height];
+    """
+    expect =
+      selectors: [
+        '#box'
+      ]
+      vars: [
+        ['get', 'width', [
+          '$', '#box']]
+        ['get', 'grid-height']
+      ]
+      constraints: [
+        ['stay', ['get', 'width', [
+          '$', '#box']
+        ], ['get', 'grid-height']]
+      ]
+    result = null
+    it 'should be able to produce a result', ->
+      result = parser.parse source
+      chai.expect(result).to.be.an 'object'
+    it 'the result should match the expectation', ->
+      chai.expect(result).to.eql expect

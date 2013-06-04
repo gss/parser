@@ -60,13 +60,14 @@ describe 'CCSS compiler', ->
 
   describe 'with a simple statement and a constraint strength and weight', ->
     source = """
-    4 == 5 !strong:10
+    4 == 5 == 6 !strong:10
     """
     expect =
       selectors: []
       vars: []
       constraints: [
         ['eq', ['number', 4], ['number', 5], 'strong', 10]
+        ['eq', ['number', 5], ['number', 6], 'strong', 10]
       ]
     result = null
     it 'should be able to produce a result', ->

@@ -1,7 +1,7 @@
 {
-  var parser, flatten, cs, $s, vars, _varsCache; 
+  var p, parser, flatten, cs, $s, vars, _varsCache; 
 
-  parser = this;
+  p = parser = this;
 
   cs = parser.cs = [];
   parser.addC    = function (c) {
@@ -16,11 +16,8 @@
 
   _varsCache = [];
   vars = parser.vars = [];
-  parser.addVar      = function (ast,$,v) {
-    var varNameCache;
-    if ($ === undefined) {$="global"}
-    varNameCache = $ + "." + "v";
-    if (_varsCache.indexOf(varNameCache) === -1) {_varsCache.push(varNameCache);vars.push(ast);}
+  parser.addVar      = function (ast,id) {
+    if (_varsCache.indexOf(id) === -1) {_varsCache.push(id);vars.push(ast);}
     return ast;
   }
 
@@ -30,6 +27,12 @@
       "vars": this.vars,
       "constraints": this.cs      
     }
+  }
+  
+  parser.toString = function (x) {
+    if (typeof x === "string") {return x}
+    if (x instanceof Array) {return x.join("")}
+    return ""
   }
 
   parser.error = function (m,l,c) {
@@ -161,30 +164,57 @@ UnaryOperator
   /  "!"
 
 PrimaryExpression
-  = name:Var { return name; }
+  = Measure
+  / Var 
   / Literal
   / "(" __ expression:LinearExpression __ ")" { return expression; }
 
+Measure "measure"
+  = "measure(" __ v:Var __ ")"  {return ["measure",v]}
 
 Var "variable"
-  = $:NameChars* "[" v:NameChars+ "]" {       
-      var result;
-      v = v.join("");     
+  = $:Selector? "[" v:NameChars+ "]" {       
+      var result, id;
+      v = v.join("")
+      id = "["+v+"]"
       if ($.length !== 0) {
-        $ = $.join("");
-        parser.add$($)
-        result = ['get',v, ['$',$]]; 
+        parser.add$($.selector);
+        id = $.selector + id;
+        parser.addVar(['get',id,v,$.ast],id);
       }
       else {
-        result = ['get',v]; 
+        parser.addVar(['get',id,v],id);
+        // ['_dimensionize',['get','width'],['get','height']]
       }
-      parser.addVar(result,$,v);
-      return result;
-      
+      return ['get',id];      
     }
+
+VarNames
+  = ""  
+  // "position"  {return ["x","y"]}
+  // "size"  {return ["width","height"]}
+
+
+Selector "selector"
+  = "#" $:NameChars+  { $=p.toString($); return {selector:"#"+$,ast:["$id",$]} }
+  / "." $:NameChars+  { $=p.toString($); return {selector:"."+$,ast:["$class",$]} }
+  / "$" $:NameChars+  { $=p.toString($); return {selector:$,ast:["$all",$]} }
+  / $:NameChars+  { $=p.toString($); return {selector:$,ast:["$tag",$]} }  
+  / "::" $:ReservedPseudos {return {selector:"::"+$,ast:["$reserved", $]}}
+
+ReservedPseudos
+  = ("this" / "viewport" / "document")
+
+  //$:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { $=p.toString($); return {selector:$,ast:["$all",$]} }
+
+
+  
 
 NameChars
   = [a-zA-Z0-9#.\-_$]
+
+NameCharsWithSpace
+  = NameChars / " "
 
 Literal
   = val:(Real / Integer) {

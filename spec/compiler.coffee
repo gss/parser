@@ -37,17 +37,20 @@ describe 'CCSS compiler', ->
         '#box2'
       ],
       vars: [
-        ['get', 'grid-height', 'grid-height']
-        ['get', '#box2[width]','width', ['$id', '#box2']]
+        ['get', "[grid-height]", 'grid-height']
+        ['get', '#box2[width]','width', ['$id', 'box2']]
       ],
       constraints: [
         ['lte', [
-          'multiply', ['get', 'grid-height'], ['get', '#box2[width]']
-        ], ['number', 2]]
+          'multiply', ['get', '[grid-height]'], ['get', '#box2[width]']
+          ], 
+          ['number', 2]
+        ]
         ['eq', ['number', 2], ['number', 3]]
         ['lt', ['number', 3], ['number', 4]]
         ['eq', ['number', 4], ['number', 5]]
       ]
+      
     result = null
     it 'should be able to produce a result', ->
       result = parser.parse source
@@ -55,7 +58,7 @@ describe 'CCSS compiler', ->
     it 'the result should match the expectation', ->
       chai.expect(result).to.eql expect
 
-  describe 'with a simple statement and a constraint strength', ->
+  describe 'with a simple statement and a constraint strength and weight', ->
     source = """
     4 == 5 !strong:10
     """
@@ -81,11 +84,65 @@ describe 'CCSS compiler', ->
         '#box'
       ]
       vars: [
-        ['get', '#box[width]', 'width', ['$id', '#box']]
-        ['get', 'grid-height']
+        ['get', '#box[width]', 'width', ['$id', 'box']]
+        ['get', '[grid-height]', 'grid-height']
       ]
       constraints: [
-        ['stay', ['get', '#box[width]'], ['get', 'grid-height']]
+        ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
+      ]
+    result = null
+    it 'should be able to produce a result', ->
+      result = parser.parse source
+      chai.expect(result).to.be.an 'object'
+    it 'the result should match the expectation', ->
+      chai.expect(result).to.eql expect
+      
+  describe ': with reserved pseudos', ->
+    source = """
+    ::this[right] == ::document[right] == ::viewport[right]
+    """
+    expect =
+      selectors: [
+        '::this'
+        '::document'
+        '::viewport'
+      ]
+      vars: [
+        ['get', '::this[right]', 'right', ['$reserved', 'this']]
+        ['get', '::document[right]', 'right', ['$reserved', 'document']]
+        ['get', '::viewport[right]', 'right', ['$reserved', 'viewport']]
+      ]
+      constraints: [
+        ['eq', ['get', '::this[right]'], ['get', '::document[right]']]
+        ['eq', ['get', '::document[right]'], ['get', '::viewport[right]']]
+      ]
+    result = null
+    it ': should be able to produce a result', ->
+      result = parser.parse source
+      chai.expect(result).to.be.an 'object'
+    it ': the result should match the expectation', ->
+      chai.expect(result).to.eql expect
+  
+  describe 'with a 2D stay, 2D constraint and measure', ->
+    source = """
+    @-gss-stay #box[size];
+    #box[position] >= measure(#box[position]) !require;
+    """
+    expect =
+      selectors: [
+        '#box'
+      ]
+      vars: [
+        ['get', '#box[width]', 'width', ['$id', '#box']]
+        ['get', '#box[height]', 'height', ['$id', '#box']]
+        ['get', '#box[x]', 'x', ['$id', '#box']]
+        ['get', '#box[y]', 'y', ['$id', '#box']]
+      ]
+      constraints: [
+        ['stay', ['get', '#box[width]']]
+        ['stay', ['get', '#box[height]']]
+        ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
+        ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
       ]
     result = null
     it 'should be able to produce a result', ->

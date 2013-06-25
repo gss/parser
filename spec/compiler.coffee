@@ -10,8 +10,11 @@ parse = (source, expect) ->
     it 'should do something', ->
       result = parser.parse source
       chai.expect(result).to.be.an 'object'
-    it 'should match expected', ->
-      chai.expect(result).to.eql expect
+    it 'should match expected', ->      
+      chai.expect(result.selectors).to.eql expect.selectors or []
+      chai.expect(result.measures).to.eql expect.measures or []
+      chai.expect(result.vars).to.eql expect.vars or []
+      chai.expect(result.constraints).to.eql expect.constraints or []
 
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
@@ -165,7 +168,7 @@ describe 'CCSS-to-AST', ->
             ]
             measures: [
               # function,    varId,     prop,     selector
-              ['measure', '#box[width]', 'width', ['$id', 'box']]
+              ['measure', ['get','#box[width]']]
             ]              
             vars: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
@@ -175,28 +178,30 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
-  describe '/* 2D */', ->
-  
-    parse """
-            @-gss-stay #box[size];
-            #box[position] >= measure(#box[position]) !require;
-            // with a 2D stay, 2D constraint and measure    
-          """
-        ,
-          {
-            selectors: [
-              '#box'
-            ]
-            vars: [
-              ['get', '#box[width]', 'width', ['$id', 'box']]
-              ['get', '#box[height]', 'height', ['$id', 'box']]
-              ['get', '#box[x]', 'x', ['$id', 'box']]
-              ['get', '#box[y]', 'y', ['$id', 'box']]
-            ]
-            constraints: [
-              ['stay', ['get', '#box[width]']]
-              ['stay', ['get', '#box[height]']]
-              ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
-              ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
-            ]
-          }
+  # This should probably be handled with a preparser or optimizer, not the main PEG grammar
+  #
+  #describe '/* 2D */', ->
+  #
+  #  parse """
+  #          @-gss-stay #box[size];
+  #          #box[position] >= measure(#box[position]) !require;
+  #          // with a 2D stay, 2D constraint and measure    
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '#box'
+  #          ]
+  #          vars: [
+  #            ['get', '#box[width]', 'width', ['$id', 'box']]
+  #            ['get', '#box[height]', 'height', ['$id', 'box']]
+  #            ['get', '#box[x]', 'x', ['$id', 'box']]
+  #            ['get', '#box[y]', 'y', ['$id', 'box']]
+  #          ]
+  #          constraints: [
+  #            ['stay', ['get', '#box[width]']]
+  #            ['stay', ['get', '#box[height]']]
+  #            ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
+  #            ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
+  #          ]
+  #        }

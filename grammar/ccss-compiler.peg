@@ -1,41 +1,57 @@
 {
-  var p, parser, flatten, cs, $s, vars, _varsCache; 
+  var p, parser, flatten, _varsCache, _measuresCache; 
 
   p = parser = this;
 
-  cs = parser.cs = [];
-  parser.addC    = function (c) {
-    cs.push(c);
+  p.cs = [];
+  p.addC = function (c) {
+    p.cs.push(c);
   };
   
-  $s = parser.$s = [];
-  parser.add$    = function ($) {
-    if ($s.indexOf($) === -1) {$s.push($);}
+  p.$s = [];
+  p.add$ = function ($) {
+    if (p.$s.indexOf($) === -1) {p.$s.push($);}
     return $;
   }
 
   _varsCache = [];
-  vars = parser.vars = [];
-  parser.addVar      = function (ast,id) {
-    if (_varsCache.indexOf(id) === -1) {_varsCache.push(id);vars.push(ast);}
+  p.vars = [];
+  p.addVar = function (ast,id) {
+    if (_varsCache.indexOf(id) === -1) {
+      _varsCache.push(id);
+      p.vars.push(ast);
+    }
+    return ast;
+  }
+  
+  _measuresCache = [];
+  p.measures = [];
+  p.processMeasure = function (ast) {
+    var _id;
+    _id = ast.toString(); // assuming stringified ast arrays CAN be used for cache lookup
+    if (_measuresCache.indexOf(_id) === -1) {
+      _measuresCache.push(_id);
+      p.measures.push(ast);
+    }
     return ast;
   }
 
-  parser.getResults = function () {
+  p.getResults = function () {
     return {
-      "selectors": this.$s,
-      "vars": this.vars,
-      "constraints": this.cs      
+      "selectors": p.$s,
+      "measures": p.measures,
+      "vars": p.vars,
+      "constraints": p.cs      
     }
   }
   
-  parser.toString = function (x) {
+  p.toString = function (x) {
     if (typeof x === "string") {return x}
     if (x instanceof Array) {return x.join("")}
     return ""
   }
 
-  parser.error = function (m,l,c) {
+  p.error = function (m,l,c) {
     if (!!l && !!c) {m = m+ " {line:" + l + ", col:" + c + "}"} 
     console.error(m);
     return m;
@@ -64,27 +80,22 @@ StayStart
   = ("@-gss-stay" / "@stay")
 
 LinearExpression
-  = head:AdditiveExpression
+  = e1:AdditiveExpression
     tail:(__ EqOperator __ AdditiveExpression)*
     __ s:StrengthAndWeight? {
-      var result = head;
+      var eq, e2;
       if (s.length === 0) {s = [];}
       for (var i = 0; i < tail.length; i++) {
-        result = [
-          //"c",
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
+        eq = tail[i][1];
+        e2 = tail[i][3];
         parser.addC([
-          //"c",
-          tail[i][1],
-          head,
-          tail[i][3]
+          eq,
+          e1,
+          e2
         ].concat(s));
-        head = tail[i][3];
+        e1 = e2;
       }
-      return result;
+      return "LineaerExpression";
     }
 
 StrengthAndWeight
@@ -169,13 +180,13 @@ PrimaryExpression
   / "(" __ expression:LinearExpression __ ")" { return expression; }
 
 Measure "measure"
-  = "measure(" __ v:Var __ ")"  {return ["measure",v]}
+  = "measure(" __ v:Var __ ")"  { return p.processMeasure(["measure",v]);}
 
 Var "variable"
   = $:Selector? "[" v:NameChars+ "]" {       
       var result, id, _id1, _id2;
-      v = v.join("")
-      id = "["+v+"]"
+      v = v.join("");
+      id = "["+v+"]";
       if ($.length !== 0) {
         parser.add$($.selector);        
         id = $.selector + id;
@@ -210,8 +221,7 @@ Var "variable"
             parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]]], id);                       break;
           default:
             parser.addVar(['var',id,v,$.ast],id);
-        }
-                        
+        }                        
       }
       else {
         parser.addVar(['var',id,v],id);

@@ -92,11 +92,10 @@ StrengthAndWeight
       if (w.length === 0) {return [s];}
       return [s,w];
     }
-  / "!" .? {return parser.error("Invalid Strength",line,column)}
+  / "!" .? {return parser.error("Invalid Strength or Weight",line,column)}
 
 Weight
-  = ":" w:[0-9]+   {return Number(w.join(""))}
-  / ":" . {return parser.error("Invalid Weight",line,column)}
+  = w:[0-9]+   {return Number(w.join(""))}
 
 Strength
   = ("require"  / "REQUIRE"  / "Require")  {return "require"}
@@ -174,16 +173,48 @@ Measure "measure"
 
 Var "variable"
   = $:Selector? "[" v:NameChars+ "]" {       
-      var result, id;
+      var result, id, _id1, _id2;
       v = v.join("")
       id = "["+v+"]"
       if ($.length !== 0) {
-        parser.add$($.selector);
+        parser.add$($.selector);        
         id = $.selector + id;
-        parser.addVar(['get',id,v,$.ast],id);
+        switch (v) {
+          case 'right':
+            _id1 = $.selector + "[" + "x" + "]";
+            _id2 = $.selector + "[" + "width" + "]";
+            parser.addVar(['var', _id1, "x", $.ast], _id1);
+            parser.addVar(['var', _id2, "width", $.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]]], id);
+            break;
+          case 'bottom':
+            _id1 = $.selector + "[" + "y" + "]";
+            _id2 = $.selector + "[" + "height" + "]";
+            parser.addVar(['var', _id1, "y", $.ast], _id1);
+            parser.addVar(['var', _id2, "height", $.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]]], id);
+            break;
+          case 'center-x':          
+          case 'centerX':
+            _id1 = $.selector + "[" + "x" + "]";
+            _id2 = $.selector + "[" + "width" + "]";
+            parser.addVar(['var', _id1, "x", $.ast], _id1);
+            parser.addVar(['var', _id2, "width", $.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]]], id);                       break;
+          case 'center-y':
+          case 'centerY':
+            _id1 = $.selector + "[" + "y" + "]";
+            _id2 = $.selector + "[" + "height" + "]";
+            parser.addVar(['var', _id1, "y", $.ast], _id1);
+            parser.addVar(['var', _id2, "height", $.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]]], id);                       break;
+          default:
+            parser.addVar(['var',id,v,$.ast],id);
+        }
+                        
       }
       else {
-        parser.addVar(['get',id,v],id);
+        parser.addVar(['var',id,v],id);
         // ['_dimensionize',['get','width'],['get','height']]
       }
       return ['get',id];      

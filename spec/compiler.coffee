@@ -43,8 +43,8 @@ describe 'CCSS-to-AST', ->
               '#box2'
             ],
             vars: [
-              ['get', "[grid-height]", 'grid-height']
-              ['get', '#box2[width]','width', ['$id', 'box2']]
+              ['var', "[grid-height]", 'grid-height']
+              ['var', '#box2[width]','width', ['$id', 'box2']]
             ],
             constraints: [
               ['lte', [
@@ -61,7 +61,7 @@ describe 'CCSS-to-AST', ->
   describe "/* Strength */", ->
     
     parse """
-            4 == 5 == 6 !strong:10 // w/ strength and weight
+            4 == 5 == 6 !strong10 // w/ strength and weight
           """
         ,
           {
@@ -84,18 +84,56 @@ describe 'CCSS-to-AST', ->
               '#box'
             ]
             vars: [
-              ['get', '#box[width]', 'width', ['$id', 'box']]
-              ['get', '[grid-height]', 'grid-height']
+              ['var', '#box[width]', 'width', ['$id', 'box']]
+              ['var', '[grid-height]', 'grid-height']
             ]
             constraints: [
               ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
             ]
           }
-      
+    parse """
+            @stay #box[width], [grid-height];
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+            ]
+            vars: [
+              ['var', '#box[width]', 'width', ['$id', 'box']]
+              ['var', '[grid-height]', 'grid-height']
+            ]
+            constraints: [
+              ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
+            ]
+          }
+  
+  describe "/* Variable Expressions */", ->
+    
+    parse """
+            #box[right] == #box2[left];
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+              '#box2'
+            ]
+            vars: [
+              ['var', '#box[x]', 'x', ['$id','box']]
+              ['var', '#box[width]', 'width', ['$id', 'box']]
+              ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']]]
+              ['var', '#box2[left]', 'left', ['$id','box2']]
+            ]
+            constraints: [
+              ['eq', ['get','#box[right]'],['get','#box2[left]']]
+            ]
+          }
+  
   describe '/* Reserved Pseudos */', ->
     
     parse """
-            ::this[right] == ::document[right] == ::viewport[right]
+            ::this[width] == ::document[width] == ::viewport[width]
           """
         ,
           {
@@ -105,19 +143,40 @@ describe 'CCSS-to-AST', ->
               '::viewport'
             ]
             vars: [
-              ['get', '::this[right]', 'right', ['$reserved', 'this']]
-              ['get', '::document[right]', 'right', ['$reserved', 'document']]
-              ['get', '::viewport[right]', 'right', ['$reserved', 'viewport']]
+              ['var', '::this[width]', 'width', ['$reserved', 'this']]
+              ['var', '::document[width]', 'width', ['$reserved', 'document']]
+              ['var', '::viewport[width]', 'width', ['$reserved', 'viewport']]
             ]
             constraints: [
-              ['eq', ['get', '::this[right]'], ['get', '::document[right]']]
-              ['eq', ['get', '::document[right]'], ['get', '::viewport[right]']]
+              ['eq', ['get', '::this[width]'], ['get', '::document[width]']]
+              ['eq', ['get', '::document[width]'], ['get', '::viewport[width]']]
+            ]
+          }
+  
+  describe '/* Measures */', ->
+    
+    parse """
+            #box[width] == measure(#box[width]);
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+            ]
+            measures: [
+              # function,    varId,     prop,     selector
+              ['measure', '#box[width]', 'width', ['$id', 'box']]
+            ]              
+            vars: [
+              ['var', '#box[width]', 'width', ['$id', 'box']]
+            ]           
+            constraints: [
+              ['eq', ['get', '#box[width]'], ['measure', ['get','#box[width]']] ]
             ]
           }
   
   describe '/* 2D */', ->
   
-  describe '/ with a 2D stay, 2D constraint and measure', ->
     parse """
             @-gss-stay #box[size];
             #box[position] >= measure(#box[position]) !require;
@@ -129,10 +188,10 @@ describe 'CCSS-to-AST', ->
               '#box'
             ]
             vars: [
-              ['get', '#box[width]', 'width', ['$id', '#box']]
-              ['get', '#box[height]', 'height', ['$id', '#box']]
-              ['get', '#box[x]', 'x', ['$id', '#box']]
-              ['get', '#box[y]', 'y', ['$id', '#box']]
+              ['get', '#box[width]', 'width', ['$id', 'box']]
+              ['get', '#box[height]', 'height', ['$id', 'box']]
+              ['get', '#box[x]', 'x', ['$id', 'box']]
+              ['get', '#box[y]', 'y', ['$id', 'box']]
             ]
             constraints: [
               ['stay', ['get', '#box[width]']]

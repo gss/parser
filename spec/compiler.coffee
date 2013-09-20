@@ -12,9 +12,10 @@ parse = (source, expect) ->
       chai.expect(result).to.be.an 'object'
     it 'should match expected', ->      
       chai.expect(result.selectors).to.eql expect.selectors or []
-      chai.expect(result.measures).to.eql expect.measures or []
-      chai.expect(result.vars).to.eql expect.vars or []
-      chai.expect(result.constraints).to.eql expect.constraints or []
+      chai.expect(result.commands).to.eql expect.commands or []
+      #chai.expect(result.measures).to.eql expect.measures or []
+      #chai.expect(result.vars).to.eql expect.vars or []
+      #chai.expect(result.constraints).to.eql expect.constraints or []
 
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
@@ -27,9 +28,8 @@ describe 'CCSS-to-AST', ->
           """
         , 
           {
-            selectors: [],
-            vars: [],
-            constraints: [
+            selectors: []
+            commands: [
               ['lte', ['number', 10], ['number', 2]]
               ['eq', ['number', 2], ['number', 3]]
               ['lt', ['number', 3], ['number', 4]]
@@ -42,14 +42,10 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box2'
-            ],
-            vars: [
+            selectors: ["#box2"]
+            commands: [
               ['var', "[grid-height]", 'grid-height']
               ['var', '#box2[width]','width', ['$id', 'box2']]
-            ],
-            constraints: [
               ['lte', [
                 'multiply', ['get', '[grid-height]'], ['get', '#box2[width]']
                 ], 
@@ -69,8 +65,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             selectors: []
-            vars: []
-            constraints: [
+            commands: [
               ['eq', ['number', 4], ['number', 5], 'strong', 10]
               ['eq', ['number', 5], ['number', 6], 'strong', 10]
             ]
@@ -86,11 +81,9 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '#box'
             ]
-            vars: [
+            commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
               ['var', '[grid-height]', 'grid-height']
-            ]
-            constraints: [
               ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
             ]
           }
@@ -102,11 +95,9 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '#box'
             ]
-            vars: [
+            commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
               ['var', '[grid-height]', 'grid-height']
-            ]
-            constraints: [
               ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
             ]
           }
@@ -122,13 +113,11 @@ describe 'CCSS-to-AST', ->
               '#box'
               '#box2'
             ]
-            vars: [
+            commands: [
               ['var', '#box[x]', 'x', ['$id','box']]
               ['var', '#box[width]', 'width', ['$id', 'box']]
               ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']]]
               ['var', '#box2[left]', 'left', ['$id','box2']]
-            ]
-            constraints: [
               ['eq', ['get','#box[right]'],['get','#box2[left]']]
             ]
           }
@@ -145,12 +134,10 @@ describe 'CCSS-to-AST', ->
               '::document'
               '::viewport'
             ]
-            vars: [
+            commands: [
               ['var', '::this[width]', 'width', ['$reserved', 'this']]
               ['var', '::document[width]', 'width', ['$reserved', 'document']]
               ['var', '::viewport[width]', 'width', ['$reserved', 'viewport']]
-            ]
-            constraints: [
               ['eq', ['get', '::this[width]'], ['get', '::document[width]']]
               ['eq', ['get', '::document[width]'], ['get', '::viewport[width]']]
             ]
@@ -166,14 +153,8 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '#box'
             ]
-            measures: [
-              # function,    varId,     prop,     selector
-              ['measure', ['get','#box[width]']]
-            ]              
-            vars: [
+            commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
-            ]           
-            constraints: [
               ['eq', ['get', '#box[width]'], ['measure', ['get','#box[width]']] ]
             ]
           }

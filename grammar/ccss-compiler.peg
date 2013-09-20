@@ -3,9 +3,11 @@
 
   p = parser = this;
 
+  p.commands = [];  
+
   p.cs = [];
   p.addC = function (c) {
-    p.cs.push(c);
+    p.commands.push(c);
   };
   
   p.$s = [];
@@ -19,7 +21,7 @@
   p.addVar = function (ast,id) {
     if (_varsCache.indexOf(id) === -1) {
       _varsCache.push(id);
-      p.vars.push(ast);
+      p.commands.push(ast);
     }
     return ast;
   }
@@ -39,9 +41,10 @@
   p.getResults = function () {
     return {
       "selectors": p.$s,
-      "measures": p.measures,
-      "vars": p.vars,
-      "constraints": p.cs      
+      "commands": p.commands
+      //"measures": p.measures,
+      //"vars": p.vars,
+      //"constraints": p.cs      
     }
   }
   

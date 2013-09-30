@@ -116,7 +116,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['var', '#box[x]', 'x', ['$id','box']]
               ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']]]
+              ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']], ['$id','box']]
               ['var', '#box2[left]', 'left', ['$id','box2']]
               ['eq', ['get','#box[right]'],['get','#box2[left]']]
             ]

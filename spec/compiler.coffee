@@ -142,11 +142,12 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get', '::document[width]'], ['get', '::viewport[width]']]
             ]
           }
-  ###
-  describe '/ Intrinsic Props /', ->
-    
+
+  describe '/ Intrinsic Props & dedups /', ->
+    # should do nothing special...
     parse """
-            #box[width] == #box[intrinsic-width];            
+            #box[width] == #box[intrinsic-width]; 
+            [grid-col-width] == #box[intrinsic-width];
           """
         ,
           {
@@ -155,13 +156,29 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['var', '#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]
-              ['editvar', ['get', '#box[intrinsic-width]']]
-              ['suggestValue', ['get', '#box[intrinsic-width]'], ['measure',]]
-              ['eq', ['get', '#box[width]'], ['measure', ['get','#box[width]']] ]
+              ['var', '#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]              
+              ['eq', ['get', '#box[width]'], ['get', '#box[intrinsic-width]']]
+              ['var', '[grid-col-width]', 'grid-col-width']
+              ['eq', ['get', '[grid-col-width]'], ['get', '#box[intrinsic-width]']]
             ]
           }
-  ###
+    parse """
+            #box[right] == #box[intrinsic-right]; 
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+            ]
+            commands: [
+              ['var', '#box[x]', 'x', ['$id','box']]
+              ['var', '#box[width]', 'width', ['$id', 'box']]
+              ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']], ['$id','box']]              
+              ['var', '#box[intrinsic-right]', 'intrinsic-right', ['$id', 'box']]              
+              ['eq', ['get', '#box[right]'], ['get', '#box[intrinsic-right]']]
+            ]
+          }
+
   # This should probably be handled with a preparser or optimizer, not the main PEG grammar
   #
   #describe '/* 2D */', ->

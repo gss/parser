@@ -142,11 +142,11 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get', '::document[width]'], ['get', '::viewport[width]']]
             ]
           }
-  
-  describe '/* Measures */', ->
+  ###
+  describe '/ Intrinsic Props /', ->
     
     parse """
-            #box[width] == measure(#box[width]);
+            #box[width] == #box[intrinsic-width];            
           """
         ,
           {
@@ -155,10 +155,13 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
+              ['var', '#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]
+              ['editvar', ['get', '#box[intrinsic-width]']]
+              ['suggestValue', ['get', '#box[intrinsic-width]'], ['measure',]]
               ['eq', ['get', '#box[width]'], ['measure', ['get','#box[width]']] ]
             ]
           }
-  
+  ###
   # This should probably be handled with a preparser or optimizer, not the main PEG grammar
   #
   #describe '/* 2D */', ->

@@ -57,6 +57,63 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
+  describe "/* Normalize Names */", ->
+    
+    parse """
+            #b[left] == [left];
+            [left-col] == [col-left];
+          """
+        ,
+          {
+            selectors: ['#b']
+            commands: [
+              ['var', '#b[x]','x', ['$id', 'b']]
+              ['var', '[left]','left']
+              ['eq', ['get', '#b[x]'], ['get', '[left]']]
+              ['var', '[left-col]','left-col']
+              ['var', '[col-left]','col-left']
+              ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
+            ]
+          }
+    parse """
+            #b[top] == [top];
+          """
+        ,
+          {
+            selectors: ['#b']
+            commands: [
+              ['var', '#b[y]','y', ['$id', 'b']]
+              ['var', '[top]','top']
+              ['eq', ['get', '#b[y]'], ['get', '[top]']]
+            ]
+          }
+    ###
+    parse """
+            #b[cx] == [cx];
+          """
+        ,
+          {
+            selectors: ['#b']
+            commands: [
+              ['var', '#b[center-x]','center-x', ['$id', 'b']]
+              ['var', '[cx]','cx']
+              ['eq', ['get', '#b[center-x]'], ['get', '[cx]']]
+            ]
+          }
+    parse """
+            #b[cy] == [cy];
+          """
+        ,
+          {
+            selectors: ['#b']
+            commands: [
+              ['var', '#b[center-y]','center-y', ['$id', 'b']]
+              ['var', '[cy]','cy']
+              ['eq', ['get', '#b[center-y]'], ['get', '[cy]']]
+            ]
+          }
+    ###
+  
   describe "/* Strength */", ->
     
     parse """
@@ -105,7 +162,7 @@ describe 'CCSS-to-AST', ->
   describe "/* Variable Expressions */", ->
     
     parse """
-            #box[right] == #box2[left];
+            #box[right] == #box2[x];
           """
         ,
           {
@@ -117,8 +174,8 @@ describe 'CCSS-to-AST', ->
               ['var', '#box[x]', 'x', ['$id','box']]
               ['var', '#box[width]', 'width', ['$id', 'box']]
               ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']], ['$id','box']]
-              ['var', '#box2[left]', 'left', ['$id','box2']]
-              ['eq', ['get','#box[right]'],['get','#box2[left]']]
+              ['var', '#box2[x]', 'x', ['$id','box2']]
+              ['eq', ['get','#box[right]'],['get','#box2[x]']]
             ]
           }
   

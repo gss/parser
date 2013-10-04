@@ -188,12 +188,24 @@ Measure "measure"
 Var "variable"
   = $:Selector? "[" v:NameChars+ "]" {       
       var result, id, _id1, _id2;
-      v = v.join("");
-      id = "["+v+"]";
+      v = v.join("");      
+      // if bound to dom query
       if ($.length !== 0) {
-        parser.add$($.selector);        
+        parser.add$($.selector);
+        // normalize var names when query bound
+        if (v === 'left') {
+          v = 'x';
+        } else if (v === 'top') {
+          v = 'y';
+        } else if (v === 'cx') {
+          v = 'center-x';
+        } else if (v === 'cy') {
+          v = 'center-y';
+        }
+        id = "["+v+"]";
         id = $.selector + id;
-        switch (v) {
+        // extract variable expresssions
+        switch (v) {            
           case 'right':
             _id1 = $.selector + "[" + "x" + "]";
             _id2 = $.selector + "[" + "width" + "]";
@@ -227,6 +239,7 @@ Var "variable"
         }                        
       }
       else {
+        id = "["+v+"]";
         parser.addVar(['var',id,v],id);
         // ['_dimensionize',['get','width'],['get','height']]
       }

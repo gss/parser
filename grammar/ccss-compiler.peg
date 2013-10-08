@@ -260,7 +260,9 @@ Selector "selector"
   / "::" $:ReservedPseudos {return {selector:"::"+$,ast:["$reserved", $]}}
 
 ReservedPseudos
-  = ("this" / "viewport" / "document")
+  = ("this" / "document" / "host")
+  / ("window" / "viewport") {return "window"} 
+  // normalize viewport to window
 
   //$:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { $=p.toString($); return {selector:$,ast:["$all",$]} }
 

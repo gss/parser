@@ -181,22 +181,25 @@ describe 'CCSS-to-AST', ->
   
   describe '/* Reserved Pseudos */', ->
     
+    # viewport gets normalized to window
     parse """
-            ::this[width] == ::document[width] == ::viewport[width]
+            ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
           """
         ,
           {
             selectors: [
               '::this'
               '::document'
-              '::viewport'
+              '::window'
             ]
             commands: [
               ['var', '::this[width]', 'width', ['$reserved', 'this']]
               ['var', '::document[width]', 'width', ['$reserved', 'document']]
-              ['var', '::viewport[width]', 'width', ['$reserved', 'viewport']]
+              ['var', '::window[width]', 'width', ['$reserved', 'window']]
+              ['var', '::window[height]', 'height', ['$reserved', 'window']]
               ['eq', ['get', '::this[width]'], ['get', '::document[width]']]
-              ['eq', ['get', '::document[width]'], ['get', '::viewport[width]']]
+              ['eq', ['get', '::document[width]'], ['get', '::window[width]']]
+              ['eq', ['get', '::window[width]'], ['get', '::window[height]']]
             ]
           }
 

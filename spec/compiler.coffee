@@ -87,6 +87,57 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get', '#b[y]'], ['get', '[top]']]
             ]
           }
+    
+    parse """
+            [right] == ::window[right];
+          """
+        ,
+          {
+            selectors: ['::window']
+            commands: [
+              ['var', '[right]','right']
+              ['var', '::window[width]','width', ['$reserved','window']]
+              ['eq', ['get', '[right]'], ['get', '::window[width]']]
+            ]
+          }
+    parse """
+            [left] == ::window[left];
+          """
+        ,
+          {
+            selectors: ['::window']
+            commands: [
+              ['var', '[left]','left']
+              ['var', '::window[x]','x', ['$reserved','window']]
+              #['eq', ['get', '::window[x]'], ['number', 0], 'required']
+              ['eq', ['get', '[left]'], ['get', '::window[x]']]
+            ]
+          }
+    parse """
+            [top] == ::window[top];
+          """
+        ,
+          {
+            selectors: ['::window']
+            commands: [
+              ['var', '[top]','top']
+              ['var', '::window[y]','y',['$reserved','window']]
+              #['eq', ['get', '::window[y]'], ['number', 0], 'required']
+              ['eq', ['get', '[top]'], ['get', '::window[y]']]
+            ]
+          }
+    parse """
+            [bottom] == ::window[bottom];
+          """
+        ,
+          {
+            selectors: ['::window']
+            commands: [
+              ['var', '[bottom]','bottom']
+              ['var', '::window[height]','height', ['$reserved','window']]
+              ['eq', ['get', '[bottom]'], ['get', '::window[height]']]
+            ]
+          }
     ###
     parse """
             #b[cx] == [cx];
@@ -178,6 +229,40 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get','#box[right]'],['get','#box2[x]']]
             ]
           }
+  
+  describe '/* Advanced Selectors */', ->
+    
+    parse """
+            $(html #main .boxes)[width] == [col-width]
+          """
+        ,
+          {
+            selectors: [
+              'html #main .boxes'
+            ]
+            commands: [
+              ['var', 'html #main .boxes[width]', 'width', ['$all', 'html #main .boxes']]
+              ['var', '[col-width]', 'col-width']
+              ['eq', ['get', 'html #main .boxes[width]'], ['get', '[col-width]']]
+            ]
+          }
+    # adv selector with brackets
+    ###
+    parse """
+            $(html #main .boxes[data-target="true"])[width] == [col-width]
+          """
+        ,
+          {
+            selectors: [
+              'html #main .boxes'
+            ]
+            commands: [
+              ['var', 'html #main .boxes[data-target="true"][width]', 'width', ['$all', 'html #main .boxes[data-target="true"]']]
+              ['var', '[col-width]', 'col-width']
+              ['eq', ['get', 'html #main .boxes[data-target="true"][width]'], ['get', '[col-width]']]
+            ]
+          }
+    ###
   
   describe '/* Reserved Pseudos */', ->
     

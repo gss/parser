@@ -247,22 +247,21 @@ describe 'CCSS-to-AST', ->
             ]
           }
     # adv selector with brackets
-    ###
     parse """
-            $(html #main .boxes[data-target="true"])[width] == [col-width]
+            $(html #main:hover .boxes[data-target="true"])[width] == [col-width]
           """
         ,
           {
             selectors: [
-              'html #main .boxes'
+              'html #main:hover .boxes[data-target=\"true\"]'
             ]
             commands: [
-              ['var', 'html #main .boxes[data-target="true"][width]', 'width', ['$all', 'html #main .boxes[data-target="true"]']]
+              ['var', 'html #main:hover .boxes[data-target=\"true\"][width]', 'width', ['$all', 'html #main:hover .boxes[data-target=\"true\"]']]
               ['var', '[col-width]', 'col-width']
-              ['eq', ['get', 'html #main .boxes[data-target="true"][width]'], ['get', '[col-width]']]
+              ['eq', ['get', 'html #main:hover .boxes[data-target=\"true\"][width]'], ['get', '[col-width]']]
             ]
           }
-    ###
+
   
   describe '/* Reserved Pseudos */', ->
     

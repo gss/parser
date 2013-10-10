@@ -266,10 +266,15 @@ Var "variable"
       }
       else {
         id = "["+v+"]";
-        parser.addVar(['var',id,v],id);
+        parser.addVar(['var',id],id);
         // ['_dimensionize',['get','width'],['get','height']]
       }
-      return ['get',id];      
+      if ($.selector) {
+        return ['get',id,$.selector];
+      } else {
+        return ['get',id];
+      }
+      
     }
 
 VarNames

@@ -44,10 +44,10 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ["#box2"]
             commands: [
-              ['var', "[grid-height]", 'grid-height']
+              ['var', "[grid-height]"]
               ['var', '#box2[width]','width', ['$id', 'box2']]
               ['lte', [
-                'multiply', ['get', '[grid-height]'], ['get', '#box2[width]']
+                'multiply', ['get', '[grid-height]'], ['get', '#box2[width]', '#box2']
                 ], 
                 ['number', 2]
               ]
@@ -68,10 +68,10 @@ describe 'CCSS-to-AST', ->
             selectors: ['#b']
             commands: [
               ['var', '#b[x]','x', ['$id', 'b']]
-              ['var', '[left]','left']
-              ['eq', ['get', '#b[x]'], ['get', '[left]']]
-              ['var', '[left-col]','left-col']
-              ['var', '[col-left]','col-left']
+              ['var', '[left]']
+              ['eq', ['get', '#b[x]', '#b'], ['get', '[left]']]
+              ['var', '[left-col]']
+              ['var', '[col-left]']
               ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
             ]
           }
@@ -83,8 +83,8 @@ describe 'CCSS-to-AST', ->
             selectors: ['#b']
             commands: [
               ['var', '#b[y]','y', ['$id', 'b']]
-              ['var', '[top]','top']
-              ['eq', ['get', '#b[y]'], ['get', '[top]']]
+              ['var', '[top]']
+              ['eq',['get','#b[y]','#b'],['get','[top]']]
             ]
           }
     
@@ -95,9 +95,9 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ['::window']
             commands: [
-              ['var', '[right]','right']
-              ['var', '::window[width]','width', ['$reserved','window']]
-              ['eq', ['get', '[right]'], ['get', '::window[width]']]
+              ['var','[right]']
+              ['var','::window[width]','width',['$reserved','window']]
+              ['eq',['get','[right]'],['get','::window[width]','::window']]
             ]
           }
     parse """
@@ -107,10 +107,10 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ['::window']
             commands: [
-              ['var', '[left]','left']
+              ['var', '[left]']
               ['var', '::window[x]','x', ['$reserved','window']]
               #['eq', ['get', '::window[x]'], ['number', 0], 'required']
-              ['eq', ['get', '[left]'], ['get', '::window[x]']]
+              ['eq', ['get', '[left]'], ['get','::window[x]','::window']]
             ]
           }
     parse """
@@ -120,10 +120,10 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ['::window']
             commands: [
-              ['var', '[top]','top']
+              ['var', '[top]']
               ['var', '::window[y]','y',['$reserved','window']]
               #['eq', ['get', '::window[y]'], ['number', 0], 'required']
-              ['eq', ['get', '[top]'], ['get', '::window[y]']]
+              ['eq', ['get', '[top]'], ['get','::window[y]','::window']]
             ]
           }
     parse """
@@ -133,9 +133,9 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ['::window']
             commands: [
-              ['var', '[bottom]','bottom']
+              ['var', '[bottom]']
               ['var', '::window[height]','height', ['$reserved','window']]
-              ['eq', ['get', '[bottom]'], ['get', '::window[height]']]
+              ['eq', ['get','[bottom]'], ['get','::window[height]','::window']]
             ]
           }
     ###
@@ -191,8 +191,8 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['var', '[grid-height]', 'grid-height']
-              ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
+              ['var', '[grid-height]']
+              ['stay',['get','#box[width]','#box'],['get','[grid-height]']]
             ]
           }
     parse """
@@ -205,8 +205,8 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['var', '[grid-height]', 'grid-height']
-              ['stay', ['get', '#box[width]'], ['get', '[grid-height]']]
+              ['var', '[grid-height]']
+              ['stay',['get','#box[width]','#box'],['get','[grid-height]']]
             ]
           }
   
@@ -224,9 +224,9 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['var', '#box[x]', 'x', ['$id','box']]
               ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']], ['$id','box']]
+              ['varexp', '#box[right]',['plus',['get','#box[x]'],['get','#box[width]']],['$id','box']]
               ['var', '#box2[x]', 'x', ['$id','box2']]
-              ['eq', ['get','#box[right]'],['get','#box2[x]']]
+              ['eq', ['get','#box[right]','#box'],['get','#box2[x]','#box2']]
             ]
           }
   
@@ -242,8 +242,8 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', 'html #main .boxes[width]', 'width', ['$all', 'html #main .boxes']]
-              ['var', '[col-width]', 'col-width']
-              ['eq', ['get', 'html #main .boxes[width]'], ['get', '[col-width]']]
+              ['var', '[col-width]']
+              ['eq',['get','html #main .boxes[width]','html #main .boxes'],['get','[col-width]']]
             ]
           }
     # adv selector with brackets
@@ -257,8 +257,8 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['var', 'html #main:hover .boxes[data-target=\"true\"][width]', 'width', ['$all', 'html #main:hover .boxes[data-target=\"true\"]']]
-              ['var', '[col-width]', 'col-width']
-              ['eq', ['get', 'html #main:hover .boxes[data-target=\"true\"][width]'], ['get', '[col-width]']]
+              ['var', '[col-width]']
+              ['eq', ['get', 'html #main:hover .boxes[data-target=\"true\"][width]','html #main:hover .boxes[data-target=\"true\"]'], ['get', '[col-width]']]
             ]
           }
 
@@ -281,9 +281,9 @@ describe 'CCSS-to-AST', ->
               ['var', '::document[width]', 'width', ['$reserved', 'document']]
               ['var', '::window[width]', 'width', ['$reserved', 'window']]
               ['var', '::window[height]', 'height', ['$reserved', 'window']]
-              ['eq', ['get', '::this[width]'], ['get', '::document[width]']]
-              ['eq', ['get', '::document[width]'], ['get', '::window[width]']]
-              ['eq', ['get', '::window[width]'], ['get', '::window[height]']]
+              ['eq', ['get','::this[width]','::this'], ['get', '::document[width]','::document']]
+              ['eq', ['get','::document[width]','::document'], ['get','::window[width]','::window']]
+              ['eq', ['get','::window[width]','::window'], ['get','::window[height]','::window']]
             ]
           }
 
@@ -299,11 +299,11 @@ describe 'CCSS-to-AST', ->
               '#box'
             ]
             commands: [
-              ['var', '#box[width]', 'width', ['$id', 'box']]
-              ['var', '#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]              
-              ['eq', ['get', '#box[width]'], ['get', '#box[intrinsic-width]']]
-              ['var', '[grid-col-width]', 'grid-col-width']
-              ['eq', ['get', '[grid-col-width]'], ['get', '#box[intrinsic-width]']]
+              ['var','#box[width]', 'width', ['$id', 'box']]
+              ['var','#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]              
+              ['eq',['get','#box[width]','#box'],['get','#box[intrinsic-width]','#box']]
+              ['var','[grid-col-width]']
+              ['eq',['get','[grid-col-width]'],['get','#box[intrinsic-width]','#box']]
             ]
           }
     parse """
@@ -319,7 +319,7 @@ describe 'CCSS-to-AST', ->
               ['var', '#box[width]', 'width', ['$id', 'box']]
               ['varexp', '#box[right]', ['plus',['get','#box[x]'],['get','#box[width]']], ['$id','box']]              
               ['var', '#box[intrinsic-right]', 'intrinsic-right', ['$id', 'box']]              
-              ['eq', ['get', '#box[right]'], ['get', '#box[intrinsic-right]']]
+              ['eq',['get','#box[right]','#box'],['get','#box[intrinsic-right]','#box']]
             ]
           }
 

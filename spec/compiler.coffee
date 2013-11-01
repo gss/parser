@@ -233,7 +233,7 @@ describe 'CCSS-to-AST', ->
   describe '/* Advanced Selectors */', ->
     
     parse """
-            $(html #main .boxes)[width] == [col-width]
+            (html #main .boxes)[width] == [col-width]
           """
         ,
           {
@@ -248,7 +248,7 @@ describe 'CCSS-to-AST', ->
           }
     # adv selector with brackets
     parse """
-            $(html #main:hover .boxes[data-target="true"])[width] == [col-width]
+            (html #main:hover .boxes[data-target="true"])[width] == [col-width]
           """
         ,
           {
@@ -267,20 +267,23 @@ describe 'CCSS-to-AST', ->
     
     # viewport gets normalized to window
     parse """
-            ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
+            ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
           """
         ,
           {
             selectors: [
+              '::scope'
               '::this'
               '::document'
               '::window'
             ]
             commands: [
+              ['var', '::scope[width]', 'width', ['$reserved', 'scope']]
               ['var', '::this[width]', 'width', ['$reserved', 'this']]
               ['var', '::document[width]', 'width', ['$reserved', 'document']]
               ['var', '::window[width]', 'width', ['$reserved', 'window']]
               ['var', '::window[height]', 'height', ['$reserved', 'window']]
+              ['eq', ['get','::scope[width]','::scope'], ['get', '::this[width]','::this']]
               ['eq', ['get','::this[width]','::this'], ['get', '::document[width]','::document']]
               ['eq', ['get','::document[width]','::document'], ['get','::window[width]','::window']]
               ['eq', ['get','::window[width]','::window'], ['get','::window[height]','::window']]
@@ -322,7 +325,32 @@ describe 'CCSS-to-AST', ->
               ['eq',['get','#box[right]','#box'],['get','#box[intrinsic-right]','#box']]
             ]
           }
+  
+  ###
+  describe '/ contextual ::this iterators /', ->
 
+    parse """
+            .node[height] >= .node(.inports)[height];
+            .box {
+              width: == ::this(.header)[width];
+            }
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+            ]
+            commands: [
+              ['var','.box[width]', 'width', ['$class', 'box']]
+              ['var','.box(.header)[width]', 'width', ['$class', 'header', ['$class', 'box']]]
+              ['foreach', ['$class', 'box'],
+              ['var','#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]              
+              ['eq',['get','#box[width]','#box'],['get','#box[intrinsic-width]','#box']]
+              ['var','[grid-col-width]']
+              ['eq',['get','[grid-col-width]'],['get','#box[intrinsic-width]','#box']]
+            ]
+          }
+  ###
   # This should probably be handled with a preparser or optimizer, not the main PEG grammar
   #
   #describe '/* 2D */', ->

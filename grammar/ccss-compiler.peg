@@ -286,7 +286,7 @@ VarNames
 Selector "selector"
   = "#" $:NameChars+  { $=p.toString($); return {selector:"#"+$,ast:["$id",$]} }
   / "." $:NameChars+  { $=p.toString($); return {selector:"."+$,ast:["$class",$]} }
-  / "$(" $:QuerySelectorChars+ ")"  { $=p.toString($); return {selector:$,ast:["$all",$]} }
+  / "$"? "(" $:QuerySelectorChars+ ")"  { $=p.toString($); return {selector:$,ast:["$all",$]} }
   / $:NameChars+  { $=p.toString($); return {selector:$,ast:["$tag",$]} }  
   / "::" $:ReservedPseudos {return {selector:"::"+$,ast:["$reserved", $]}}
   // $:QuerySelectorChars+ { $=p.toString($); return {selector:$,ast:["$all",$]} }
@@ -297,7 +297,7 @@ QuerySelectorChars
 
 
 ReservedPseudos
-  = ("this" / "document" / "host")
+  = ("this" / "document" / "host" / "scope")
   / ("window" / "viewport") {return "window"} 
   // normalize viewport to window
 

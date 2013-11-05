@@ -67,10 +67,26 @@ start
 
 Statement
   = exp:LinearExpression EOS __ { return exp; }
-  / stay:Stay                 { return stay; }
+  / stay:Stay EOS __            { return stay; }
+  / js:ForEach EOS __           { return js; }
+
+
+ForEach 
+  = type:ForLooperType __ $:Selector __ js:JavaScript {
+    parser.add$($.selector);
+    parser.addC([type,$.ast,js]);
+    }
+
+JavaScript
+  = "```" js:[^`]* "```" {return ['js',js.join("").trim()]}
+
+ForLooperType
+  = ("@-gss-for-each" / "@for-each") {return "for-each"}
+  / ("@-gss-for-all" / "@for-all") {return "for-all"}
+
 
 Stay 
-  =  StayStart vars:StayVars+ EOS __ {
+  =  StayStart vars:StayVars+ {
       var stay = ["stay"].concat(vars)
       parser.addC(stay)
       return stay;

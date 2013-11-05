@@ -326,6 +326,62 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
+  describe '/ js layout hooks /', ->
+
+    parse """
+            [left-col] == [col-left];
+            @for-each .box ```
+            function (el,exp,engine) {
+              var asts =[];
+              asts.push();
+            }
+            ```;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              ['var', '[left-col]']
+              ['var', '[col-left]']
+              ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
+              [
+                'for-each', 
+                ['$class', 'box'], 
+                ['js',"""function (el,exp,engine) {
+                    var asts =[];
+                    asts.push();
+                  }""" ]
+              ]
+            ]
+          }
+    
+    parse """
+            @for-all .box ```
+            function (els,exp,engine) {
+              var asts =[];
+              asts.push();
+            }
+            ```;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'for-all', 
+                ['$class', 'box'], 
+                ['js',"""function (els,exp,engine) {
+                    var asts =[];
+                    asts.push();
+                  }""" ]
+              ]
+            ]
+          }
+  
   ###
   describe '/ contextual ::this iterators /', ->
 

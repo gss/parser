@@ -382,6 +382,8 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
+  
+  
   describe '/ @chain /', ->
 
     parse """            
@@ -400,6 +402,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+          
     
     parse """            
             @chain .box width();
@@ -488,6 +491,43 @@ describe 'CCSS-to-AST', ->
                 'chain', 
                 ['$class', 'box'], 
                 ['eq-chain',['plus-chain','right',['number',10]],'left']
+              ]
+            ]
+          }
+    
+    parse """            
+            @chain .box bottom(==!require)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','bottom','top','require']                
+              ]
+            ]
+          }
+    
+    
+    parse """            
+            @chain .box bottom(==!require)top width() height(!weak);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','bottom','top',   'require']                
+                ['eq-chain','width', 'width']
+                ['eq-chain','height','height',  'weak']
               ]
             ]
           }

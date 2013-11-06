@@ -73,20 +73,33 @@ Statement
 
 
 Chain
-  = "@" "-gss-"? "chain" __ $:Selector __ chainers:Chainer+ {
+  = "@" "-gss-"? "chain" __ $:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
     parser.add$($.selector);
-    var chainersUnpacked = []
+    var ast = ['chain',$.ast];
     chainers.forEach(function(chainer){
-        chainersUnpacked = chainersUnpacked.concat(chainer);
-      });
-    p.addC(['chain',$.ast].concat(chainersUnpacked));
+        //if (sw && !chainer.__has_sw ) {
+        //  chainer = chainer.concat(sw);
+        //}
+        ast = ast.concat(chainer);        
+      });    
+
+    p.addC(ast);
   }
 
 Chainer
-  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ ")" tail:[a-zA-Z\-_0-9]* __ {
+  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ sw:StrengthAndWeight? _ ")" tail:[a-zA-Z\-_0-9]* __ {
     var asts = []
     head = p.toString(head);
-    tail = p.toString(tail);
+    tail = p.toString(tail);    
+    var getAST = function (op, e1, e2) {
+      var ast = [op, e1, e2];
+      if (sw) {
+        ast = ast.concat(sw);
+        //ast.__has_sw = true;
+      }
+      return ast      
+    }
+    
     if (tail.length === 0) {tail = head;}
     if (headExp) {
       headExp.splice(1,1,head);
@@ -99,15 +112,15 @@ Chainer
     }
     */
     if (bridgeVal) {
-      asts.push([headEq,head,bridgeVal])
+      asts.push( getAST(headEq,head,bridgeVal) );
       if (tailEq) {
-        asts.push([tailEq,bridgeVal,tail])
+        asts.push( getAST(tailEq,bridgeVal,tail) );
       }
       else {
-        p.error("Invalid Chain Statement",line,column)
+        p.error("Invalid Chain Statement",line,column);
       }      
     } else {
-      asts.push([headEq,head,tail])
+      asts.push( getAST(headEq,head,tail) );
     }
     return asts;
   }

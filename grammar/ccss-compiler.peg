@@ -68,7 +68,76 @@ start
 Statement
   = exp:LinearExpression EOS __ { return exp; }
   / stay:Stay EOS __            { return stay; }
-  / js:ForEach EOS __           { return js; }
+  / chain:Chain EOS __          { return chain; }
+  / js:ForEach EOS __           { return js; }  
+
+
+Chain
+  = "@" "-gss-"? "chain" __ $:Selector __ chainers:Chainer+ {
+    parser.add$($.selector);
+    var chainersUnpacked = []
+    chainers.forEach(function(chainer){
+        chainersUnpacked = chainersUnpacked.concat(chainer);
+      });
+    p.addC(['chain',$.ast].concat(chainersUnpacked));
+  }
+
+Chainer
+  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ ")" tail:[a-zA-Z\-_0-9]* __ {
+    var asts = []
+    head = p.toString(head);
+    tail = p.toString(tail);
+    if (tail.length === 0) {tail = head;}
+    if (headExp) {
+      headExp.splice(1,1,head);
+      head = headExp;
+    }
+    /*
+    if (tailExp) {
+      tailExp.splice(2,1,tail);
+      tail = tailExp;
+    }
+    */
+    if (bridgeVal) {
+      asts.push([headEq,head,bridgeVal])
+      if (tailEq) {
+        asts.push([tailEq,bridgeVal,tail])
+      }
+      else {
+        p.error("Invalid Chain Statement",line,column)
+      }      
+    } else {
+      asts.push([headEq,head,tail])
+    }
+    return asts;
+  }
+
+HeadExp
+  = math:ChainMath val:AdditiveExpression {
+    return [math, "_REPLACE_ME_", val]
+  }
+
+TailExp
+  = val:AdditiveExpression math:ChainMath {
+    return [math, val, "_REPLACE_ME_"]
+  }
+
+ChainMath
+  = "+" {return "plus-chain"}
+  / "-" {return "minus-chain"}
+  / "*" {return "multiply-chain"}
+  / "/" {return "divide-chain"}
+
+ChainEq
+  = chainEq:EqOperator? {
+    if (!chainEq) {chainEq = "eq";}
+    chainEq += "-chain";
+    return chainEq;
+  }
+
+BridgeValue
+  = (AdditiveExpression)
+
 
 
 ForEach 
@@ -136,8 +205,8 @@ Strength
 
 EqOperator
   = "==" { return "eq" }
-  / "<=" { return "lte" }
-  / ">=" { return "gte" }
+  / ("<=" / "=<") { return "lte" }
+  / (">=" / "=>") { return "gte" }
   / "<"  { return "lt"  }
   / ">"  { return "gt"  }
 

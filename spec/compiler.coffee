@@ -359,7 +359,7 @@ describe 'CCSS-to-AST', ->
     
     parse """
             @for-all .box ```
-            function (els,exp,engine) {
+            function (query,engine) {
               var asts =[];
               asts.push();
             }
@@ -374,7 +374,7 @@ describe 'CCSS-to-AST', ->
               [
                 'for-all', 
                 ['$class', 'box'], 
-                ['js',"""function (els,exp,engine) {
+                ['js',"""function (query,engine) {
                     var asts =[];
                     asts.push();
                   }""" ]
@@ -382,6 +382,157 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
+  describe '/ @chain /', ->
+
+    parse """            
+            @chain .box bottom(==)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','bottom','top']
+              ]
+            ]
+          }
+    
+    parse """            
+            @chain .box width();
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','width','width']
+              ]
+            ]
+          }
+    
+    parse """            
+            @chain .box width() height(>=10>=) bottom(<=)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [                            
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','width','width'],
+                ['gte-chain','height',['number',10]],
+                ['gte-chain',['number',10],'height'],
+                ['lte-chain','bottom','top']
+              ]
+            ]
+          }
+          
+    parse """            
+            @chain .box width([hgap]*2);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [  
+              ['var','[hgap]']
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','width',['multiply',['get','[hgap]'],['number',2]]]
+                ['eq-chain',['multiply',['get','[hgap]'],['number',2]],'width']
+              ]
+            ]
+          }
+    
+    parse """            
+            @chain .box width(+[hgap]*2);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [  
+              ['var','[hgap]']
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain',['plus-chain','width',['multiply',['get','[hgap]'],['number',2]]],'width']
+              ]
+            ]
+          }
+    
+    parse """            
+            @chain .box right(+10==)left;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [                            
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain',['plus-chain','right',['number',10]],'left']
+              ]
+            ]
+          }
+    
+    ### Not valid in parser at this stage
+    parse """            
+            @chain .box height(==2+)center-x;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [                            
+              [
+                'chain', 
+                ['$class', 'box'], 
+                ['eq-chain','height',['multiply-chain',['number',2],'center-x']]
+              ]
+            ]
+          }
+    ###
+        
+    
+    ###
+    parse """            
+            @chain .box width() { 
+              :first[width] == :last[width];
+              :3rd[height] >= 2*:4th[height];
+            };
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              ['chain', ['$class', 'box'], ['eq-chain','width','width']]
+              ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]              
+              ['eq',['get','.box:first[width]'],['get','.box:last[width]']]
+              ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]
+            ]
+          }
+    ###
+
   ###
   describe '/ contextual ::this iterators /', ->
 

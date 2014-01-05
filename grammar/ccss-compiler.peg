@@ -395,9 +395,9 @@ QuerySelectorChars
 
 
 ReservedPseudos
-  = ("this" / "document" / "host" / "scope")
-  / ("window" / "viewport") {return "window"} 
-  // normalize viewport to window
+  = ("document" / "host" / "scope" / "parent")
+  / ("window" / "viewport") {return "window"}
+  / ("this" / "") {return "this"}
 
   //$:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { $=p.toString($); return {selector:$,ast:["$all",$]} }
 

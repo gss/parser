@@ -265,6 +265,22 @@ describe 'CCSS-to-AST', ->
   
   describe '/* Reserved Pseudos */', ->
     
+    parse """
+            ::[width] == ::parent[width]
+          """
+        ,
+          {
+            selectors: [
+              '::this'
+              '::parent'
+            ]
+            commands: [
+              ['var', '::this[width]', 'width', ['$reserved', 'this']]
+              ['var', '::parent[width]', 'width', ['$reserved', 'parent']]
+              ['eq', ['get','::this[width]','::this'], ['get', '::parent[width]','::parent']]
+            ]
+          }
+    
     # viewport gets normalized to window
     parse """
             ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]

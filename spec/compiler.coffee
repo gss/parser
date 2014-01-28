@@ -43,11 +43,9 @@ describe 'CCSS-to-AST', ->
         ,
           {
             selectors: ["#box2"]
-            commands: [
-              ['var', "[grid-height]"]
-              ['var', '#box2[width]','width', ['$id', 'box2']]
+            commands: [              
               ['lte', [
-                'multiply', ['get', '[grid-height]'], ['get', '#box2[width]', '#box2']
+                'multiply', ['get', '[grid-height]'], ['get$', 'width', ['$id', 'box2']]
                 ], 
                 ['number', 2]
               ]
@@ -67,11 +65,7 @@ describe 'CCSS-to-AST', ->
           {
             selectors: ['#b']
             commands: [
-              ['var', '#b[x]','x', ['$id', 'b']]
-              ['var', '[left]']
-              ['eq', ['get', '#b[x]', '#b'], ['get', '[left]']]
-              ['var', '[left-col]']
-              ['var', '[col-left]']
+              ['eq', ['get$', 'x', ['$id', 'b']], ['get', '[left]']]
               ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
             ]
           }

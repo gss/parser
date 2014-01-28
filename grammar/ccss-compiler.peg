@@ -73,9 +73,9 @@ Statement
 
 
 Chain
-  = "@" "-gss-"? "chain" __ $:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    parser.add$($.selector);
-    var ast = ['chain',$.ast];
+  = "@" "-gss-"? "chain" __ sel:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
+    parser.add$(sel.selector);
+    var ast = ['chain',sel.ast];
     chainers.forEach(function(chainer){
         //if (sw && !chainer.__has_sw ) {
         //  chainer = chainer.concat(sw);
@@ -154,9 +154,9 @@ BridgeValue
 
 
 ForEach 
-  = type:ForLooperType __ $:Selector __ js:JavaScript {
-    parser.add$($.selector);
-    parser.addC([type,$.ast,js]);
+  = type:ForLooperType __ sel:Selector __ js:JavaScript {
+    parser.add$(sel.selector);
+    parser.addC([type,sel.ast,js]);
     }
 
 JavaScript
@@ -284,12 +284,12 @@ Measure "measure"
   = "measure(" __ v:Var __ ")"  { return p.processMeasure(["measure",v]);}
 
 Var "variable"
-  = $:Selector? "[" v:NameChars+ "]" {       
+  = sel:Selector? "[" v:NameChars+ "]" {       
       var result, id, _id1, _id2;
       v = v.join("");      
       // if bound to dom query
-      if ($.length !== 0) {
-        parser.add$($.selector);
+      if (sel.length !== 0) {
+        parser.add$(sel.selector);
         // normalize var names when query bound
         if (v === 'left') {
           v = 'x';
@@ -301,7 +301,7 @@ Var "variable"
           v = 'center-y';
         }
         // normalize window var names
-        if ($.selector === '::window') {
+        if (sel.selector === '::window') {
           if (v === 'right') {
             v = 'width'
           } else if (v === 'bottom') {
@@ -309,42 +309,42 @@ Var "variable"
           }
         }
         id = "["+v+"]";
-        id = $.selector + id;
+        id = sel.selector + id;
         // extract variable expresssions
         switch (v) {            
           case 'right':
-            _id1 = $.selector + "[" + "x" + "]";
-            _id2 = $.selector + "[" + "width" + "]";
-            parser.addVar(['var', _id1, "x", $.ast], _id1);
-            parser.addVar(['var', _id2, "width", $.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], $.ast], id);
+            _id1 = sel.selector + "[" + "x" + "]";
+            _id2 = sel.selector + "[" + "width" + "]";
+            parser.addVar(['var', _id1, "x", sel.ast], _id1);
+            parser.addVar(['var', _id2, "width", sel.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], sel.ast], id);
             break;
           case 'bottom':
-            _id1 = $.selector + "[" + "y" + "]";
-            _id2 = $.selector + "[" + "height" + "]";
-            parser.addVar(['var', _id1, "y", $.ast], _id1);
-            parser.addVar(['var', _id2, "height", $.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], $.ast], id);
+            _id1 = sel.selector + "[" + "y" + "]";
+            _id2 = sel.selector + "[" + "height" + "]";
+            parser.addVar(['var', _id1, "y", sel.ast], _id1);
+            parser.addVar(['var', _id2, "height", sel.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], sel.ast], id);
             break;
           case 'center-x':          
           case 'centerX':
-            _id1 = $.selector + "[" + "x" + "]";
-            _id2 = $.selector + "[" + "width" + "]";
-            parser.addVar(['var', _id1, "x", $.ast], _id1);
-            parser.addVar(['var', _id2, "width", $.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], $.ast], id);                       break;
+            _id1 = sel.selector + "[" + "x" + "]";
+            _id2 = sel.selector + "[" + "width" + "]";
+            parser.addVar(['var', _id1, "x", sel.ast], _id1);
+            parser.addVar(['var', _id2, "width", sel.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], sel.ast], id);                       break;
           case 'center-y':
           case 'centerY':
-            _id1 = $.selector + "[" + "y" + "]";
-            _id2 = $.selector + "[" + "height" + "]";
-            parser.addVar(['var', _id1, "y", $.ast], _id1);
-            parser.addVar(['var', _id2, "height", $.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], $.ast], id);                       break;
+            _id1 = sel.selector + "[" + "y" + "]";
+            _id2 = sel.selector + "[" + "height" + "]";
+            parser.addVar(['var', _id1, "y", sel.ast], _id1);
+            parser.addVar(['var', _id2, "height", sel.ast], _id2);
+            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], sel.ast], id);                       break;
           default:
-            parser.addVar(['var',id,v,$.ast],id);
+            parser.addVar(['var',id,v,sel.ast],id);
         }
         // add constraints for window x & y to be zero
-        /*if ($.selector === '::window') {
+        /*if (sel.selector === '::window') {
           if (v === 'x' || v === 'center-x') {
             parser.addC([
               'eq',
@@ -367,8 +367,8 @@ Var "variable"
         parser.addVar(['var',id],id);
         // ['_dimensionize',['get','width'],['get','height']]
       }
-      if ($.selector) {
-        return ['get',id,$.selector];
+      if (sel.selector) {
+        return ['get',id,sel.selector];
       } else {
         return ['get',id];
       }
@@ -382,12 +382,12 @@ VarNames
 
 
 Selector "selector"
-  = "#" $:NameChars+  { $=p.toString($); return {selector:"#"+$,ast:["$id",$]} }
-  / "." $:NameChars+  { $=p.toString($); return {selector:"."+$,ast:["$class",$]} }
-  / "$"? "(" $:QuerySelectorChars+ ")"  { $=p.toString($); return {selector:$,ast:["$all",$]} }
-  / $:NameChars+  { $=p.toString($); return {selector:$,ast:["$tag",$]} }  
-  / "::" $:ReservedPseudos {return {selector:"::"+$,ast:["$reserved", $]}}
-  // $:QuerySelectorChars+ { $=p.toString($); return {selector:$,ast:["$all",$]} }
+  = "#" sel:NameChars+  { sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} }
+  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }
+  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }  
+  / "::" sel:ReservedPseudos {return {selector:"::"+sel,ast:["$reserved", sel]}}
+  // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
 
 QuerySelectorChars
   = [a-zA-Z0-9#.\-_$=:+>'" \]\[]
@@ -399,7 +399,7 @@ ReservedPseudos
   / ("window" / "viewport") {return "window"}
   / ("this" / "") {return "this"}
 
-  //$:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { $=p.toString($); return {selector:$,ast:["$all",$]} }
+  //sel:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
 
 
   

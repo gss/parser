@@ -266,6 +266,7 @@ describe 'CCSS-to-AST', ->
           }
 
   describe '/ Intrinsic Props & dedups /', ->
+    
     # should do nothing special...
     parse """
             #box[width] == #box[intrinsic-width]; 
@@ -293,6 +294,57 @@ describe 'CCSS-to-AST', ->
               ['eq',['get$','right',['$id','box']],['get$','intrinsic-right',['$id','box']]]
             ]
           }
+  
+  
+  
+  describe '/ @? conditionals /', ->
+
+    parse """            
+            ?(#box[right] == #box2[x])
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+              '#box2'
+            ]
+            commands: [
+              ['?==', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
+            ]
+          }
+          
+    parse """            
+            ?( 2 * [right] == [x] + 100 )
+          """
+        ,
+          {
+            selectors: [
+            ]
+            commands: [
+              ['?==',['multiply',['number',2],['get','[right]']], ['plus',['get','[x]'],['number',100]] ]
+            ]
+          }
+          
+    parse """            
+            ?( #box[right] != #box2[x] AND #box[width] <= #box2[width]  )
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+              '#box2'
+            ]
+            commands: [
+              ["&&"
+                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
+                ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]]
+              ]
+            ]
+          }
+          
+    
+  
+  
   
   describe '/ js layout hooks /', ->
 
@@ -496,6 +548,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+          
+    
     
     ### Not valid in parser at this stage
     parse """            

@@ -56,123 +56,14 @@ start
 
 Statement
   = exp:LinearExpression EOS __ { return exp; }
+  / cond:Conditional EOS __     { return cond; }
   / stay:Stay EOS __            { return stay; }
   / chain:Chain EOS __          { return chain; }
-  / js:ForEach EOS __           { return js; }  
-
-
-Chain
-  = "@" "-gss-"? "chain" __ sel:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    parser.add$(sel.selector);
-    var ast = ['chain',sel.ast];
-    chainers.forEach(function(chainer){
-        //if (sw && !chainer.__has_sw ) {
-        //  chainer = chainer.concat(sw);
-        //}
-        ast = ast.concat(chainer);        
-      });    
-
-    p.addC(ast);
-  }
-
-Chainer
-  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ sw:StrengthAndWeight? _ ")" tail:[a-zA-Z\-_0-9]* __ {
-    var asts = []
-    head = p.toString(head);
-    tail = p.toString(tail);    
-    var getAST = function (op, e1, e2) {
-      var ast = [op, e1, e2];
-      if (sw) {
-        ast = ast.concat(sw);
-        //ast.__has_sw = true;
-      }
-      return ast      
-    }
-    
-    if (tail.length === 0) {tail = head;}
-    if (headExp) {
-      headExp.splice(1,1,head);
-      head = headExp;
-    }
-    /*
-    if (tailExp) {
-      tailExp.splice(2,1,tail);
-      tail = tailExp;
-    }
-    */
-    if (bridgeVal) {
-      asts.push( getAST(headEq,head,bridgeVal) );
-      if (tailEq) {
-        asts.push( getAST(tailEq,bridgeVal,tail) );
-      }
-      else {
-        p.error("Invalid Chain Statement",line,column);
-      }      
-    } else {
-      asts.push( getAST(headEq,head,tail) );
-    }
-    return asts;
-  }
-
-HeadExp
-  = math:ChainMath val:AdditiveExpression {
-    return [math, "_REPLACE_ME_", val]
-  }
-
-TailExp
-  = val:AdditiveExpression math:ChainMath {
-    return [math, val, "_REPLACE_ME_"]
-  }
-
-ChainMath
-  = "+" {return "plus-chain"}
-  / "-" {return "minus-chain"}
-  / "*" {return "multiply-chain"}
-  / "/" {return "divide-chain"}
-
-ChainEq
-  = chainEq:EqOperator? {
-    if (!chainEq) {chainEq = "eq";}
-    chainEq += "-chain";
-    return chainEq;
-  }
-
-BridgeValue
-  = (AdditiveExpression)
-
-
-
-ForEach 
-  = type:ForLooperType __ sel:Selector __ js:JavaScript {
-    parser.add$(sel.selector);
-    parser.addC([type,sel.ast,js]);
-    }
-
-JavaScript
-  = "```" js:[^`]* "```" {return ['js',js.join("").trim()]}
-
-ForLooperType
-  = ("@-gss-for-each" / "@for-each") {return "for-each"}
-  / ("@-gss-for-all" / "@for-all") {return "for-all"}
-
-
-Stay 
-  =  StayStart vars:StayVars+ {
-      var stay = ["stay"].concat(vars)
-      parser.addC(stay)
-      return stay;
-    }
-
-StayVars
-  = __ v:Var __ ","?  {return v}
-
-StayStart
-  = ("@-gss-stay" / "@stay")
+  / js:ForEach EOS __           { return js; }    
 
 LinearExpression
   = e1:AdditiveExpression
-    tail:(__ EqOperator __ AdditiveExpression)*
-    __ s:StrengthAndWeight? {
+    tail:(__ EqOperator __ AdditiveExpression)* __ s:StrengthAndWeight? {
       var eq, e2;
       if (s.length === 0) {s = [];}
       for (var i = 0; i < tail.length; i++) {
@@ -187,24 +78,7 @@ LinearExpression
       }
       return "LineaerExpression";
     }
-
-StrengthAndWeight
-  = "!" s:Strength w:Weight?  {
-      if (w.length === 0) {return [s];}
-      return [s,w];
-    }
-  / "!" .? {return parser.error("Invalid Strength or Weight",line,column)}
-
-Weight
-  = w:[0-9]+   {return Number(w.join(""))}
-
-Strength
-  = ("require"  / "REQUIRE"  / "Require")  {return "require"}
-  / ("strong"   / "STRONG"   / "Strong")   {return "strong"}
-  / ("medium"   / "MEDIUM"   / "Medium")   {return "medium"}
-  / ("weak"     / "WEAK"     / "Weak")     {return "weak"}
-  / ("required" / "REQUIRED" / "Required") {return "require"}
-
+  
 EqOperator
   = "==" { return "eq" }
   / ("<=" / "=<") { return "lte" }
@@ -312,30 +186,6 @@ VarNames
   // "position"  {return ["x","y"]}
   // "size"  {return ["width","height"]}
 
-
-Selector "selector"
-  = "#" sel:NameChars+  { sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} }
-  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }
-  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
-  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }  
-  / "::" sel:ReservedPseudos {return {selector:"::"+sel,ast:["$reserved", sel]}}
-  // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
-
-QuerySelectorChars
-  = [a-zA-Z0-9#.\-_$=:+>'" \]\[]
-  
-
-
-ReservedPseudos
-  = ("document" / "host" / "scope" / "parent")
-  / ("window" / "viewport") {return "window"}
-  / ("this" / "") {return "this"}
-
-  //sel:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
-
-
-  
-
 NameChars
   = [a-zA-Z0-9#.\-_$]
 
@@ -403,3 +253,217 @@ _
 
 __
   = (WhiteSpace / LineTerminatorSequence / Comment)*
+
+
+
+// Query Selectors
+// ===================================================
+
+Selector "selector"
+  = "#" sel:NameChars+  { sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} }
+  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }
+  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }  
+  / "::" sel:ReservedPseudos {return {selector:"::"+sel,ast:["$reserved", sel]}}
+  // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+
+QuerySelectorChars
+  = [a-zA-Z0-9#.\-_$=:+>'" \]\[]
+  
+ReservedPseudos
+  = ("document" / "host" / "scope" / "parent")
+  / ("window" / "viewport") {return "window"}
+  / ("this" / "") {return "this"}
+
+  //sel:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+
+
+
+// Strength & Weight
+// ===================================================
+
+StrengthAndWeight
+  = "!" s:Strength w:Weight?  {
+      if (w.length === 0) {return [s];}
+      return [s,w];
+    }
+  / "!" .? {return parser.error("Invalid Strength or Weight",line,column)}
+
+Weight
+  = w:[0-9]+   {return Number(w.join(""))}
+
+Strength
+  = ("require"  / "REQUIRE"  / "Require")  {return "require"}
+  / ("strong"   / "STRONG"   / "Strong")   {return "strong"}
+  / ("medium"   / "MEDIUM"   / "Medium")   {return "medium"}
+  / ("weak"     / "WEAK"     / "Weak")     {return "weak"}
+  / ("required" / "REQUIRED" / "Required") {return "require"}
+
+
+
+// Stays
+// ===================================================
+
+Stay 
+  =  StayStart vars:StayVars+ {
+      var stay = ["stay"].concat(vars)
+      parser.addC(stay)
+      return stay;
+    }
+
+StayVars
+  = __ v:Var __ ","?  {return v}
+
+StayStart
+  = ("@-gss-stay" / "@stay")
+  
+  
+
+// Conditionals
+// ===================================================  
+
+Conditional
+  = "?(" __ result:AndOrExpression __ ")" {parser.addC(result); return result;}
+
+AndOrExpression
+  = head:ConditionalExpression
+    tail:(__ AndOrOp __ ConditionalExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
+AndOrOp
+  = ("AND" / "and" / "And" / "&&") { return "&&" }
+  / ("OR"  / "or"  / "Or"  / "||") { return "||" }
+
+ConditionalExpression
+  = head:AdditiveExpression
+    tail:(__ CondOperator __ AdditiveExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }      
+      return result;
+    }
+
+CondOperator
+  = "==" { return "?==" }
+  / ("<=" / "=<") { return "?<=" }
+  / (">=" / "=>") { return "?>=" }
+  / "<"  { return "?<"  }
+  / ">"  { return "?>"  }
+  / "!="  { return "?!="  }
+
+
+
+// JS hooks
+// ===================================================
+
+ForEach 
+  = type:ForLooperType __ sel:Selector __ js:JavaScript {
+    parser.add$(sel.selector);
+    parser.addC([type,sel.ast,js]);
+    }
+
+JavaScript
+  = "```" js:[^`]* "```" {return ['js',js.join("").trim()]}
+
+ForLooperType
+  = ("@-gss-for-each" / "@for-each") {return "for-each"}
+  / ("@-gss-for-all" / "@for-all") {return "for-all"}
+
+
+
+// Chains
+// ===================================================
+
+Chain
+  = "@" "-gss-"? "chain" __ sel:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
+    parser.add$(sel.selector);
+    var ast = ['chain',sel.ast];
+    chainers.forEach(function(chainer){
+        //if (sw && !chainer.__has_sw ) {
+        //  chainer = chainer.concat(sw);
+        //}
+        ast = ast.concat(chainer);        
+      });    
+
+    p.addC(ast);
+  }
+
+Chainer
+  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ sw:StrengthAndWeight? _ ")" tail:[a-zA-Z\-_0-9]* __ {
+    var asts = []
+    head = p.toString(head);
+    tail = p.toString(tail);    
+    var getAST = function (op, e1, e2) {
+      var ast = [op, e1, e2];
+      if (sw) {
+        ast = ast.concat(sw);
+        //ast.__has_sw = true;
+      }
+      return ast      
+    }
+    
+    if (tail.length === 0) {tail = head;}
+    if (headExp) {
+      headExp.splice(1,1,head);
+      head = headExp;
+    }
+    /*
+    if (tailExp) {
+      tailExp.splice(2,1,tail);
+      tail = tailExp;
+    }
+    */
+    if (bridgeVal) {
+      asts.push( getAST(headEq,head,bridgeVal) );
+      if (tailEq) {
+        asts.push( getAST(tailEq,bridgeVal,tail) );
+      }
+      else {
+        p.error("Invalid Chain Statement",line,column);
+      }      
+    } else {
+      asts.push( getAST(headEq,head,tail) );
+    }
+    return asts;
+  }
+
+HeadExp
+  = math:ChainMath val:AdditiveExpression {
+    return [math, "_REPLACE_ME_", val]
+  }
+
+TailExp
+  = val:AdditiveExpression math:ChainMath {
+    return [math, val, "_REPLACE_ME_"]
+  }
+
+ChainMath
+  = "+" {return "plus-chain"}
+  / "-" {return "minus-chain"}
+  / "*" {return "multiply-chain"}
+  / "/" {return "divide-chain"}
+
+ChainEq
+  = chainEq:EqOperator? {
+    if (!chainEq) {chainEq = "eq";}
+    chainEq += "-chain";
+    return chainEq;
+  }
+
+BridgeValue
+  = (AdditiveExpression)
+

@@ -15,16 +15,6 @@
     if (p.$s.indexOf($) === -1) {p.$s.push($);}
     return $;
   }
-
-  _varsCache = [];
-  p.vars = [];
-  p.addVar = function (ast,id) {
-    if (_varsCache.indexOf(id) === -1) {
-      _varsCache.push(id);
-      p.commands.push(ast);
-    }
-    return ast;
-  }
   
   _measuresCache = [];
   p.measures = [];
@@ -43,7 +33,6 @@
       "selectors": p.$s,
       "commands": p.commands
       //"measures": p.measures,
-      //"vars": p.vars,
       //"constraints": p.cs      
     }
   }
@@ -307,70 +296,13 @@ Var "variable"
           } else if (v === 'bottom') {
             v = 'height'
           }
-        }
-        id = "["+v+"]";
-        id = sel.selector + id;
-        // extract variable expresssions
-        switch (v) {            
-          case 'right':
-            _id1 = sel.selector + "[" + "x" + "]";
-            _id2 = sel.selector + "[" + "width" + "]";
-            parser.addVar(['var', _id1, "x", sel.ast], _id1);
-            parser.addVar(['var', _id2, "width", sel.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], sel.ast], id);
-            break;
-          case 'bottom':
-            _id1 = sel.selector + "[" + "y" + "]";
-            _id2 = sel.selector + "[" + "height" + "]";
-            parser.addVar(['var', _id1, "y", sel.ast], _id1);
-            parser.addVar(['var', _id2, "height", sel.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['get',_id2]], sel.ast], id);
-            break;
-          case 'center-x':          
-          case 'centerX':
-            _id1 = sel.selector + "[" + "x" + "]";
-            _id2 = sel.selector + "[" + "width" + "]";
-            parser.addVar(['var', _id1, "x", sel.ast], _id1);
-            parser.addVar(['var', _id2, "width", sel.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], sel.ast], id);                       break;
-          case 'center-y':
-          case 'centerY':
-            _id1 = sel.selector + "[" + "y" + "]";
-            _id2 = sel.selector + "[" + "height" + "]";
-            parser.addVar(['var', _id1, "y", sel.ast], _id1);
-            parser.addVar(['var', _id2, "height", sel.ast], _id2);
-            parser.addVar(['varexp',id,['plus',['get',_id1],['divide',['get',_id2],2]], sel.ast], id);                       break;
-          default:
-            parser.addVar(['var',id,v,sel.ast],id);
-        }
-        // add constraints for window x & y to be zero
-        /*if (sel.selector === '::window') {
-          if (v === 'x' || v === 'center-x') {
-            parser.addC([
-              'eq',
-              ['get', '::window[x]'],
-              ['number', 0],
-              'required'
-            ]);
-          } else if (v === 'y' || v === 'center-y') {
-            parser.addC([
-              'eq',
-              ['get', '::window[y]'],
-              ['number', 0],
-              'required'
-            ]);
-          }
-        }*/
+        }              
       }
-      else {
-        id = "["+v+"]";
-        parser.addVar(['var',id],id);
-        // ['_dimensionize',['get','width'],['get','height']]
-      }
+      
       if (sel.selector) {
-        return ['get',id,sel.selector];
+        return ['get$',v,sel.ast];
       } else {
-        return ['get',id];
+        return ['get',"["+v+"]"];
       }
       
     }

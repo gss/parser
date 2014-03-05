@@ -6,7 +6,3 @@ This library compiles GSS-flavored [CCSS](http://www.cs.washington.edu/research/
 ## Documentation
 
 Please refer to <http://gridstylesheets.org/guides/ccss/>.
-
-
-
-

@@ -11,7 +11,8 @@
   };
   
   p.$s = [];
-  p.add$ = function ($) {
+  p.add$ = function ($) {    
+    if (!$) {return undefined};
     if (p.$s.indexOf($) === -1) {p.$s.push($);}
     return $;
   }
@@ -173,7 +174,7 @@ Var "variable"
         }              
       }
       
-      if (sel.selector) {
+      if (sel.selector || sel.isVirtual) {
         return ['get$',v,sel.ast];
       } else {
         return ['get',"["+v+"]"];
@@ -261,10 +262,11 @@ __
 
 Selector "selector"
   = "#" sel:NameChars+  { sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} }
-  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }
-  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
-  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }  
   / "::" sel:ReservedPseudos {return {selector:"::"+sel,ast:["$reserved", sel]}}
+  / '"' name:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {name=p.toString(name); console.log(name); return {isVirtual:true, ast:["$virtual", name]} }
+  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }  
+  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }    
+  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
   // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
 
 QuerySelectorChars

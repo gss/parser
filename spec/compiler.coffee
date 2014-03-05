@@ -10,9 +10,10 @@ parse = (source, expect) ->
     it 'should do something', ->
       result = parser.parse source
       chai.expect(result).to.be.an 'object'
-    it 'should match expected', ->      
-      chai.expect(result.selectors).to.eql expect.selectors or []
+    it 'commands ✓', ->      
       chai.expect(result.commands).to.eql expect.commands or []
+    it 'selectors ✓', ->      
+      chai.expect(result.selectors).to.eql expect.selectors or []    
       #chai.expect(result.measures).to.eql expect.measures or []
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
@@ -20,6 +21,9 @@ parse = (source, expect) ->
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
     chai.expect(parser.parse).to.be.a 'function'
+  
+  # Basics
+  # ====================================================================
   
   describe "/* Basics */", ->
   
@@ -54,6 +58,10 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 4], ['number', 5]]
             ]
           }
+  
+  
+  # Name Normalization
+  # ====================================================================
   
   describe "/* Normalize Names */", ->
     
@@ -143,6 +151,9 @@ describe 'CCSS-to-AST', ->
           }
 
   
+  # Strength
+  # ====================================================================
+  
   describe "/* Strength */", ->
     
     parse """
@@ -156,7 +167,11 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 5], ['number', 6], 'strong', 10]
             ]
           }
-          
+  
+    
+  # Stays
+  # ====================================================================
+  
   describe "/* Stays */", ->
     
     parse """
@@ -184,6 +199,10 @@ describe 'CCSS-to-AST', ->
             ]
           }
   
+  
+  # Expressions
+  # ====================================================================
+  
   describe "/* Variable Expressions */", ->
     
     parse """
@@ -199,6 +218,10 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
             ]
           }
+  
+  
+  # Adv Selectors
+  # ====================================================================
   
   describe '/* Advanced Selectors */', ->
     
@@ -228,6 +251,9 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
+  
+  # Pseudos
+  # ====================================================================
   
   describe '/* Reserved Pseudos */', ->
     
@@ -264,8 +290,12 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
             ]
           }
-
-  describe '/ Intrinsic Props & dedups /', ->
+  
+  
+  # Intrinsics
+  # ====================================================================
+  
+  describe '/ Intrinsic Props /', ->
     
     # should do nothing special...
     parse """
@@ -296,6 +326,36 @@ describe 'CCSS-to-AST', ->
           }
   
   
+  # Virtual Elements
+  # ====================================================================
+  
+  describe '/ "Virtual Elements" /', ->
+
+    parse """            
+            "Zone"[width] == 100;
+          """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
+            ]
+          }
+    
+    parse """            
+            "A"[left] == "1"[top];
+          """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
+            ]
+          }
+  
+  
+  # Conditionals
+  # ====================================================================
   
   describe '/ @? conditionals /', ->
 
@@ -342,9 +402,9 @@ describe 'CCSS-to-AST', ->
             ]
           }
           
-    
-  
-  
+      
+  # JS Shit... WIP
+  # ====================================================================
   
   describe '/ js layout hooks /', ->
 
@@ -402,6 +462,8 @@ describe 'CCSS-to-AST', ->
           }
   
   
+  # Chains... WIP
+  # ====================================================================
   
   describe '/ @chain /', ->
 

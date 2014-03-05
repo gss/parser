@@ -342,7 +342,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
-    parse """            
+    parse """
             "A"[left] == "1"[top];
           """
         ,
@@ -352,6 +352,15 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
             ]
           }
+          
+    parse '"box"[right] == "box2"[left];',
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
+            ]
+          }
+        
   
   
   # Conditionals

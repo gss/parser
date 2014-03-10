@@ -312,7 +312,6 @@ Virtual
   {
     var command = ["virtual"].concat(names);
     parser.addC(command);
-    console.log(command)
     return command;
   }
 

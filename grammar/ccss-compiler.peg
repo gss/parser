@@ -57,7 +57,8 @@ start
 
 Statement
   = exp:LinearExpression EOS __ { return exp; }
-  / cond:Conditional EOS __     { return cond; }
+  / virtual:Virtual EOS __      { return virtual; }
+  / cond:Conditional EOS __     { return cond; }  
   / stay:Stay EOS __            { return stay; }
   / chain:Chain EOS __          { return chain; }
   / js:ForEach EOS __           { return js; }    
@@ -301,6 +302,22 @@ Strength
   / ("weak"     / "WEAK"     / "Weak")     {return "weak"}
   / ("required" / "REQUIRED" / "Required") {return "require"}
 
+
+// Virtual
+// ===================================================
+// also see query selectors
+
+Virtual
+  = "@" ("-gss-virtual" / "virtual") __ names:VirtualName+ 
+  {
+    var command = ["virtual"].concat(names);
+    parser.addC(command);
+    console.log(command)
+    return command;
+  }
+
+VirtualName
+  = '"' name:[^"]+ '"' __ { return name.join("") }
 
 
 // Stays

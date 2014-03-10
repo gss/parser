@@ -330,7 +330,19 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
   
   describe '/ "Virtual Elements" /', ->
-
+    
+    parse """            
+            @virtual "Zone";
+          """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['virtual','Zone']
+            ]
+          }
+          
+    
     parse """            
             "Zone"[width] == 100;
           """

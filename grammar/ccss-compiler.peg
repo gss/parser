@@ -32,7 +32,8 @@
   p.getResults = function () {
     return {
       "selectors": p.$s,
-      "commands": p.commands
+      // potential shared state from chaining
+      "commands": JSON.parse(JSON.stringify(p.commands))
       //"measures": p.measures,
       //"constraints": p.cs      
     }
@@ -262,12 +263,27 @@ __
 // ===================================================
 
 Selector "selector"
-  = "#" sel:NameChars+  { sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} }
-  / "::" sel:ReservedPseudos {return {selector:"::"+sel,ast:["$reserved", sel]}}
-  / '"' name:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {name=p.toString(name); return {isVirtual:true, ast:["$virtual", name]} }
-  / "." sel:NameChars+  { sel=p.toString(sel); return {selector:"."+sel,ast:["$class",sel]} }  
-  / sel:NameChars+  { sel=p.toString(sel); return {selector:sel,ast:["$tag",sel]} }    
-  / "$"? "(" sel:QuerySelectorChars+ ")"  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+  = "#" sel:NameChars+ { 
+    sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} 
+  }
+  / "::" sel:ReservedPseudos {
+    return {selector:"::"+sel,ast:["$reserved", sel]}
+  }
+  / '"' name:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
+    name=p.toString(name); 
+    return {isVirtual:true, ast:["$virtual", name]} 
+  }
+  / "." sel:NameChars+  { 
+    sel=p.toString(sel); 
+    return {selector:"."+sel,ast:["$class",sel]};
+  }  
+  / sel:NameChars+  { 
+    sel=p.toString(sel); 
+    return {selector:sel,ast:["$tag",sel]} 
+  }    
+  / "$"? "(" sel:QuerySelectorChars+ ")"  { 
+    sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} 
+  }
   // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
 
 QuerySelectorChars

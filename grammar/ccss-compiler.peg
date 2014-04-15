@@ -144,7 +144,7 @@ PrimaryExpression
   = Measure
   / Var 
   / Literal
-  / "(" __ expression:LinearExpression __ ")" { return expression; }
+  / "(" __ expression:AdditiveExpression __ ")" { return expression; }
 
 Measure "measure"
   = "measure(" __ v:Var __ ")"  { return p.processMeasure(["measure",v]);}

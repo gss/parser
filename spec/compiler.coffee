@@ -42,6 +42,36 @@ describe 'CCSS-to-AST', ->
           }
             
     parse """
+            [md-width] == ([width] * 2 - [gap] * 2) / 4 + 10 !require; // order of operations
+          """
+        ,
+          {
+            selectors: []
+            commands: [              
+              ['eq', 
+                ['get', '[md-width]'],
+                ['plus'
+                  [ 'divide', 
+                    ['minus',
+                      ['multiply', 
+                        ['get','[width]'],
+                        ['number',2]
+                      ], 
+                      ['multiply', 
+                        ['get','[gap]'],
+                        ['number',2]
+                      ]
+                    ],
+                    ['number',4]
+                  ],
+                  ['number',10] 
+                ],
+                "require"]
+            ]
+          }
+    
+    
+    parse """
             [grid-height] * #box2[width] <= 2 == 3 < 4 == 5 // w/ multiple statements containing variables and getters
           """
         ,

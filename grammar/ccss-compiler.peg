@@ -57,16 +57,57 @@ start
   = __ statements:(Statement*) __ { return (parser.getResults()); }
 
 Statement
-  = exp:LinearExpression EOS __ { return exp; }
+  = exp:LinearConstraint EOS __ { return exp; }
   / virtual:Virtual EOS __      { return virtual; }
   / cond:Conditional EOS __     { return cond; }  
   / stay:Stay EOS __            { return stay; }
   / chain:Chain EOS __          { return chain; }
   / js:ForEach EOS __           { return js; }    
 
-LinearExpression
-  = e1:AdditiveExpression
-    tail:(__ EqOperator __ AdditiveExpression)* __ s:StrengthAndWeight? {
+
+AndOrExpression
+  = head:ConditionalExpression
+    tail:(__ AndOrOp __ ConditionalExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
+AndOrOp
+  = ("AND" / "and" / "And" / "&&") { return "&&" }
+  / ("OR"  / "or"  / "Or"  / "||") { return "||" }
+
+ConditionalExpression
+  = head:AdditiveExpression
+    tail:(__ CondOperator __ AdditiveExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }      
+      return result;
+    }
+
+CondOperator
+  = "==" { return "?==" }
+  / ("<=" / "=<") { return "?<=" }
+  / (">=" / "=>") { return "?>=" }
+  / "<"  { return "?<"  }
+  / ">"  { return "?>"  }
+  / "!="  { return "?!="  }
+
+LinearConstraint
+  = e1:ConstraintAdditiveExpression
+    tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ s:StrengthAndWeight? {
       var eq, e2;
       if (s.length === 0) {s = [];}
       for (var i = 0; i < tail.length; i++) {
@@ -82,12 +123,26 @@ LinearExpression
       return "LineaerExpression";
     }
   
-EqOperator
+LinearConstraintOperator
   = "==" { return "eq" }
   / ("<=" / "=<") { return "lte" }
   / (">=" / "=>") { return "gte" }
   / "<"  { return "lt"  }
   / ">"  { return "gt"  }
+
+ConstraintAdditiveExpression
+  = head:ConstraintMultiplicativeExpression
+    tail:(__ AdditiveOperator __ ConstraintMultiplicativeExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
 
 AdditiveExpression
   = head:MultiplicativeExpression
@@ -107,9 +162,23 @@ AdditiveOperator
   = "+" { return "plus" }
   / "-" { return "minus" }
 
+ConstraintMultiplicativeExpression
+  = head:ConstraintPrimaryExpression
+    tail:(__ MultiplicativeOperator __ ConstraintPrimaryExpression)* {
+      var result = head;
+      for (var i = 0; i < tail.length; i++) {
+        result = [
+          tail[i][1],
+          result,
+          tail[i][3]
+        ];
+      }
+      return result;
+    }
+
 MultiplicativeExpression
-  = head:UnaryExpression
-    tail:(__ MultiplicativeOperator __ UnaryExpression)* {
+  = head:PrimaryExpression
+    tail:(__ MultiplicativeOperator __ PrimaryExpression)* {
       var result = head;
       for (var i = 0; i < tail.length; i++) {
         result = [
@@ -125,26 +194,17 @@ MultiplicativeOperator
   = "*" {return "multiply"}
   / "/" {return "divide"}
 
-UnaryExpression
-  = PrimaryExpression
-  / operator:UnaryOperator __ expression:UnaryExpression {
-      return {
-        type:       "UnaryExpression",
-        operator:   operator,
-        expression: expression
-      };
-    }
-
-UnaryOperator
-  = "+"
-  / "-"
-  /  "!"
+ConstraintPrimaryExpression
+  = Measure
+  / Var 
+  / Literal
+  / "(" __ expression:ConstraintAdditiveExpression __ ")" { return expression; }
 
 PrimaryExpression
   = Measure
   / Var 
   / Literal
-  / "(" __ expression:AdditiveExpression __ ")" { return expression; }
+  / "(" __ expression:AndOrExpression __ ")" { return expression; }
 
 Measure "measure"
   = "measure(" __ v:Var __ ")"  { return p.processMeasure(["measure",v]);}
@@ -357,47 +417,7 @@ StayStart
 // ===================================================  
 
 Conditional
-  = "?(" __ result:AndOrExpression __ ")" {parser.addC(result); return result;}
-
-AndOrExpression
-  = head:ConditionalExpression
-    tail:(__ AndOrOp __ ConditionalExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
-    }
-
-AndOrOp
-  = ("AND" / "and" / "And" / "&&") { return "&&" }
-  / ("OR"  / "or"  / "Or"  / "||") { return "||" }
-
-ConditionalExpression
-  = head:AdditiveExpression
-    tail:(__ CondOperator __ AdditiveExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }      
-      return result;
-    }
-
-CondOperator
-  = "==" { return "?==" }
-  / ("<=" / "=<") { return "?<=" }
-  / (">=" / "=>") { return "?>=" }
-  / "<"  { return "?<"  }
-  / ">"  { return "?>"  }
-  / "!="  { return "?!="  }
+  = "@cond" __ result:AndOrExpression __ {parser.addC(result); return result;}
 
 
 
@@ -492,7 +512,7 @@ ChainMath
   / "/" {return "divide-chain"}
 
 ChainEq
-  = chainEq:EqOperator? {
+  = chainEq:LinearConstraintOperator? {
     if (!chainEq) {chainEq = "eq";}
     chainEq += "-chain";
     return chainEq;

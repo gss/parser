@@ -1,8 +1,9 @@
-if typeof process is 'object' and process.title is 'node'
+if window? 
+  parser = require 'ccss-compiler'
+else
   chai = require 'chai' unless chai
   parser = require '../lib/ccss-compiler'
-else
-  parser = require 'ccss-compiler'
+  
 
 parse = (source, expect) ->
   result = null
@@ -411,7 +412,7 @@ describe 'CCSS-to-AST', ->
   describe '/ @? conditionals /', ->
 
     parse """            
-            ?(#box[right] == #box2[x])
+            @cond #box[right] == #box2[x];
           """
         ,
           {
@@ -425,7 +426,7 @@ describe 'CCSS-to-AST', ->
           }
           
     parse """            
-            ?( 2 * [right] == [x] + 100 )
+            @cond 2 * [right] == [x] + 100;
           """
         ,
           {
@@ -437,7 +438,7 @@ describe 'CCSS-to-AST', ->
           }
           
     parse """            
-            ?( #box[right] != #box2[x] AND #box[width] <= #box2[width]  )
+            @cond #box[right] != #box2[x] AND #box[width] <= #box2[width];
           """
         ,
           {
@@ -449,6 +450,43 @@ describe 'CCSS-to-AST', ->
               ["&&"
                 ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
                 ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]]
+              ]
+            ]
+          }
+    
+    parse """            
+            @cond (#box[right] != #box2[x]) AND (#box[width] <= #box2[width]);
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+              '#box2'
+            ]
+            commands: [
+              ["&&"
+                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
+                ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]]
+              ]
+            ]
+          }
+    
+    parse """            
+            @cond (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100);
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+              '#box2'
+            ]
+            commands: [
+              ["&&"
+                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
+                ["||"
+                  ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]],
+                  ['?==', ['get','[x]'],['number',100]]
+                ]
               ]
             ]
           }

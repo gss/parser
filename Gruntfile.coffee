@@ -5,9 +5,9 @@ module.exports = ->
 
     # Generate library from Peg grammar
     peg:
-      fbp:
-        grammar: 'grammar/ccss-compiler.peg'
-        outputFile: 'lib/ccss-compiler.js'
+      ccss_compiler:
+        src: 'grammar/ccss-compiler.peg'
+        dest: 'lib/ccss-compiler.js'
 
     # Build the browser Component
     component_build:

@@ -109,7 +109,7 @@ LinearConstraint
   = e1:ConstraintAdditiveExpression
     tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ s:StrengthAndWeight? {
       var eq, e2;
-      if (s.length === 0) {s = [];}
+      if (typeof s === "undefined" || s === null || s.length === 0) {s = [];}
       for (var i = 0; i < tail.length; i++) {
         eq = tail[i][1];
         e2 = tail[i][3];
@@ -214,7 +214,7 @@ Var "variable"
       var result, id, _id1, _id2;
       v = v.join("");      
       // if bound to dom query
-      if (sel.length !== 0) {
+      if (typeof sel !== "undefined" && sel !== null && sel.length !== 0) {
         parser.add$(sel.selector);
         // normalize var names when query bound
         if (v === 'left') {
@@ -235,8 +235,8 @@ Var "variable"
           }
         }              
       }
-      
-      if (sel.selector || sel.isVirtual) {
+
+      if ((typeof sel !== "undefined" && sel !== null) && (sel.selector || sel.isVirtual)) {
         return ['get$',v,sel.ast];
       } else {
         return ['get',"["+v+"]"];
@@ -363,7 +363,7 @@ ReservedPseudos
 
 StrengthAndWeight
   = "!" s:Strength w:Weight?  {
-      if (w.length === 0) {return [s];}
+      if (typeof w === "undefined" || w === null || w.length === 0) {return [s];}
       return [s,w];
     }
   / "!" .? {return parser.error("Invalid Strength or Weight",line,column)}

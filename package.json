@@ -15,6 +15,7 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-cafe-mocha": "~0.1.2",
+    "grunt-cli": "~0.1.13",
     "chai": "~1.5.0",
     "mocha": "~1.9.0",
     "grunt-contrib-watch": "~0.3.1",
@@ -26,7 +27,7 @@
   },
   "keywords": [],
   "scripts": {
-    "test": "grunt test"
+    "test": "node_modules/.bin/grunt test"
   },
   "main": "./lib/ccss-compiler"
 }

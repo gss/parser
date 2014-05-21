@@ -768,30 +768,145 @@ describe 'CCSS-to-AST', ->
             ]
           }
   ###
-  # This should probably be handled with a preparser or optimizer, not the main PEG grammar
-  #
-  #describe '/* 2D */', ->
-  #
-  #  parse """
-  #          @-gss-stay #box[size];
-  #          #box[position] >= measure(#box[position]) !require;
-  #          // with a 2D stay, 2D constraint and measure    
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            '#box'
-  #          ]
-  #          vars: [
-  #            ['get', '#box[width]', 'width', ['$id', 'box']]
-  #            ['get', '#box[height]', 'height', ['$id', 'box']]
-  #            ['get', '#box[x]', 'x', ['$id', 'box']]
-  #            ['get', '#box[y]', 'y', ['$id', 'box']]
-  #          ]
-  #          constraints: [
-  #            ['stay', ['get', '#box[width]']]
-  #            ['stay', ['get', '#box[height]']]
-  #            ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
-  #            ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
-  #          ]
-  #        }
+
+  # 2D
+  # ====================================================================
+
+  describe '/* 2D */', ->
+
+    parse """
+            #box1[size] == #box2[size];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]],
+              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[position] == #box2[position];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'x', ['$id', 'box1']], ['get$', 'x', ['$id', 'box2']]],
+              ['eq', ['get$', 'y', ['$id', 'box1']], ['get$', 'y', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[top-right] == #box2[center];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]],
+              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[bottom-right] == #box2[center];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]],
+              ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[bottom-left] == #box2[center];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]],
+              ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[top-left] == #box2[center];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]],
+              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[size] == #box2[intrinsic-size];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'intrinsic-width', ['$id', 'box2']]],
+              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'intrinsic-height', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            @-gss-stay #box[size];
+          """
+        ,
+          {
+            selectors: [
+              '#box'
+            ]
+            commands: [
+              ['stay', ['get$', 'width', ['$id','box']]]
+              ['stay', ['get$', 'height', ['$id','box']]]
+            ]
+          }
+
+   # parse """
+   #         @-gss-stay #box[size];
+   #         #box[position] >= measure(#box[position]) !require;
+   #         // with a 2D stay, 2D constraint and measure
+   #       """
+   #     ,
+   #       {
+   #         selectors: [
+   #           '#box'
+   #         ]
+   #         commands: [
+   #           ['stay', ['get', '#box[width]']]
+   #           ['stay', ['get', '#box[height]']]
+   #           ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
+   #           ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
+   #         ]
+   #       }

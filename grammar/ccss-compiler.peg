@@ -51,6 +51,34 @@
     return m;
   }
 
+  p.unpack2dConstraint = function(ast, indices) {
+    var mapping = {
+      "bottom-left": ["left", "bottom"],
+      "bottom-right": ["right", "bottom"],
+      center: ["center-x", "center-y"],
+      "intrinsic-size": ["intrinsic-width", "intrinsic-height"],
+      position: ["x", "y"],
+      size: ["width", "height"],
+      "top-left": ["left", "top"],
+      "top-right": ["right", "top"]
+    };
+
+    var commands = [ast];
+    var property = ast[1];
+    var properties = mapping[property];
+
+    if (properties) {
+      commands = [];
+      for (var i = 0, l = properties.length; i < l; i++) {
+        var command = ast.slice();
+        command[1] = properties[i];
+        commands.push(command);
+      }
+    }
+
+    return commands;
+  };
+
 }
 
 start
@@ -106,23 +134,34 @@ CondOperator
   / "!="  { return "?!="  }
 
 LinearConstraint
-  = e1:ConstraintAdditiveExpression
+  = head:ConstraintAdditiveExpression
     tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ s:StrengthAndWeight? {
-      var eq, e2;
+      var eq, e1, e2;
+      e1 = head;
+
       if (typeof s === "undefined" || s === null || s.length === 0) {s = [];}
-      for (var i = 0; i < tail.length; i++) {
+
+      for (var i = 0, l = tail.length; i < l; i++) {
         eq = tail[i][1];
         e2 = tail[i][3];
-        parser.addC([
-          eq,
-          e1,
-          e2
-        ].concat(s));
+
+        var headConstraints = parser.unpack2dConstraint(e1);
+        var tailConstraints = parser.unpack2dConstraint(e2);
+
+        for (var i2 = 0, l2 = tailConstraints.length; i2 < l2; i2++) {
+          parser.addC([
+            eq,
+            headConstraints[i2],
+            tailConstraints[i2]
+          ].concat(s));
+        }
+
         e1 = e2;
       }
+
       return "LineaerExpression";
     }
-  
+
 LinearConstraintOperator
   = "==" { return "eq" }
   / ("<=" / "=<") { return "lte" }
@@ -398,10 +437,17 @@ VirtualName
 // Stays
 // ===================================================
 
-Stay 
+Stay
   =  StayStart vars:StayVars+ {
       var stay = ["stay"].concat(vars)
-      parser.addC(stay)
+      var constraints = parser.unpack2dConstraint(stay[1]);
+
+      for (var i = 0, l = constraints.length; i < l; i++) {
+        var newStay = stay.slice();
+        newStay[1] = constraints[i];
+        parser.addC(newStay);
+      }
+
       return stay;
     }
 

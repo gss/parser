@@ -880,6 +880,77 @@ describe 'CCSS-to-AST', ->
           }
 
     parse """
+            #box1[top-left] == #box2[bottom-right];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'right', ['$id', 'box2']]]
+              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'bottom', ['$id', 'box2']]],
+            ]
+          }
+
+    parse """
+            #box1[size] == #box2[width];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]],
+            ]
+          }
+
+    parse """
+            #box1[size] == #box2[height];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
+            #box1[width] == #box2[size];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]],
+            ]
+          }
+
+    parse """
+            #box1[height] == #box2[size];
+          """
+        ,
+          {
+            selectors: [
+              '#box1'
+              '#box2'
+            ]
+            commands: [
+              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+            ]
+          }
+
+    parse """
             @-gss-stay #box[size];
           """
         ,

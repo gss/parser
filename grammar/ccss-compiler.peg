@@ -399,10 +399,14 @@ Selector "selector"
     sel=p.toString(sel); 
     return {selector:sel,ast:["$tag",sel]} 
   }    
-  / "$"? "(" sel:QuerySelectorChars+ ")"  { 
+  / "(" sel:QuerySelectorAllParts+ ")"  { 
     sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} 
   }
   // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+
+QuerySelectorAllParts
+  = sel:QuerySelectorChars+ {return p.toString(sel)}
+  / "(" sel:[^)]* ")" {return "("+p.toString(sel)+")"}
 
 QuerySelectorChars
   = [a-zA-Z0-9#.\-_$=:+>'" \]\[]

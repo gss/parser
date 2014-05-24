@@ -268,17 +268,17 @@ describe 'CCSS-to-AST', ->
               ['eq',['get$','width',['$all','html #main .boxes']], ['get','[col-width]']]
             ]
           }
-    # adv selector with brackets
+
     parse """
-            (html #main:hover .boxes[data-target="true"])[width] == [col-width]
+            (html #main:not(.disabled) .boxes[data-target="true"])[width] == [col-width]
           """
         ,
           {
             selectors: [
-              'html #main:hover .boxes[data-target=\"true\"]'
+              'html #main:not(.disabled) .boxes[data-target=\"true\"]'
             ]
             commands: [
-              ['eq', ['get$','width',['$all','html #main:hover .boxes[data-target=\"true\"]']], ['get', '[col-width]']]
+              ['eq', ['get$','width',['$all','html #main:not(.disabled) .boxes[data-target=\"true\"]']], ['get', '[col-width]']]
             ]
           }
 

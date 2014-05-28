@@ -216,7 +216,7 @@ StrengthAndWeight
     return grammar.strengthAndWeight().valid(strength, weight);
   }
   / "!" .? {
-    return grammar.strengthAndWeight().invalid(line(), column());
+    return grammar.strengthAndWeight().invalid(input, line(), column());
   }
 
 Weight
@@ -310,6 +310,7 @@ Chainer
         tailOperator: tailOperator,
         strengthAndWeight: strengthAndWeight,
         tailCharacters: tailCharacters,
+        input: input,
         line: line(),
         column: column()
       });

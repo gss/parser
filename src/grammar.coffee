@@ -93,7 +93,7 @@ class Grammar
   _selectors: null
 
 
-  # Add a command to _commands.
+  # Add a command to @_commands.
   # @private
   #
   # @param command [Array]
@@ -102,7 +102,7 @@ class Grammar
     @_commands.push command
 
 
-  # Add a selector to _selectors, if not already in the list.
+  # Add a selector to @_selectors, if not already in the list.
   # @private
   #
   # @param selector [String] A selector.
@@ -114,7 +114,7 @@ class Grammar
     return selector
 
 
-  # Create an object containing @commands and @selectors.
+  # Create an object containing @_commands and @_selectors.
   # @private
   #
   # @return [Object] An object consisting of commands and selectors.

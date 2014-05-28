@@ -114,18 +114,6 @@ class Grammar
     return selector
 
 
-  # Create an object containing @_commands and @_selectors.
-  # @private
-  #
-  # @return [Object] An object consisting of commands and selectors.
-  #
-  _getResults: ->
-    return {
-      commands: JSON.parse(JSON.stringify(@_commands))
-      selectors: @_selectors
-    }
-
-
 
 
   ### Public ###
@@ -142,7 +130,10 @@ class Grammar
   # @return [Object] An object consisting of commands and selectors.
   #
   start: ->
-    return @_getResults()
+    return {
+      commands: JSON.parse(JSON.stringify(@_commands))
+      selectors: @_selectors
+    }
 
 
   # Statements.

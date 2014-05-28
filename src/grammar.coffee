@@ -212,7 +212,7 @@ class Grammar
   # @param head [Array]
   # @param tail [Array]
   # @param strengthAndWeight [Array]
-  # return [String]
+  # @return [String]
   #
   linearConstraint: (head, tail, strengthAndWeight) ->
     firstExpression = head

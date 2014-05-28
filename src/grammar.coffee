@@ -31,7 +31,7 @@ class Grammar
   # @return [String] The message originally passed to the method.
   #
   @_reportError: (message, line, column) ->
-    message += " {line:#{line}, col:#{column}}" if line? and column?
+    message = "#{message} {line:#{line}, col:#{column}}" if line? and column?
     console.error(message);
     return message;
 

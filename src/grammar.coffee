@@ -120,15 +120,49 @@ class Grammar
     return selector
 
 
+  # Get the current column number as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [Number] The current column number.
+  #
+  _column: ->
+
+
+  # Get the current input string as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [String] the current input string.
+  #
+  _input: ->
+
+
+  # Get the current line number as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [Number] The current line number.
+  #
+  _line: ->
+
+
 
 
   ### Public ###
 
   # Construct a new Grammar.
   #
-  constructor: ->
+  # @param input [Function] A getter for the current input string.
+  # @param line [Function] A getter for the current line number.
+  # @param column [Function] A getter for the current column number.
+  #
+  constructor: (input, line, column) ->
     @_commands = []
     @_selectors = []
+    @_input = input
+    @_line = line
+    @_column = column
 
 
   # The start rule.
@@ -572,13 +606,10 @@ class Grammar
 
       # Invalid strength and weight directives.
       #
-      # @param line [Number] The line number where the invalid directive exists.
-      # @param column [Number] The column number where the invalid directive
-      # exists.
       # @return [String] A message explaining the validity of the directive.
       #
-      invalid: (line, column) ->
-        return Grammar._reportError 'Invalid Strength or Weight', line, column
+      invalid: =>
+        return Grammar._reportError 'Invalid Strength or Weight', @_line(), @_column()
 
     }
 
@@ -738,11 +769,9 @@ class Grammar
   # @option options tailOperator [String]
   # @option options strengthAndWeight [Array]
   # @option options tailCharacters [Array<String>]
-  # @option options line [Number]
-  # @option options column [Number]
   # @return [Array]
   #
-  chainer: (options) ->
+  chainer: (options) =>
     {
       headCharacters
       headExpression
@@ -751,8 +780,6 @@ class Grammar
       tailOperator
       strengthAndWeight
       tailCharacters
-      line
-      column
     } = options
 
     asts = []
@@ -778,7 +805,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      Grammar._reportError 'Invalid Chain Statement', line, column
+      Grammar._reportError 'Invalid Chain Statement', @_line(), @_column()
 
     return asts
 

@@ -84,11 +84,17 @@ class Grammar
   # @property [Array<Array>] A list of commands.
   # @private
   #
+  # @note Assigned in constructor to prevent the array from being passed by
+  # reference and shared between all instances.
+  #
   _commands: null
 
 
   # @property [Array<String>] A list of selectors.
   # @private
+  #
+  # @note Assigned in constructor to prevent the array from being passed by
+  # reference and shared between all instances.
   #
   _selectors: null
 

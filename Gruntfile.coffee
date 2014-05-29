@@ -45,6 +45,14 @@ module.exports = ->
         src: ['**.coffee']
         dest: 'spec'
         ext: '.js'
+      grammar:
+        options:
+          bare: true
+        expand: true
+        cwd: 'src'
+        src: ['**.coffee']
+        dest: 'lib'
+        ext: '.js'
 
     # BDD tests on browser
     mocha_phantomjs:
@@ -61,6 +69,6 @@ module.exports = ->
   @loadNpmTasks 'grunt-mocha-phantomjs'
   @loadNpmTasks 'grunt-contrib-watch'
 
-  @registerTask 'build', ['peg', 'component_build', 'uglify']
-  @registerTask 'test', ['build', 'coffee', 'cafemocha', 'mocha_phantomjs']
+  @registerTask 'build', ['coffee:grammar', 'peg', 'component_build', 'uglify']
+  @registerTask 'test', ['build', 'coffee:spec', 'cafemocha', 'mocha_phantomjs']
   @registerTask 'default', ['build']

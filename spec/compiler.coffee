@@ -1,9 +1,9 @@
-if window? 
+if window?
   parser = require 'ccss-compiler'
 else
   chai = require 'chai' unless chai
   parser = require '../lib/ccss-compiler'
-  
+
 
 parse = (source, expect) ->
   result = null
@@ -11,27 +11,26 @@ parse = (source, expect) ->
     it 'should do something', ->
       result = parser.parse source
       chai.expect(result).to.be.an 'object'
-    it 'commands ✓', ->      
+    it 'commands ✓', ->
       chai.expect(result.commands).to.eql expect.commands or []
-    it 'selectors ✓', ->      
-      chai.expect(result.selectors).to.eql expect.selectors or []    
-      #chai.expect(result.measures).to.eql expect.measures or []
+    it 'selectors ✓', ->
+      chai.expect(result.selectors).to.eql expect.selectors or []
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
 
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
     chai.expect(parser.parse).to.be.a 'function'
-  
+
   # Basics
   # ====================================================================
-  
+
   describe "/* Basics */", ->
-  
+
     parse """
             10 <= 2 == 3 < 4 == 5 // chainning numbers, maybe should throw error?
           """
-        , 
+        ,
           {
             selectors: []
             commands: [
@@ -41,47 +40,47 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 4], ['number', 5]]
             ]
           }
-            
+
     parse """
             [md-width] == ([width] * 2 - [gap] * 2) / 4 + 10 !require; // order of operations
           """
         ,
           {
             selectors: []
-            commands: [              
-              ['eq', 
+            commands: [
+              ['eq',
                 ['get', '[md-width]'],
                 ['plus'
-                  [ 'divide', 
+                  [ 'divide',
                     ['minus',
-                      ['multiply', 
+                      ['multiply',
                         ['get','[width]'],
                         ['number',2]
-                      ], 
-                      ['multiply', 
+                      ],
+                      ['multiply',
                         ['get','[gap]'],
                         ['number',2]
                       ]
                     ],
                     ['number',4]
                   ],
-                  ['number',10] 
+                  ['number',10]
                 ],
                 "require"]
             ]
           }
-    
-    
+
+
     parse """
             [grid-height] * #box2[width] <= 2 == 3 < 4 == 5 // w/ multiple statements containing variables and getters
           """
         ,
           {
             selectors: ["#box2"]
-            commands: [              
+            commands: [
               ['lte', [
                 'multiply', ['get', '[grid-height]'], ['get$', 'width', ['$id', 'box2']]
-                ], 
+                ],
                 ['number', 2]
               ]
               ['eq', ['number', 2], ['number', 3]]
@@ -89,13 +88,13 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 4], ['number', 5]]
             ]
           }
-  
-  
+
+
   # Name Normalization
   # ====================================================================
-  
+
   describe "/* Normalize Names */", ->
-    
+
     parse """
             #b[left] == [left];
             [left-col] == [col-left];
@@ -118,7 +117,7 @@ describe 'CCSS-to-AST', ->
               ['eq',['get$','y',['$id','b']],['get','[top]']]
             ]
           }
-    
+
     parse """
             [right] == ::window[right];
           """
@@ -181,12 +180,12 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-  
+
   # Strength
   # ====================================================================
-  
+
   describe "/* Strength */", ->
-    
+
     parse """
             4 == 5 == 6 !strong10 // w/ strength and weight
           """
@@ -198,13 +197,13 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 5], ['number', 6], 'strong', 10]
             ]
           }
-  
-    
+
+
   # Stays
   # ====================================================================
-  
+
   describe "/* Stays */", ->
-    
+
     parse """
             @-gss-stay #box[width], [grid-height];
           """
@@ -229,13 +228,13 @@ describe 'CCSS-to-AST', ->
               ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
             ]
           }
-  
-  
+
+
   # Expressions
   # ====================================================================
-  
+
   describe "/* Variable Expressions */", ->
-    
+
     parse """
             #box[right] == #box2[x];
           """
@@ -249,13 +248,13 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
             ]
           }
-  
-  
+
+
   # Adv Selectors
   # ====================================================================
-  
+
   describe '/* Advanced Selectors */', ->
-    
+
     parse """
             (html #main .boxes)[width] == [col-width]
           """
@@ -282,12 +281,12 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-  
+
   # Pseudos
   # ====================================================================
-  
+
   describe '/* Reserved Pseudos */', ->
-    
+
     parse """
             ::[width] == ::parent[width]
           """
@@ -301,7 +300,7 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','width',['$reserved','this']], ['get$','width',['$reserved', 'parent']]]
             ]
           }
-    
+
     # viewport gets normalized to window
     parse """
             ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
@@ -321,16 +320,16 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
             ]
           }
-  
-  
+
+
   # Intrinsics
   # ====================================================================
-  
+
   describe '/ Intrinsic Props /', ->
-    
+
     # should do nothing special...
     parse """
-            #box[width] == #box[intrinsic-width]; 
+            #box[width] == #box[intrinsic-width];
             [grid-col-width] == #box[intrinsic-width];
           """
         ,
@@ -344,7 +343,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
     parse """
-            #box[right] == #box[intrinsic-right]; 
+            #box[right] == #box[intrinsic-right];
           """
         ,
           {
@@ -355,14 +354,14 @@ describe 'CCSS-to-AST', ->
               ['eq',['get$','right',['$id','box']],['get$','intrinsic-right',['$id','box']]]
             ]
           }
-  
-  
+
+
   # Virtual Elements
   # ====================================================================
-  
+
   describe '/ "Virtual Elements" /', ->
-    
-    parse """            
+
+    parse """
             @virtual "Zone";
           """
         ,
@@ -372,9 +371,9 @@ describe 'CCSS-to-AST', ->
               ['virtual','Zone']
             ]
           }
-          
-    
-    parse """            
+
+
+    parse """
             "Zone"[width] == 100;
           """
         ,
@@ -384,7 +383,7 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
             ]
           }
-    
+
     parse """
             "A"[left] == "1"[top];
           """
@@ -395,7 +394,7 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
             ]
           }
-          
+
     parse '"box"[right] == "box2"[left];',
           {
             selectors: []
@@ -403,15 +402,15 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
             ]
           }
-        
-  
-  
+
+
+
   # Conditionals
   # ====================================================================
-  
+
   describe '/ @? conditionals /', ->
 
-    parse """            
+    parse """
             @cond #box[right] == #box2[x];
           """
         ,
@@ -424,8 +423,8 @@ describe 'CCSS-to-AST', ->
               ['?==', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
             ]
           }
-          
-    parse """            
+
+    parse """
             @cond 2 * [right] == [x] + 100;
           """
         ,
@@ -436,8 +435,8 @@ describe 'CCSS-to-AST', ->
               ['?==',['multiply',['number',2],['get','[right]']], ['plus',['get','[x]'],['number',100]] ]
             ]
           }
-          
-    parse """            
+
+    parse """
             @cond #box[right] != #box2[x] AND #box[width] <= #box2[width];
           """
         ,
@@ -453,8 +452,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @cond (#box[right] != #box2[x]) AND (#box[width] <= #box2[width]);
           """
         ,
@@ -470,8 +469,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @cond (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100);
           """
         ,
@@ -490,11 +489,11 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-          
-      
+
+
   # JS Shit... WIP
   # ====================================================================
-  
+
   describe '/ js layout hooks /', ->
 
     parse """
@@ -515,8 +514,8 @@ describe 'CCSS-to-AST', ->
 
               ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
               [
-                'for-each', 
-                ['$class', 'box'], 
+                'for-each',
+                ['$class', 'box'],
                 ['js',"""function (el,exp,engine) {
                     var asts =[];
                     asts.push();
@@ -524,7 +523,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse """
             @for-all .box ```
             function (query,engine) {
@@ -540,8 +539,8 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               [
-                'for-all', 
-                ['$class', 'box'], 
+                'for-all',
+                ['$class', 'box'],
                 ['js',"""function (query,engine) {
                     var asts =[];
                     asts.push();
@@ -549,14 +548,14 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-  
-  
+
+
   # Chains... WIP
   # ====================================================================
-  
+
   describe '/ @chain /', ->
 
-    parse """            
+    parse """
             @chain .box bottom(==)top;
           """
         ,
@@ -566,15 +565,15 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain','bottom','top']
               ]
             ]
           }
-          
-    
-    parse """            
+
+
+    parse """
             @chain .box width();
           """
         ,
@@ -584,14 +583,14 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain','width','width']
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @chain .box width() height(>=10>=) bottom(<=)top;
           """
         ,
@@ -599,10 +598,10 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '.box'
             ]
-            commands: [                            
+            commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain','width','width'],
                 ['gte-chain','height',['number',10]],
                 ['gte-chain',['number',10],'height'],
@@ -610,8 +609,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-          
-    parse """            
+
+    parse """
             @chain .box width([hgap]*2);
           """
         ,
@@ -619,17 +618,17 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '.box'
             ]
-            commands: [  
+            commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain','width',['multiply',['get','[hgap]'],['number',2]]]
                 ['eq-chain',['multiply',['get','[hgap]'],['number',2]],'width']
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @chain .box width(+[hgap]*2);
           """
         ,
@@ -637,16 +636,16 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '.box'
             ]
-            commands: [  
+            commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain',['plus-chain','width',['multiply',['get','[hgap]'],['number',2]]],'width']
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @chain .box right(+10==)left;
           """
         ,
@@ -654,16 +653,16 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '.box'
             ]
-            commands: [                            
+            commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain',['plus-chain','right',['number',10]],'left']
               ]
             ]
           }
-    
-    parse """            
+
+    parse """
             @chain .box bottom(==!require)top;
           """
         ,
@@ -673,15 +672,15 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
-                ['eq-chain','bottom','top','require']                
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','bottom','top','require']
               ]
             ]
           }
-    
-    
-    parse """            
+
+
+    parse """
             @chain .box bottom(==!require)top width() height(!weak);
           """
         ,
@@ -691,19 +690,19 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
-                ['eq-chain','bottom','top',   'require']                
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','bottom','top',   'require']
                 ['eq-chain','width', 'width']
                 ['eq-chain','height','height',  'weak']
               ]
             ]
           }
-          
-    
-    
+
+
+
     ### Not valid in parser at this stage
-    parse """            
+    parse """
             @chain .box height(==2+)center-x;
           """
         ,
@@ -711,20 +710,20 @@ describe 'CCSS-to-AST', ->
             selectors: [
               '.box'
             ]
-            commands: [                            
+            commands: [
               [
-                'chain', 
-                ['$class', 'box'], 
+                'chain',
+                ['$class', 'box'],
                 ['eq-chain','height',['multiply-chain',['number',2],'center-x']]
               ]
             ]
           }
     ###
-        
-    
+
+
     ###
-    parse """            
-            @chain .box width() { 
+    parse """
+            @chain .box width() {
               :first[width] == :last[width];
               :3rd[height] >= 2*:4th[height];
             };
@@ -736,7 +735,7 @@ describe 'CCSS-to-AST', ->
             ]
             commands: [
               ['chain', ['$class', 'box'], ['eq-chain','width','width']]
-              ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]              
+              ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]
               ['eq',['get','.box:first[width]'],['get','.box:last[width]']]
               ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]
             ]
@@ -761,7 +760,7 @@ describe 'CCSS-to-AST', ->
               ['var','.box[width]', 'width', ['$class', 'box']]
               ['var','.box(.header)[width]', 'width', ['$class', 'header', ['$class', 'box']]]
               ['foreach', ['$class', 'box'],
-              ['var','#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]              
+              ['var','#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]
               ['eq',['get','#box[width]','#box'],['get','#box[intrinsic-width]','#box']]
               ['var','[grid-col-width]']
               ['eq',['get','[grid-col-width]'],['get','#box[intrinsic-width]','#box']]
@@ -963,21 +962,3 @@ describe 'CCSS-to-AST', ->
               ['stay', ['get$', 'height', ['$id','box']]]
             ]
           }
-
-   # parse """
-   #         @-gss-stay #box[size];
-   #         #box[position] >= measure(#box[position]) !require;
-   #         // with a 2D stay, 2D constraint and measure
-   #       """
-   #     ,
-   #       {
-   #         selectors: [
-   #           '#box'
-   #         ]
-   #         commands: [
-   #           ['stay', ['get', '#box[width]']]
-   #           ['stay', ['get', '#box[height]']]
-   #           ['gte', ['get', '#box[x]'], ['measure', ['get', '#box[x]']], 'require']
-   #           ['gte', ['get', '#box[y]'], ['measure', ['get', '#box[y]']], 'require']
-   #         ]
-   #       }

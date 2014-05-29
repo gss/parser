@@ -1,311 +1,121 @@
 {
-  var p, parser, flatten, _varsCache, _measuresCache; 
-
-  p = parser = this;
-
-  p.commands = [];  
-
-  p.cs = [];
-  p.addC = function (c) {
-    p.commands.push(c);
-  };
-  
-  p.$s = [];
-  p.add$ = function ($) {    
-    if (!$) {return undefined};
-    if (p.$s.indexOf($) === -1) {p.$s.push($);}
-    return $;
-  }
-  
-  _measuresCache = [];
-  p.measures = [];
-  p.processMeasure = function (ast) {
-    var _id;
-    _id = ast.toString(); // assuming stringified ast arrays CAN be used for cache lookup
-    if (_measuresCache.indexOf(_id) === -1) {
-      _measuresCache.push(_id);
-      p.measures.push(ast);
-    }
-    return ast;
-  }
-
-  p.getResults = function () {
-    return {
-      "selectors": p.$s,
-      // potential shared state from chaining
-      "commands": JSON.parse(JSON.stringify(p.commands))
-      //"measures": p.measures,
-      //"constraints": p.cs      
-    }
-  }
-  
-  p.toString = function (x) {
-    if (typeof x === "string") {return x}
-    if (x instanceof Array) {return x.join("")}
-    return ""
-  }
-
-  p.error = function (m,l,c) {
-    if (!!l && !!c) {m = m+ " {line:" + l + ", col:" + c + "}"} 
-    console.error(m);
-    return m;
-  }
-
-  p.unpack2dConstraint = function(ast, indices) {
-    var mapping = {
-      "bottom-left": ["left", "bottom"],
-      "bottom-right": ["right", "bottom"],
-      center: ["center-x", "center-y"],
-      "intrinsic-size": ["intrinsic-width", "intrinsic-height"],
-      position: ["x", "y"],
-      size: ["width", "height"],
-      "top-left": ["left", "top"],
-      "top-right": ["right", "top"]
+  var grammar = (function() {
+    var getInput = function() {
+      return input;
     };
 
-    var commands = [ast];
-    var property = ast[1];
-    var properties = mapping[property];
+    var getLine = function() {
+      return line();
+    };
 
-    if (properties) {
-      commands = [];
-      for (var i = 0, l = properties.length; i < l; i++) {
-        var command = ast.slice();
-        command[1] = properties[i];
-        commands.push(command);
-      }
-    }
+    var getColumn = function() {
+      return column();
+    };
 
-    return commands;
-  };
-
+    var Grammar = require('./grammar');
+    return new Grammar(getInput, getLine, getColumn);
+  })();
 }
 
 start
-  = __ statements:(Statement*) __ { return (parser.getResults()); }
+  = __ statements:(Statement*) __ { return grammar.start(); }
 
 Statement
-  = exp:LinearConstraint EOS __ { return exp; }
-  / virtual:Virtual EOS __      { return virtual; }
-  / cond:Conditional EOS __     { return cond; }  
-  / stay:Stay EOS __            { return stay; }
-  / chain:Chain EOS __          { return chain; }
-  / js:ForEach EOS __           { return js; }    
+  = expression:LinearConstraint EOS __ { return grammar.statement().linearConstraint(expression); }
+  / virtual:Virtual EOS __ { return grammar.statement().virtual(virtual); }
+  / conditional:Conditional EOS __ { return grammar.statement().conditional(conditional); }
+  / stay:Stay EOS __ { return grammar.statement().stay(stay); }
+  / chain:Chain EOS __ { return grammar.statement().chain(chain); }
+  / javaScript:ForEach EOS __ { return grammar.statement().forEach(javaScript); }
 
 
 AndOrExpression
   = head:ConditionalExpression
     tail:(__ AndOrOp __ ConditionalExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
+      return grammar.andOrExpression(head, tail);
     }
 
 AndOrOp
-  = ("AND" / "and" / "And" / "&&") { return "&&" }
-  / ("OR"  / "or"  / "Or"  / "||") { return "||" }
+  = ("AND" / "and" / "And" / "&&") { return grammar.andOrOperator().and(); }
+  / ("OR"  / "or"  / "Or"  / "||") { return grammar.andOrOperator().or(); }
 
 ConditionalExpression
   = head:AdditiveExpression
     tail:(__ CondOperator __ AdditiveExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }      
-      return result;
+      return grammar.conditionalExpression(head, tail);
     }
 
 CondOperator
-  = "==" { return "?==" }
-  / ("<=" / "=<") { return "?<=" }
-  / (">=" / "=>") { return "?>=" }
-  / "<"  { return "?<"  }
-  / ">"  { return "?>"  }
-  / "!="  { return "?!="  }
+  = "==" { return grammar.conditionalOperator().equal(); }
+  / ("<=" / "=<") { return grammar.conditionalOperator().lte(); }
+  / (">=" / "=>") { return grammar.conditionalOperator().gte(); }
+  / "<"  { return grammar.conditionalOperator().lt(); }
+  / ">"  { return grammar.conditionalOperator().gt(); }
+  / "!="  { return grammar.conditionalOperator().notEqual(); }
 
 LinearConstraint
   = head:ConstraintAdditiveExpression
-    tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ s:StrengthAndWeight? {
-      var eq, e1, e2;
-      e1 = head;
-
-      if (typeof s === "undefined" || s === null || s.length === 0) {s = [];}
-
-      for (var i = 0, l = tail.length; i < l; i++) {
-        eq = tail[i][1];
-        e2 = tail[i][3];
-
-        var headConstraints = parser.unpack2dConstraint(e1);
-        var tailConstraints = parser.unpack2dConstraint(e2);
-
-        for (var i2 = 0, l2 = tailConstraints.length; i2 < l2; i2++) {
-          var headConstraint = headConstraints[i2];
-          var tailConstraint = tailConstraints[i2];
-
-          // Correctly handle constraints with a mix of 1D and 2D properties.
-          //
-          // e.g.
-          // #box1[size] == #box2[width];
-          //
-          // becomes
-          // #box1[width] == #box2[width];
-          //
-          if (headConstraint && tailConstraint) {
-            if (headConstraints.length > tailConstraints.length) {
-              headConstraint[1] = tailConstraint[1];
-            } else if (headConstraints.length < tailConstraints.length) {
-              tailConstraint[1] = headConstraint[1];
-            }
-
-            parser.addC([
-              eq,
-              headConstraint,
-              tailConstraint
-            ].concat(s));
-          }
-        }
-
-        e1 = e2;
-      }
-
-      return "LineaerExpression";
+    tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
+      return grammar.linearConstraint(head, tail, strengthAndWeight);
     }
 
 LinearConstraintOperator
-  = "==" { return "eq" }
-  / ("<=" / "=<") { return "lte" }
-  / (">=" / "=>") { return "gte" }
-  / "<"  { return "lt"  }
-  / ">"  { return "gt"  }
+  = "==" { return grammar.linearConstraintOperator().equal() }
+  / ("<=" / "=<") { return grammar.linearConstraintOperator().lte() }
+  / (">=" / "=>") { return grammar.linearConstraintOperator().gte() }
+  / "<"  { return grammar.linearConstraintOperator().lt()  }
+  / ">"  { return grammar.linearConstraintOperator().gt()  }
 
 ConstraintAdditiveExpression
   = head:ConstraintMultiplicativeExpression
     tail:(__ AdditiveOperator __ ConstraintMultiplicativeExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
+      return grammar.constraintAdditiveExpression(head, tail);
     }
 
 AdditiveExpression
   = head:MultiplicativeExpression
     tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
+      return grammar.additiveExpression(head, tail);
     }
 
 AdditiveOperator
-  = "+" { return "plus" }
-  / "-" { return "minus" }
+  = "+" { return grammar.additiveOperator().plus(); }
+  / "-" { return grammar.additiveOperator().minus(); }
 
 ConstraintMultiplicativeExpression
   = head:ConstraintPrimaryExpression
     tail:(__ MultiplicativeOperator __ ConstraintPrimaryExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
+      return grammar.constraintMultiplicativeExpression(head, tail);
     }
 
 MultiplicativeExpression
   = head:PrimaryExpression
     tail:(__ MultiplicativeOperator __ PrimaryExpression)* {
-      var result = head;
-      for (var i = 0; i < tail.length; i++) {
-        result = [
-          tail[i][1],
-          result,
-          tail[i][3]
-        ];
-      }
-      return result;
+      return grammar.multiplicativeExpression(head, tail);
     }
 
 MultiplicativeOperator
-  = "*" {return "multiply"}
-  / "/" {return "divide"}
+  = "*" { return grammar.multiplicativeOperator().multiply(); }
+  / "/" { return grammar.multiplicativeOperator().divide(); }
 
 ConstraintPrimaryExpression
-  = Measure
-  / Var 
+  = Var
   / Literal
-  / "(" __ expression:ConstraintAdditiveExpression __ ")" { return expression; }
+  / "(" __ expression:ConstraintAdditiveExpression __ ")" {
+    return grammar.constraintPrimaryExpression().constraintAdditiveExpression(expression);
+  }
 
 PrimaryExpression
-  = Measure
-  / Var 
+  = Var
   / Literal
-  / "(" __ expression:AndOrExpression __ ")" { return expression; }
-
-Measure "measure"
-  = "measure(" __ v:Var __ ")"  { return p.processMeasure(["measure",v]);}
+  / "(" __ expression:AndOrExpression __ ")" {
+    return grammar.primaryExpression().andOrExpression(expression);
+  }
 
 Var "variable"
-  = sel:Selector? "[" v:NameChars+ "]" {       
-      var result, id, _id1, _id2;
-      v = v.join("");      
-      // if bound to dom query
-      if (typeof sel !== "undefined" && sel !== null && sel.length !== 0) {
-        parser.add$(sel.selector);
-        // normalize var names when query bound
-        if (v === 'left') {
-          v = 'x';
-        } else if (v === 'top') {
-          v = 'y';
-        } else if (v === 'cx') {
-          v = 'center-x';
-        } else if (v === 'cy') {
-          v = 'center-y';
-        }
-        // normalize window var names
-        if (sel.selector === '::window') {
-          if (v === 'right') {
-            v = 'width'
-          } else if (v === 'bottom') {
-            v = 'height'
-          }
-        }              
-      }
-
-      if ((typeof sel !== "undefined" && sel !== null) && (sel.selector || sel.isVirtual)) {
-        return ['get$',v,sel.ast];
-      } else {
-        return ['get',"["+v+"]"];
-      }
-      
+  = selector:Selector? "[" variableNameCharacters:NameChars+ "]" {
+      return grammar.variable(selector, variableNameCharacters);
     }
-
-VarNames
-  = ""  
-  // "position"  {return ["x","y"]}
-  // "size"  {return ["width","height"]}
 
 NameChars
   = [a-zA-Z0-9#.\-_$]
@@ -314,21 +124,13 @@ NameCharsWithSpace
   = NameChars / " "
 
 Literal
-  = val:(Real / Integer) {
-    return [ "number",
-      val
-    ]
-  }
+  = value:(Real / Integer) { return grammar.literal(value); }
 
 Integer
-  = digits:[0-9]+ {
-    return parseInt(digits.join(""));
-  }
+  = digits:[0-9]+ { return grammar.integer(digits); }
 
 Real
-  = digits:(Integer "." Integer) {
-    return parseFloat(digits.join(""));
-  }
+  = digits:(Integer "." Integer) { return grammar.real(digits); }
 
 SignedInteger
   = [-+]? [0-9]+
@@ -381,42 +183,40 @@ __
 // ===================================================
 
 Selector "selector"
-  = "#" sel:NameChars+ { 
-    sel=p.toString(sel); return {selector:"#"+sel,ast:["$id",sel]} 
+  = "#" nameCharacters:NameChars+ {
+    return grammar.selector().id(nameCharacters);
   }
-  / "::" sel:ReservedPseudos {
-    return {selector:"::"+sel,ast:["$reserved", sel]}
+  / "::" selectorName:ReservedPseudos {
+    return grammar.selector().reservedPseudoSelector(selectorName);
   }
-  / '"' name:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
-    name=p.toString(name); 
-    return {isVirtual:true, ast:["$virtual", name]} 
+  / '"' nameCharacters:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
+    return grammar.selector().virtual(nameCharacters);
   }
-  / "." sel:NameChars+  { 
-    sel=p.toString(sel); 
-    return {selector:"."+sel,ast:["$class",sel]};
-  }  
-  / sel:NameChars+  { 
-    sel=p.toString(sel); 
-    return {selector:sel,ast:["$tag",sel]} 
-  }    
-  / "(" sel:QuerySelectorAllParts+ ")"  { 
-    sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} 
+  / "." nameCharacters:NameChars+  {
+    return grammar.selector().class(nameCharacters);
   }
-  // sel:QuerySelectorChars+ { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+  / nameCharacters:NameChars+  {
+    return grammar.selector().tag(nameCharacters);
+  }
+  / "(" parts:QuerySelectorAllParts+ ")"  {
+    return grammar.selector().all(parts);
+  }
 
 QuerySelectorAllParts
-  = sel:QuerySelectorChars+ {return p.toString(sel)}
-  / "(" sel:[^)]* ")" {return "("+p.toString(sel)+")"}
+  = selectorCharacters:QuerySelectorChars+ {
+    return grammar.querySelectorAllParts().withoutParens(selectorCharacters);
+  }
+  / "(" selectorCharacters:[^)]* ")" {
+    return grammar.querySelectorAllParts().withParens(selectorCharacters);
+  }
 
 QuerySelectorChars
   = [a-zA-Z0-9#.\-_$=:+>'" \]\[]
-  
+
 ReservedPseudos
   = ("document" / "host" / "scope" / "parent")
-  / ("window" / "viewport") {return "window"}
-  / ("this" / "") {return "this"}
-
-  //sel:(pre:NameChars* "[" attr:NameCharsWithSpace+ "]")  { sel=p.toString(sel); return {selector:sel,ast:["$all",sel]} }
+  / ("window" / "viewport") { return grammar.reservedPseudoSelector().window(); }
+  / ("this" / "") { return grammar.reservedPseudoSelector().this(); }
 
 
 
@@ -424,21 +224,22 @@ ReservedPseudos
 // ===================================================
 
 StrengthAndWeight
-  = "!" s:Strength w:Weight?  {
-      if (typeof w === "undefined" || w === null || w.length === 0) {return [s];}
-      return [s,w];
-    }
-  / "!" .? {return parser.error("Invalid Strength or Weight",line,column)}
+  = "!" strength:Strength weight:Weight?  {
+    return grammar.strengthAndWeight().valid(strength, weight);
+  }
+  / "!" .? {
+    return grammar.strengthAndWeight().invalid();
+  }
 
 Weight
-  = w:[0-9]+   {return Number(w.join(""))}
+  = weight:[0-9]+ { return grammar.weight(weight); }
 
 Strength
-  = ("require"  / "REQUIRE"  / "Require")  {return "require"}
-  / ("strong"   / "STRONG"   / "Strong")   {return "strong"}
-  / ("medium"   / "MEDIUM"   / "Medium")   {return "medium"}
-  / ("weak"     / "WEAK"     / "Weak")     {return "weak"}
-  / ("required" / "REQUIRED" / "Required") {return "require"}
+  = ("require"  / "REQUIRE"  / "Require")  { return grammar.strength().require(); }
+  / ("strong"   / "STRONG"   / "Strong")   { return grammar.strength().strong(); }
+  / ("medium"   / "MEDIUM"   / "Medium")   { return grammar.strength().medium(); }
+  / ("weak"     / "WEAK"     / "Weak")     { return grammar.strength().weak(); }
+  / ("required" / "REQUIRED" / "Required") { return grammar.strength().required(); }
 
 
 // Virtual
@@ -446,65 +247,54 @@ Strength
 // also see query selectors
 
 Virtual
-  = "@" ("-gss-virtual" / "virtual") __ names:VirtualName+ 
-  {
-    var command = ["virtual"].concat(names);
-    parser.addC(command);
-    return command;
+  = "@" ("-gss-virtual" / "virtual") __ names:VirtualName+ {
+    return grammar.virtualElement(names);
   }
 
 VirtualName
-  = '"' name:[^"]+ '"' __ { return name.join("") }
+  = '"' nameCharacters:[^"]+ '"' __ {
+    return grammar.virtualElementName(nameCharacters);
+  }
 
 
 // Stays
 // ===================================================
 
 Stay
-  =  StayStart vars:StayVars+ {
-      var stay = ["stay"].concat(vars)
-      var constraints = parser.unpack2dConstraint(stay[1]);
-
-      for (var i = 0, l = constraints.length; i < l; i++) {
-        var newStay = stay.slice();
-        newStay[1] = constraints[i];
-        parser.addC(newStay);
-      }
-
-      return stay;
+  =  StayStart variables:StayVars+ {
+      return grammar.stay(variables);
     }
 
 StayVars
-  = __ v:Var __ ","?  {return v}
+  = __ variable:Var __ ","?  { return grammar.stayVariable(variable); }
 
 StayStart
   = ("@-gss-stay" / "@stay")
-  
-  
+
+
 
 // Conditionals
-// ===================================================  
+// ===================================================
 
 Conditional
-  = "@cond" __ result:AndOrExpression __ {parser.addC(result); return result;}
+  = "@cond" __ result:AndOrExpression __ { return grammar.conditional(result); }
 
 
 
 // JS hooks
 // ===================================================
 
-ForEach 
-  = type:ForLooperType __ sel:Selector __ js:JavaScript {
-    parser.add$(sel.selector);
-    parser.addC([type,sel.ast,js]);
-    }
+ForEach
+  = type:ForLooperType __ selector:Selector __ javaScript:JavaScript {
+    return grammar.forEach(type, selector, javaScript)
+  }
 
 JavaScript
-  = "```" js:[^`]* "```" {return ['js',js.join("").trim()]}
+  = "```" characters:[^`]* "```" { return grammar.javaScript(characters); }
 
 ForLooperType
-  = ("@-gss-for-each" / "@for-each") {return "for-each"}
-  / ("@-gss-for-all" / "@for-all") {return "for-all"}
+  = ("@-gss-for-each" / "@for-each") { return grammar.forLoopType().forEach(); }
+  / ("@-gss-for-all" / "@for-all") { return grammar.forLoopType().forAll(); }
 
 
 
@@ -512,79 +302,48 @@ ForLooperType
 // ===================================================
 
 Chain
-  = "@" "-gss-"? "chain" __ sel:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    parser.add$(sel.selector);
-    var ast = ['chain',sel.ast];
-    chainers.forEach(function(chainer){
-        //if (sw && !chainer.__has_sw ) {
-        //  chainer = chainer.concat(sw);
-        //}
-        ast = ast.concat(chainer);        
-      });    
-
-    p.addC(ast);
+  = "@" "-gss-"? "chain" __ selector:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
+    grammar.chain(selector, chainers);
   }
 
 Chainer
-  = head:[a-zA-Z\-_0-9]+ "(" _ headExp:HeadExp? _ headEq:ChainEq _ bridgeVal:BridgeValue? _ tailEq:ChainEq? _ sw:StrengthAndWeight? _ ")" tail:[a-zA-Z\-_0-9]* __ {
-    var asts = []
-    head = p.toString(head);
-    tail = p.toString(tail);    
-    var getAST = function (op, e1, e2) {
-      var ast = [op, e1, e2];
-      if (sw) {
-        ast = ast.concat(sw);
-        //ast.__has_sw = true;
-      }
-      return ast      
+  = headCharacters:[a-zA-Z\-_0-9]+ "(" _
+    headExpression:HeadExp? _
+    headOperator:ChainEq _
+    bridgeValue:BridgeValue? _
+    tailOperator:ChainEq? _
+    strengthAndWeight:StrengthAndWeight? _ ")"
+    tailCharacters:[a-zA-Z\-_0-9]* __ {
+      return grammar.chainer({
+        headCharacters: headCharacters,
+        headExpression: headExpression,
+        headOperator: headOperator,
+        bridgeValue: bridgeValue,
+        tailOperator: tailOperator,
+        strengthAndWeight: strengthAndWeight,
+        tailCharacters: tailCharacters
+      });
     }
-    
-    if (tail.length === 0) {tail = head;}
-    if (headExp) {
-      headExp.splice(1,1,head);
-      head = headExp;
-    }
-    /*
-    if (tailExp) {
-      tailExp.splice(2,1,tail);
-      tail = tailExp;
-    }
-    */
-    if (bridgeVal) {
-      asts.push( getAST(headEq,head,bridgeVal) );
-      if (tailEq) {
-        asts.push( getAST(tailEq,bridgeVal,tail) );
-      }
-      else {
-        p.error("Invalid Chain Statement",line,column);
-      }      
-    } else {
-      asts.push( getAST(headEq,head,tail) );
-    }
-    return asts;
-  }
 
 HeadExp
-  = math:ChainMath val:AdditiveExpression {
-    return [math, "_REPLACE_ME_", val]
+  = operator:ChainMath expression:AdditiveExpression {
+    return grammar.headExpression(operator, expression);
   }
 
 TailExp
-  = val:AdditiveExpression math:ChainMath {
-    return [math, val, "_REPLACE_ME_"]
+  = expression:AdditiveExpression operator:ChainMath {
+    return grammar.tailExpression(expression, operator);
   }
 
 ChainMath
-  = "+" {return "plus-chain"}
-  / "-" {return "minus-chain"}
-  / "*" {return "multiply-chain"}
-  / "/" {return "divide-chain"}
+  = "+" { return grammar.chainMathOperator().plus(); }
+  / "-" { return grammar.chainMathOperator().minus(); }
+  / "*" { return grammar.chainMathOperator().multiply(); }
+  / "/" { return grammar.chainMathOperator().divide(); }
 
 ChainEq
-  = chainEq:LinearConstraintOperator? {
-    if (!chainEq) {chainEq = "eq";}
-    chainEq += "-chain";
-    return chainEq;
+  = operator:LinearConstraintOperator? {
+    return grammar.chainLinearConstraintOperator(operator);
   }
 
 BridgeValue

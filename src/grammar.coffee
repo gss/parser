@@ -41,7 +41,7 @@ class Grammar
   #
   # @param input [Array<String>, String] A list of characters, or a string.
   # @return [String] A string representation of the object passed to the
-  #   method.
+  # method.
   #
   @_toString: (input) ->
     return input if toString.call(input) is '[object String]'
@@ -145,7 +145,7 @@ class Grammar
   # Statements.
   #
   # @return [Object] An object consisting of functions for handling various
-  #   types of statement.
+  # types of statement.
   #
   statement: ->
     return {
@@ -574,7 +574,7 @@ class Grammar
       #
       # @param line [Number] The line number where the invalid directive exists.
       # @param column [Number] The column number where the invalid directive
-      #   exists.
+      # exists.
       # @return [String] A message explaining the validity of the directive.
       #
       invalid: (line, column) ->

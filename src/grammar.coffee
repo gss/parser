@@ -26,13 +26,52 @@ class Grammar
   # @private
   #
   # @param message [String] A description of the error.
-  # @param line [Number] The line number where the error occurred.
-  # @param column [Number] The column number where the error occurred.
+  # @param lineNumber [Number] The line number where the error occurred.
+  # @param columnNumber [Number] The column number where the error occurred.
   # @return [String] The message originally passed to the method.
   #
-  @_reportError: (message, line, column) ->
-    message = "#{message} {line:#{line}, col:#{column}}" if line? and column?
-    console.error(message);
+  @_reportError: (message, input, lineNumber, columnNumber) ->
+    error = []
+    error.push "Error on line #{lineNumber}, column #{columnNumber}: #{message}"
+    error.push ''
+
+    lines = input.split '\n'
+
+    previousLineNumber = lineNumber - 1
+    nextLineNumber = lineNumber + 1
+
+    # Ensure that indices only exist if they are in range.
+    previousLineIndex = previousLineNumber - 1 if previousLineNumber - 1 >= 0
+    currentLineIndex = lineNumber - 1
+    nextLineIndex = nextLineNumber - 1 if nextLineNumber - 1 <= lines.length - 1
+
+    # Determine the length of the last line number in order to pad the gutter
+    # values and maintain a consistent width.
+    lastLineNumber = if nextLineIndex? then nextLineNumber else lineNumber
+    longestLineNumberLength = "#{lastLineNumber}".length
+
+    # Draw an arrow pointing to the column.
+    # The joined array provides (columnNumber - 1) hyphens.
+    errorLocator = "#{Array(columnNumber).join('-')}^"
+
+    context = []
+    context.push [previousLineNumber, lines[previousLineIndex], previousLineIndex?]
+    context.push [lineNumber, lines[currentLineIndex], true]
+    context.push ['^', errorLocator, true]
+    context.push [nextLineNumber, lines[nextLineIndex], nextLineIndex?]
+
+    for item in context
+      gutterValue = item[0]
+      lineValue = item[1]
+      condition = item[2]
+
+      padding = Array(longestLineNumberLength - "#{gutterValue}".length + 1).join ' '
+      gutterValue = "#{padding}#{gutterValue}"
+
+      error.push "#{gutterValue} : #{lineValue}" if condition
+
+    console.error error.join '\n'
+
     return message;
 
 
@@ -609,7 +648,7 @@ class Grammar
       # @return [String] A message explaining the validity of the directive.
       #
       invalid: =>
-        return Grammar._reportError 'Invalid Strength or Weight', @_line(), @_column()
+        return Grammar._reportError 'Invalid Strength or Weight', @_input(), @_line(), @_column()
 
     }
 
@@ -805,7 +844,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      Grammar._reportError 'Invalid Chain Statement', @_line(), @_column()
+      Grammar._reportError 'Invalid Chain Statement', @_input(), @_line(), @_column()
 
     return asts
 

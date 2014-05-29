@@ -80,7 +80,7 @@ class Grammar
   #
   # @param input [Array<String>, String] A list of characters, or a string.
   # @return [String] A string representation of the object passed to the
-  #   method.
+  # method.
   #
   @_toString: (input) ->
     return input if toString.call(input) is '[object String]'
@@ -123,11 +123,17 @@ class Grammar
   # @property [Array<Array>] A list of commands.
   # @private
   #
+  # @note Assigned in constructor to prevent the array from being passed by
+  # reference and shared between all instances.
+  #
   _commands: null
 
 
   # @property [Array<String>] A list of selectors.
   # @private
+  #
+  # @note Assigned in constructor to prevent the array from being passed by
+  # reference and shared between all instances.
   #
   _selectors: null
 
@@ -153,15 +159,49 @@ class Grammar
     return selector
 
 
+  # Get the current column number as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [Number] The current column number.
+  #
+  _column: ->
+
+
+  # Get the current input string as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [String] the current input string.
+  #
+  _input: ->
+
+
+  # Get the current line number as reported by the parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @return [Number] The current line number.
+  #
+  _line: ->
+
+
 
 
   ### Public ###
 
   # Construct a new Grammar.
   #
-  constructor: ->
+  # @param input [Function] A getter for the current input string.
+  # @param line [Function] A getter for the current line number.
+  # @param column [Function] A getter for the current column number.
+  #
+  constructor: (input, line, column) ->
     @_commands = []
     @_selectors = []
+    @_input = input
+    @_line = line
+    @_column = column
 
 
   # The start rule.
@@ -178,7 +218,7 @@ class Grammar
   # Statements.
   #
   # @return [Object] An object consisting of functions for handling various
-  #   types of statement.
+  # types of statement.
   #
   statement: ->
     return {
@@ -605,13 +645,10 @@ class Grammar
 
       # Invalid strength and weight directives.
       #
-      # @param line [Number] The line number where the invalid directive exists.
-      # @param column [Number] The column number where the invalid directive
-      #   exists.
       # @return [String] A message explaining the validity of the directive.
       #
-      invalid: (input, line, column) ->
-        return Grammar._reportError 'Invalid Strength or Weight', input, line, column
+      invalid: =>
+        return Grammar._reportError 'Invalid Strength or Weight', @_input(), @_line(), @_column()
 
     }
 
@@ -771,11 +808,9 @@ class Grammar
   # @option options tailOperator [String]
   # @option options strengthAndWeight [Array]
   # @option options tailCharacters [Array<String>]
-  # @option options line [Number]
-  # @option options column [Number]
   # @return [Array]
   #
-  chainer: (options) ->
+  chainer: (options) =>
     {
       headCharacters
       headExpression
@@ -784,9 +819,6 @@ class Grammar
       tailOperator
       strengthAndWeight
       tailCharacters
-      input
-      line
-      column
     } = options
 
     asts = []
@@ -812,7 +844,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      Grammar._reportError 'Invalid Chain Statement', input, line, column
+      Grammar._reportError 'Invalid Chain Statement', @_input(), @_line(), @_column()
 
     return asts
 

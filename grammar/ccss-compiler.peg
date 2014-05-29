@@ -1,7 +1,19 @@
 {
   var grammar = (function() {
+    var getInput = function() {
+      return input;
+    };
+
+    var getLine = function() {
+      return line();
+    };
+
+    var getColumn = function() {
+      return column();
+    };
+
     var Grammar = require('./grammar');
-    return new Grammar();
+    return new Grammar(getInput, getLine, getColumn);
   })();
 }
 
@@ -216,7 +228,7 @@ StrengthAndWeight
     return grammar.strengthAndWeight().valid(strength, weight);
   }
   / "!" .? {
-    return grammar.strengthAndWeight().invalid(input, line(), column());
+    return grammar.strengthAndWeight().invalid();
   }
 
 Weight
@@ -309,10 +321,7 @@ Chainer
         bridgeValue: bridgeValue,
         tailOperator: tailOperator,
         strengthAndWeight: strengthAndWeight,
-        tailCharacters: tailCharacters,
-        input: input,
-        line: line(),
-        column: column()
+        tailCharacters: tailCharacters
       });
     }
 

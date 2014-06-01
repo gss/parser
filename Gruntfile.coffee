@@ -5,7 +5,7 @@ module.exports = ->
 
     # Generate library from Peg grammar
     peg:
-      ccss_compiler:
+      ccssCompiler:
         src: 'grammar/ccss-compiler.peg'
         dest: 'lib/ccss-compiler.js'
 
@@ -21,7 +21,7 @@ module.exports = ->
     uglify:
       options:
         report: 'min'
-      noflo:
+      ccssCompiler:
         files:
           './browser/ccss-compiler.min.js': ['./browser/ccss-compiler.js']
 

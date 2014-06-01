@@ -18,6 +18,12 @@ parse = (source, expect) ->
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
 
+expectError = (source) ->
+  describe source, ->
+    it 'should throw an error', ->
+      chai.expect(-> parser.parse source).to.throw Error
+
+
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
     chai.expect(parser.parse).to.be.a 'function'

@@ -1,3 +1,6 @@
+ErrorReporter = require 'error-reporter'
+
+
 # A CoffeeScript representation of the PEG grammar.
 #
 class Grammar
@@ -20,20 +23,6 @@ class Grammar
       ]
 
     return result
-
-
-  # Report an error.
-  # @private
-  #
-  # @param message [String] A description of the error.
-  # @param line [Number] The line number where the error occurred.
-  # @param column [Number] The column number where the error occurred.
-  # @return [String] The message originally passed to the method.
-  #
-  @_reportError: (message, line, column) ->
-    message = "#{message} {line:#{line}, col:#{column}}" if line? and column?
-    console.error(message);
-    return message;
 
 
   # Create a string from a list of characters.
@@ -90,6 +79,15 @@ class Grammar
   _commands: null
 
 
+  # @property [ErrorReporter] Provdes source code when reporting errors.
+  # @private
+  #
+  # @note Assigned in constructor since it depends on the arguments passed on
+  # initializaton of the grammar.
+  #
+  _errorReporter: null
+
+
   # @property [Array<String>] A list of selectors.
   # @private
   #
@@ -129,15 +127,6 @@ class Grammar
   _column: ->
 
 
-  # Get the current input string as reported by the parser.
-  # @note Assigned in constructor.
-  # @private
-  #
-  # @return [String] the current input string.
-  #
-  _input: ->
-
-
   # Get the current line number as reported by the parser.
   # @note Assigned in constructor.
   # @private
@@ -160,7 +149,8 @@ class Grammar
   constructor: (input, line, column) ->
     @_commands = []
     @_selectors = []
-    @_input = input
+
+    @_errorReporter = new ErrorReporter input()
     @_line = line
     @_column = column
 
@@ -609,7 +599,7 @@ class Grammar
       # @return [String] A message explaining the validity of the directive.
       #
       invalid: =>
-        return Grammar._reportError 'Invalid Strength or Weight', @_line(), @_column()
+        return @_errorReporter.reportError 'Invalid Strength or Weight', @_line(), @_column()
 
     }
 
@@ -786,7 +776,7 @@ class Grammar
     head = Grammar._toString headCharacters
     tail = Grammar._toString tailCharacters
 
-    createChainAST = (operator, firstExpression, secondExpression) ->
+    createChainAST = (operator, firstExpression, secondExpression) =>
       ast = [operator, firstExpression, secondExpression]
       ast = ast.concat strengthAndWeight if strengthAndWeight?
       return ast
@@ -805,7 +795,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      Grammar._reportError 'Invalid Chain Statement', @_line(), @_column()
+      @_errorReporter.reportError 'Invalid Chain Statement', @_line(), @_column()
 
     return asts
 

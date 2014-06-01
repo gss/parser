@@ -204,7 +204,9 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    expectError "[a] == [b] !stron"
+    expectError """
+                  [a] == [b] !stron
+                """
 
 
   # Stays

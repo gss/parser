@@ -18,10 +18,11 @@ parse = (source, expect) ->
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
 
-expectError = (source) ->
+expectError = (source, message) ->
   describe source, ->
-    it 'should throw an error', ->
-      chai.expect(-> parser.parse source).to.throw Error
+    it "should throw an error with message: #{message}", ->
+      exercise = -> parser.parse source
+      chai.expect(exercise).to.throw Error, message
 
 
 describe 'CCSS-to-AST', ->
@@ -204,13 +205,8 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    expectError """
-                  [a] == [b] !stron
-                """
-
-    expectError """
-                  [a] == [b] !strong0.5
-                """
+    expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+    expectError '[a] == [b] !strong0.5', 'Invalid Strength or Weight'
 
 
   # Stays

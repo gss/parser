@@ -10,11 +10,14 @@ module.exports = ->
         dest: 'lib/ccss-compiler.js'
 
     # Build the browser Component
-
-    # See https://github.com/anthonyshort/grunt-component-build/issues/40
-    exec:
-      componentbuild:
-        command: './node_modules/.bin/component install; ./node_modules/.bin/component build -o browser -n ccss-compiler'
+    componentbuild:
+      'ccss-compiler':
+        options:
+          name: 'ccss-compiler'
+        src: '.'
+        dest: 'browser'
+        scripts: true
+        styles: false
 
     # JavaScript minification for the browser
     uglify:
@@ -61,8 +64,8 @@ module.exports = ->
 
   # Grunt plugins used for building
   @loadNpmTasks 'grunt-peg'
+  @loadNpmTasks 'grunt-component-build'
   @loadNpmTasks 'grunt-contrib-uglify'
-  @loadNpmTasks 'grunt-exec'
 
   # Grunt plugins used for testing
   @loadNpmTasks 'grunt-cafe-mocha'
@@ -70,6 +73,6 @@ module.exports = ->
   @loadNpmTasks 'grunt-mocha-phantomjs'
   @loadNpmTasks 'grunt-contrib-watch'
 
-  @registerTask 'build', ['coffee:grammar', 'peg', 'exec:componentbuild', 'uglify']
+  @registerTask 'build', ['coffee:grammar', 'peg', 'componentbuild', 'uglify']
   @registerTask 'test', ['build', 'coffee:spec', 'cafemocha', 'mocha_phantomjs']
   @registerTask 'default', ['build']

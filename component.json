@@ -7,9 +7,6 @@
   "json": [
     "component.json"
   ],
-  "remotes": [
-    "https://raw.githubusercontent.com"
-  ],
   "scripts": [
     "lib/ccss-compiler.js",
     "lib/grammar.js"

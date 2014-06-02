@@ -9,7 +9,8 @@
   ],
   "scripts": [
     "lib/ccss-compiler.js",
-    "lib/grammar.js"
+    "lib/grammar.js",
+    "lib/parser.js"
   ],
   "dependencies": {
     "the-gss/error-reporter": "*"

@@ -20,7 +20,10 @@ parse = (source, expect) ->
 
 expectError = (source, message) ->
   describe source, ->
-    it "should throw an error with message: #{message}", ->
+    predicate = 'should throw an error'
+    predicate = "#{predicate} with message: #{message}" if message?
+
+    it predicate, ->
       exercise = -> parser.parse source
       chai.expect(exercise).to.throw Error, message
 
@@ -206,7 +209,7 @@ describe 'CCSS-to-AST', ->
           }
 
     expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
-    expectError '[a] == [b] !strong0.5', 'Invalid Strength or Weight'
+    expectError '[a] == [b] !strong0.5'
 
 
   # Stays

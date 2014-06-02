@@ -1,6 +1,3 @@
-ErrorReporter = require 'error-reporter'
-
-
 # A CoffeeScript representation of the PEG grammar.
 #
 class Grammar
@@ -79,13 +76,19 @@ class Grammar
   _commands: null
 
 
-  # @property [ErrorReporter] Provdes source code when reporting errors.
+  # The type of error thrown by the PEG parser.
+  # @note Assigned in constructor.
   # @private
   #
-  # @note Assigned in constructor since it depends on the arguments passed on
-  # initializaton of the grammar.
+  # @param message [String] A description of the error.
+  # @param expected [Array<Object>] A list of objects consisting of type,
+  # value and description keys which represent valid statements.
+  # @param found [String] The statement that found and caused the error.
+  # @param offset [Number] The same as `column`, but zero-based.
+  # @param line [Number] The line number where the error occurred.
+  # @param column [Number] The column number where the error occurred.
   #
-  _errorReporter: null
+  _Error: null
 
 
   # @property [Array<String>] A list of selectors.
@@ -124,7 +127,7 @@ class Grammar
   #
   # @return [Number] The current column number.
   #
-  _column: ->
+  _columnNumber: ->
 
 
   # Get the current line number as reported by the parser.
@@ -133,7 +136,7 @@ class Grammar
   #
   # @return [Number] The current line number.
   #
-  _line: ->
+  _lineNumber: ->
 
 
 
@@ -142,17 +145,18 @@ class Grammar
 
   # Construct a new Grammar.
   #
-  # @param input [Function] A getter for the current input string.
-  # @param line [Function] A getter for the current line number.
-  # @param column [Function] A getter for the current column number.
+  # @param lineNumber [Function] A getter for the current line number.
+  # @param columnNumber [Function] A getter for the current column number.
+  # @param errorType [Function] A getter for the type of error thrown by the
+  # PEG parser.
   #
-  constructor: (input, line, column) ->
+  constructor: (lineNumber, columnNumber, errorType) ->
     @_commands = []
     @_selectors = []
 
-    @_errorReporter = new ErrorReporter input()
-    @_line = line
-    @_column = column
+    @_lineNumber = lineNumber
+    @_columnNumber = columnNumber
+    @_Error = errorType()
 
 
   # The start rule.
@@ -596,10 +600,8 @@ class Grammar
 
       # Invalid strength and weight directives.
       #
-      # @return [String] A message explaining the validity of the directive.
-      #
       invalid: =>
-        return @_errorReporter.reportError 'Invalid Strength or Weight', @_line(), @_column()
+        throw new @_Error 'Invalid Strength or Weight', null, null, null, @_lineNumber(), @_columnNumber()
 
     }
 
@@ -795,7 +797,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      @_errorReporter.reportError 'Invalid Chain Statement', @_line(), @_column()
+      throw new @_Error 'Invalid Chain Statement', null, null, null, @_lineNumber(), @_columnNumber()
 
     return asts
 

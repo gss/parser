@@ -5,9 +5,9 @@ module.exports = ->
 
     # Generate library from Peg grammar
     peg:
-      ccssCompiler:
-        src: 'grammar/ccss-compiler.peg'
-        dest: 'lib/ccss-compiler.js'
+      parser:
+        src: 'grammar/parser.peg'
+        dest: 'lib/parser.js'
 
     # Build the browser Component
     componentbuild:
@@ -46,15 +46,15 @@ module.exports = ->
           bare: true
         expand: true
         cwd: 'spec'
-        src: ['**.coffee']
+        src: ['**/*.coffee']
         dest: 'spec'
         ext: '.js'
-      grammar:
+      src:
         options:
           bare: true
         expand: true
         cwd: 'src'
-        src: ['**.coffee']
+        src: ['**/*.coffee']
         dest: 'lib'
         ext: '.js'
 
@@ -73,6 +73,6 @@ module.exports = ->
   @loadNpmTasks 'grunt-mocha-phantomjs'
   @loadNpmTasks 'grunt-contrib-watch'
 
-  @registerTask 'build', ['coffee:grammar', 'peg', 'componentbuild', 'uglify']
+  @registerTask 'build', ['coffee:src', 'peg', 'componentbuild', 'uglify']
   @registerTask 'test', ['build', 'coffee:spec', 'cafemocha', 'mocha_phantomjs']
   @registerTask 'default', ['build']

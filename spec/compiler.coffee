@@ -4,8 +4,10 @@ else
   chai = require 'chai' unless chai
   parser = require '../lib/ccss-compiler'
 
+{expect} = chai
 
-parse = (source, expect, pending) ->
+
+parse = (source, expectation, pending) ->
   itFn = if pending then xit else it
 
   describe source, ->
@@ -13,13 +15,13 @@ parse = (source, expect, pending) ->
 
     itFn 'should do something', ->
       result = parser.parse source
-      chai.expect(result).to.be.an 'object'
+      expect(result).to.be.an 'object'
     itFn 'commands ✓', ->
-      chai.expect(result.commands).to.eql expect.commands or []
+      expect(result.commands).to.eql expectation.commands or []
     itFn 'selectors ✓', ->
-      chai.expect(result.selectors).to.eql expect.selectors or []
-      #chai.expect(result.vars).to.eql expect.vars or []
-      #chai.expect(result.constraints).to.eql expect.constraints or []
+      expect(result.selectors).to.eql expectation.selectors or []
+      #expect(result.vars).to.eql expectation.vars or []
+      #expect(result.constraints).to.eql expectation.constraints or []
 
 
 # Helper function for expecting errors to be thrown when parsing.
@@ -38,12 +40,12 @@ expectError = (source, message, pending) ->
 
     it predicate, ->
       exercise = -> parser.parse source
-      chai.expect(exercise).to.throw Error, message
+      expect(exercise).to.throw Error, message
 
 
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
-    chai.expect(parser.parse).to.be.a 'function'
+    expect(parser.parse).to.be.a 'function'
 
   # Basics
   # ====================================================================

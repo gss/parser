@@ -18,6 +18,14 @@ parse = (source, expect) ->
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
 
+
+# Helper function for expecting errors to be thrown when parsing.
+#
+# @param source [String] A CCSS expression.
+# @param message [String] This should be provided when a rule exists to catch
+# invalid syntax, and omitted when an error is expected to be thrown by the PEG
+# parser.
+#
 expectError = (source, message) ->
   describe source, ->
     predicate = 'should throw an error'

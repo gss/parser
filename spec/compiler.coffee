@@ -579,151 +579,167 @@ describe 'CCSS-to-AST', ->
   # Chains... WIP
   # ====================================================================
 
-  # describe '/ @chain /', ->
+  describe '/ @chain /', ->
 
-  #   parse """
-  #           @chain .box bottom(==)top;
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','bottom','top']
-  #             ]
-  #           ]
-  #         }
-
-
-  #   parse """
-  #           @chain .box width();
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','width','width']
-  #             ]
-  #           ]
-  #         }
-
-  #   parse """
-  #           @chain .box width() height(>=10>=) bottom(<=)top;
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','width','width'],
-  #               ['gte-chain','height',['number',10]],
-  #               ['gte-chain',['number',10],'height'],
-  #               ['lte-chain','bottom','top']
-  #             ]
-  #           ]
-  #         }
-
-  #   parse """
-  #           @chain .box width([hgap]*2);
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','width',['multiply',['get','[hgap]'],['number',2]]]
-  #               ['eq-chain',['multiply',['get','[hgap]'],['number',2]],'width']
-  #             ]
-  #           ]
-  #         }
-
-  #   parse """
-  #           @chain .box width(+[hgap]*2);
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain',['plus-chain','width',['multiply',['get','[hgap]'],['number',2]]],'width']
-  #             ]
-  #           ]
-  #         }
-
-  #   parse """
-  #           @chain .box right(+10==)left;
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain',['plus-chain','right',['number',10]],'left']
-  #             ]
-  #           ]
-  #         }
-
-  #   parse """
-  #           @chain .box bottom(==!require)top;
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','bottom','top','require']
-  #             ]
-  #           ]
-  #         }
+    parse """
+            @chain .box bottom(==)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','bottom','top']
+              ]
+            ]
+          }
+        ,
+          true
 
 
-  #   parse """
-  #           @chain .box bottom(==!require)top width() height(!weak);
-  #         """
-  #       ,
-  #         {
-  #           selectors: [
-  #             '.box'
-  #           ]
-  #           commands: [
-  #             [
-  #               'chain',
-  #               ['$class', 'box'],
-  #               ['eq-chain','bottom','top',   'require']
-  #               ['eq-chain','width', 'width']
-  #               ['eq-chain','height','height',  'weak']
-  #             ]
-  #           ]
-  #         }
+    parse """
+            @chain .box width();
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','width','width']
+              ]
+            ]
+          }
+        ,
+          true
+
+    parse """
+            @chain .box width() height(>=10>=) bottom(<=)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','width','width'],
+                ['gte-chain','height',['number',10]],
+                ['gte-chain',['number',10],'height'],
+                ['lte-chain','bottom','top']
+              ]
+            ]
+          }
+        ,
+          true
+
+    parse """
+            @chain .box width([hgap]*2);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','width',['multiply',['get','[hgap]'],['number',2]]]
+                ['eq-chain',['multiply',['get','[hgap]'],['number',2]],'width']
+              ]
+            ]
+          }
+        ,
+          true
+
+    parse """
+            @chain .box width(+[hgap]*2);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain',['plus-chain','width',['multiply',['get','[hgap]'],['number',2]]],'width']
+              ]
+            ]
+          }
+        ,
+          true
+
+    parse """
+            @chain .box right(+10==)left;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain',['plus-chain','right',['number',10]],'left']
+              ]
+            ]
+          }
+        ,
+          true
+
+    parse """
+            @chain .box bottom(==!require)top;
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','bottom','top','require']
+              ]
+            ]
+          }
+        ,
+          true
+
+
+    parse """
+            @chain .box bottom(==!require)top width() height(!weak);
+          """
+        ,
+          {
+            selectors: [
+              '.box'
+            ]
+            commands: [
+              [
+                'chain',
+                ['$class', 'box'],
+                ['eq-chain','bottom','top',   'require']
+                ['eq-chain','width', 'width']
+                ['eq-chain','height','height',  'weak']
+              ]
+            ]
+          }
+        ,
+          true
 
 
 

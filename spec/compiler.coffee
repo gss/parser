@@ -5,15 +5,18 @@ else
   parser = require '../lib/ccss-compiler'
 
 
-parse = (source, expect) ->
-  result = null
+parse = (source, expect, pending) ->
+  itFn = if pending then xit else it
+
   describe source, ->
-    it 'should do something', ->
+    result = null
+
+    itFn 'should do something', ->
       result = parser.parse source
       chai.expect(result).to.be.an 'object'
-    it 'commands ✓', ->
+    itFn 'commands ✓', ->
       chai.expect(result.commands).to.eql expect.commands or []
-    it 'selectors ✓', ->
+    itFn 'selectors ✓', ->
       chai.expect(result.selectors).to.eql expect.selectors or []
       #chai.expect(result.vars).to.eql expect.vars or []
       #chai.expect(result.constraints).to.eql expect.constraints or []
@@ -26,7 +29,9 @@ parse = (source, expect) ->
 # invalid syntax, and omitted when an error is expected to be thrown by the PEG
 # parser.
 #
-expectError = (source, message) ->
+expectError = (source, message, pending) ->
+  itFn = if pending then xit else it
+
   describe source, ->
     predicate = 'should throw an error'
     predicate = "#{predicate} with message: #{message}" if message?

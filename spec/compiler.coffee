@@ -2,7 +2,7 @@ if window?
   parser = require 'ccss-compiler'
 else
   chai = require 'chai' unless chai
-  parser = require '../lib/ccss-compiler'
+  parser = require '../lib/compiler'
 
 {expect} = chai
 

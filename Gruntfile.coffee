@@ -6,7 +6,7 @@ module.exports = ->
     # Generate library from Peg grammar
     peg:
       parser:
-        src: 'grammar/parser.peg'
+        src: 'src/grammar.peg'
         dest: 'lib/parser.js'
 
     # Build the browser Component

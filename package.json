@@ -30,5 +30,5 @@
   "scripts": {
     "test": "node_modules/.bin/grunt test"
   },
-  "main": "./lib/ccss-compiler"
+  "main": "./lib/compiler"
 }

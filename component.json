@@ -8,13 +8,13 @@
     "component.json"
   ],
   "scripts": [
-    "lib/ccss-compiler.js",
+    "lib/compiler.js",
     "lib/grammar.js",
     "lib/parser.js"
   ],
   "dependencies": {
     "the-gss/error-reporter": "*"
   },
-  "main": "lib/ccss-compiler.js",
+  "main": "lib/compiler.js",
   "license": "MIT"
 }

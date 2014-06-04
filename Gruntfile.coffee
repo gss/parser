@@ -35,7 +35,7 @@ module.exports = ->
     # BDD tests on Node.js
     cafemocha:
       nodejs:
-        src: ['spec/*.coffee']
+        src: ['spec/**/*.coffee']
       options:
         reporter: 'spec'
 

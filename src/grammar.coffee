@@ -22,20 +22,6 @@ class Grammar
     return result
 
 
-  # Report an error.
-  # @private
-  #
-  # @param message [String] A description of the error.
-  # @param line [Number] The line number where the error occurred.
-  # @param column [Number] The column number where the error occurred.
-  # @return [String] The message originally passed to the method.
-  #
-  @_reportError: (message, line, column) ->
-    message = "#{message} {line:#{line}, col:#{column}}" if line? and column?
-    console.error(message);
-    return message;
-
-
   # Create a string from a list of characters.
   # @private
   #
@@ -90,6 +76,21 @@ class Grammar
   _commands: null
 
 
+  # The type of error thrown by the PEG parser.
+  # @note Assigned in constructor.
+  # @private
+  #
+  # @param message [String] A description of the error.
+  # @param expected [Array<Object>] A list of objects consisting of type,
+  # value and description keys which represent valid statements.
+  # @param found [String] The statement that found and caused the error.
+  # @param offset [Number] The same as `column`, but zero-based.
+  # @param line [Number] The line number where the error occurred.
+  # @param column [Number] The column number where the error occurred.
+  #
+  _Error: null
+
+
   # @property [Array<String>] A list of selectors.
   # @private
   #
@@ -126,16 +127,7 @@ class Grammar
   #
   # @return [Number] The current column number.
   #
-  _column: ->
-
-
-  # Get the current input string as reported by the parser.
-  # @note Assigned in constructor.
-  # @private
-  #
-  # @return [String] the current input string.
-  #
-  _input: ->
+  _columnNumber: ->
 
 
   # Get the current line number as reported by the parser.
@@ -144,7 +136,7 @@ class Grammar
   #
   # @return [Number] The current line number.
   #
-  _line: ->
+  _lineNumber: ->
 
 
 
@@ -153,16 +145,18 @@ class Grammar
 
   # Construct a new Grammar.
   #
-  # @param input [Function] A getter for the current input string.
-  # @param line [Function] A getter for the current line number.
-  # @param column [Function] A getter for the current column number.
+  # @param lineNumber [Function] A getter for the current line number.
+  # @param columnNumber [Function] A getter for the current column number.
+  # @param errorType [Function] A getter for the type of error thrown by the
+  # PEG parser.
   #
-  constructor: (input, line, column) ->
+  constructor: (lineNumber, columnNumber, errorType) ->
     @_commands = []
     @_selectors = []
-    @_input = input
-    @_line = line
-    @_column = column
+
+    @_lineNumber = lineNumber
+    @_columnNumber = columnNumber
+    @_Error = errorType()
 
 
   # The start rule.
@@ -606,10 +600,8 @@ class Grammar
 
       # Invalid strength and weight directives.
       #
-      # @return [String] A message explaining the validity of the directive.
-      #
       invalid: =>
-        return Grammar._reportError 'Invalid Strength or Weight', @_line(), @_column()
+        throw new @_Error 'Invalid Strength or Weight', null, null, null, @_lineNumber(), @_columnNumber()
 
     }
 
@@ -786,7 +778,7 @@ class Grammar
     head = Grammar._toString headCharacters
     tail = Grammar._toString tailCharacters
 
-    createChainAST = (operator, firstExpression, secondExpression) ->
+    createChainAST = (operator, firstExpression, secondExpression) =>
       ast = [operator, firstExpression, secondExpression]
       ast = ast.concat strengthAndWeight if strengthAndWeight?
       return ast
@@ -805,7 +797,7 @@ class Grammar
       tailAST = createChainAST tailOperator, bridgeValue, tail
       asts.push tailAST
     else
-      Grammar._reportError 'Invalid Chain Statement', @_line(), @_column()
+      throw new @_Error 'Invalid Chain Statement', null, null, null, @_lineNumber(), @_columnNumber()
 
     return asts
 

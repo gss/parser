@@ -5,15 +5,17 @@ module.exports = ->
 
     # Generate library from Peg grammar
     peg:
-      ccssCompiler:
-        src: 'grammar/ccss-compiler.peg'
-        dest: 'lib/ccss-compiler.js'
+      parser:
+        src: 'src/grammar.peg'
+        dest: 'lib/parser.js'
 
     # Build the browser Component
-    component_build:
+    componentbuild:
       'ccss-compiler':
-        output: './browser/'
-        config: './component.json'
+        options:
+          name: 'ccss-compiler'
+        src: '.'
+        dest: 'browser'
         scripts: true
         styles: false
 
@@ -27,13 +29,13 @@ module.exports = ->
 
     # Automated recompilation and testing when developing
     watch:
-      files: ['spec/*.coffee', 'grammar/*.peg']
+      files: ['spec/**/*.coffee', 'src/**/*.{coffee,peg}']
       tasks: ['test']
 
     # BDD tests on Node.js
     cafemocha:
       nodejs:
-        src: ['spec/*.coffee']
+        src: ['spec/**/*.coffee']
       options:
         reporter: 'spec'
 
@@ -44,15 +46,15 @@ module.exports = ->
           bare: true
         expand: true
         cwd: 'spec'
-        src: ['**.coffee']
+        src: ['**/*.coffee']
         dest: 'spec'
         ext: '.js'
-      grammar:
+      src:
         options:
           bare: true
         expand: true
         cwd: 'src'
-        src: ['**.coffee']
+        src: ['**/*.coffee']
         dest: 'lib'
         ext: '.js'
 
@@ -71,6 +73,6 @@ module.exports = ->
   @loadNpmTasks 'grunt-mocha-phantomjs'
   @loadNpmTasks 'grunt-contrib-watch'
 
-  @registerTask 'build', ['coffee:grammar', 'peg', 'component_build', 'uglify']
+  @registerTask 'build', ['coffee:src', 'peg', 'componentbuild', 'uglify']
   @registerTask 'test', ['build', 'coffee:spec', 'cafemocha', 'mocha_phantomjs']
   @registerTask 'default', ['build']

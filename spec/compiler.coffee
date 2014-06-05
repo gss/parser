@@ -2,25 +2,51 @@ if window?
   parser = require 'ccss-compiler'
 else
   chai = require 'chai' unless chai
-  parser = require '../lib/ccss-compiler'
+  parser = require '../lib/compiler'
+
+{expect} = chai
 
 
-parse = (source, expect) ->
-  result = null
+parse = (source, expectation, pending) ->
+  itFn = if pending then xit else it
+
   describe source, ->
-    it 'should do something', ->
+    result = null
+
+    itFn 'should do something', ->
       result = parser.parse source
-      chai.expect(result).to.be.an 'object'
-    it 'commands ✓', ->
-      chai.expect(result.commands).to.eql expect.commands or []
-    it 'selectors ✓', ->
-      chai.expect(result.selectors).to.eql expect.selectors or []
-      #chai.expect(result.vars).to.eql expect.vars or []
-      #chai.expect(result.constraints).to.eql expect.constraints or []
+      expect(result).to.be.an 'object'
+    itFn 'commands ✓', ->
+      expect(result.commands).to.eql expectation.commands or []
+    itFn 'selectors ✓', ->
+      expect(result.selectors).to.eql expectation.selectors or []
+      #expect(result.vars).to.eql expectation.vars or []
+      #expect(result.constraints).to.eql expectation.constraints or []
+
+
+# Helper function for expecting errors to be thrown when parsing.
+#
+# @param source [String] CCSS statements.
+# @param message [String] This should be provided when a rule exists to catch
+# invalid syntax, and omitted when an error is expected to be thrown by the PEG
+# parser.
+# @param pending [Boolean] Whether the spec should be treated as pending.
+#
+expectError = (source, message, pending) ->
+  itFn = if pending then xit else it
+
+  describe source, ->
+    predicate = 'should throw an error'
+    predicate = "#{predicate} with message: #{message}" if message?
+
+    itFn predicate, ->
+      exercise = -> parser.parse source
+      expect(exercise).to.throw Error, message
+
 
 describe 'CCSS-to-AST', ->
   it 'should provide a parse method', ->
-    chai.expect(parser.parse).to.be.a 'function'
+    expect(parser.parse).to.be.a 'function'
 
   # Basics
   # ====================================================================
@@ -197,6 +223,9 @@ describe 'CCSS-to-AST', ->
               ['eq', ['number', 5], ['number', 6], 'strong', 10]
             ]
           }
+
+    expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+    expectError '[a] == [b] !strong0.5'
 
 
   # Stays
@@ -571,6 +600,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
 
     parse """
@@ -589,6 +620,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
     parse """
             @chain .box width() height(>=10>=) bottom(<=)top;
@@ -609,6 +642,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
     parse """
             @chain .box width([hgap]*2);
@@ -627,6 +662,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
     parse """
             @chain .box width(+[hgap]*2);
@@ -644,6 +681,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
     parse """
             @chain .box right(+10==)left;
@@ -661,6 +700,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
     parse """
             @chain .box bottom(==!require)top;
@@ -678,6 +719,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
 
     parse """
@@ -698,6 +741,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+        ,
+          true
 
 
 

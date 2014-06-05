@@ -30,7 +30,7 @@ parse = (source, expectation, pending) ->
 # @param message [String] This should be provided when a rule exists to catch
 # invalid syntax, and omitted when an error is expected to be thrown by the PEG
 # parser.
-# @param [Boolean] Whether the spec should be treated as pending.
+# @param pending [Boolean] Whether the spec should be treated as pending.
 #
 expectError = (source, message, pending) ->
   itFn = if pending then xit else it

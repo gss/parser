@@ -224,7 +224,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    expectError '[a] == [b] !stron'
+    expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
     expectError '[a] == [b] !strong0.5'
 
 
@@ -600,8 +600,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
 
     parse """
@@ -620,8 +618,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
     parse """
             @chain .box width() height(>=10>=) bottom(<=)top;
@@ -642,8 +638,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
     parse """
             @chain .box width([hgap]*2);
@@ -662,8 +656,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
     parse """
             @chain .box width(+[hgap]*2);
@@ -681,8 +673,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
     parse """
             @chain .box right(+10==)left;
@@ -700,8 +690,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
     parse """
             @chain .box bottom(==!require)top;
@@ -719,8 +707,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
 
     parse """
@@ -741,8 +727,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-        ,
-          false
 
 
 

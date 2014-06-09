@@ -789,15 +789,15 @@ class Grammar
       headExpression.splice 1, 1, head
       head = headExpression
 
-    headAST = createChainAST headOperator, head, tail
-    headAST = createChainAST headOperator, head, bridgeValue if bridgeValue?
-    asts.push headAST
+    if bridgeValue?
+      asts.push createChainAST(headOperator, head, bridgeValue)
 
-    if bridgeValue? and tailOperator?
-      tailAST = createChainAST tailOperator, bridgeValue, tail
-      asts.push tailAST
+      if tailOperator?
+        asts.push createChainAST(tailOperator, bridgeValue, tail)
+      else
+        throw new @_Error 'Invalid Chain Statement', null, null, null, @_lineNumber(), @_columnNumber()
     else
-      throw new @_Error 'Invalid Chain Statement', null, null, null, @_lineNumber(), @_columnNumber()
+      asts.push createChainAST(headOperator, head, tail)
 
     return asts
 

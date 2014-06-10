@@ -1060,3 +1060,25 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
             ]
           }
+
+  parse """
+          [left] == -0.4; // negative floating point with leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 0.4]]]
+            ]
+          }
+
+  parse """
+          [left] == -.4; // negative floating point without leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 0.4]]]
+            ]
+          }

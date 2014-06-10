@@ -124,16 +124,19 @@ NameCharsWithSpace
   = NameChars / " "
 
 Literal
-  = value:(Real / Integer) { return grammar.literal(value); }
+  = value:(Real / Integer / SignedReal / SignedInteger) { return grammar.literal(value); }
 
 Integer
   = digits:[0-9]+ { return grammar.integer(digits); }
 
-Real
-  = digits:(Integer "." Integer) { return grammar.real(digits); }
-
 SignedInteger
-  = [-+]? [0-9]+
+  = sign:[-+] integer:Integer? { return grammar.signedInteger(sign, integer); }
+
+Real
+  = digits:(Integer? "." Integer) { return grammar.real(digits); }
+
+SignedReal
+  = sign:[-+] real:Real { return grammar.signedReal(sign, real); }
 
 SourceCharacter
   = .

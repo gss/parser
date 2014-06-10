@@ -991,3 +991,160 @@ describe 'CCSS-to-AST', ->
               ['stay', ['get$', 'height', ['$id','box']]]
             ]
           }
+
+  # Numbers
+  # ====================================================================
+
+  parse """
+          [left] == 0.4; // with leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', 0.4]]
+            ]
+          }
+
+  parse """
+          [left] == .4; // without leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', 0.4]]
+            ]
+          }
+
+  parse """
+          [left] == 0 - 1; // negative via additive expression
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == (0 - 1); // negative via additive expression with parentheses
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == 0-1; // negative via additive expression without spaces
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == -1; // negative without additive expression
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', -1]]
+            ]
+          }
+
+  parse """
+          [left] == -0.4; // negative floating point with leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', -0.4]]
+            ]
+          }
+
+  parse """
+          [left] == -.4; // negative floating point without leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', -0.4]]
+            ]
+          }
+
+  parse """
+          [left] == 0 + 1; // positive via additive expression
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == (0 + 1); // positive via additive expression with parentheses
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == 0+1; // positive via additive expression without spaces
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
+          [left] == +1; // positive without additive expression
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', 1]]
+            ]
+          }
+
+  parse """
+          [left] == +0.4; // positive floating point with leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', 0.4]]
+            ]
+          }
+
+  parse """
+          [left] == +.4; // positive floating point without leading zero
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['number', 0.4]]
+            ]
+          }

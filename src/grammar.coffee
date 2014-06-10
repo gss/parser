@@ -251,23 +251,24 @@ class Grammar
       headExpressions = Grammar._unpack2DExpression firstExpression
       tailExpressions = Grammar._unpack2DExpression secondExpression
 
+      # Correctly handle expressions with a mix of 1D and 2D properties.
+      #
+      # e.g.
+      # #box1[size] == #box2[width];
+      #
+      # becomes
+      # #box1[width] == #box2[width];
+      # #box1[height] == #box2[width];
+      #
+      if headExpressions.length > tailExpressions.length
+        tailExpressions.push tailExpressions[0]
+      else if headExpressions.length < tailExpressions.length
+        headExpressions.push headExpressions[0]
+
       for tailExpression, index in tailExpressions
         headExpression = headExpressions[index]
 
-        # Correctly handle expressions with a mix of 1D and 2D properties.
-        #
-        # e.g.
-        # #box1[size] == #box2[width];
-        #
-        # becomes
-        # #box1[width] == #box2[width];
-        #
         if headExpression? and tailExpression?
-          if headExpressions.length > tailExpressions.length
-            headExpression[1] = tailExpression[1]
-          else if headExpressions.length < tailExpressions.length
-            tailExpression[1] = headExpression[1]
-
           command = [
             operator
             headExpression

@@ -1057,7 +1057,7 @@ describe 'CCSS-to-AST', ->
           {
             selectors: []
             commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+              ['eq', ['get', '[left]'], ['number', -1]]
             ]
           }
 
@@ -1068,7 +1068,7 @@ describe 'CCSS-to-AST', ->
           {
             selectors: []
             commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 0.4]]]
+              ['eq', ['get', '[left]'], ['number', -0.4]]
             ]
           }
 
@@ -1079,7 +1079,7 @@ describe 'CCSS-to-AST', ->
           {
             selectors: []
             commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 0.4]]]
+              ['eq', ['get', '[left]'], ['number', -0.4]]
             ]
           }
 

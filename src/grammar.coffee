@@ -432,11 +432,7 @@ class Grammar
   # @param value [Number]
   # @return [Array]
   #
-  literal: (value) ->
-    if value < 0
-      ['minus', ['number', 0], ['number', Math.abs(value)]]
-    else
-      ['number', value]
+  literal: (value) -> ['number', value]
 
 
   # Integers.

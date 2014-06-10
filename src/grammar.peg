@@ -238,11 +238,11 @@ Weight
   = weight:[0-9]+ { return grammar.weight(weight); }
 
 Strength
-  = ("require"  / "REQUIRE"  / "Require")  { return grammar.strength().require(); }
+  = ("required" / "REQUIRED" / "Required") { return grammar.strength().required(); }
+  / ("require"  / "REQUIRE"  / "Require")  { return grammar.strength().require(); }
   / ("strong"   / "STRONG"   / "Strong")   { return grammar.strength().strong(); }
   / ("medium"   / "MEDIUM"   / "Medium")   { return grammar.strength().medium(); }
   / ("weak"     / "WEAK"     / "Weak")     { return grammar.strength().weak(); }
-  / ("required" / "REQUIRED" / "Required") { return grammar.strength().required(); }
 
 
 // Virtual

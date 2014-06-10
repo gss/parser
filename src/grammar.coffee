@@ -432,7 +432,11 @@ class Grammar
   # @param value [Number]
   # @return [Array]
   #
-  literal: (value) -> ['number', value]
+  literal: (value) ->
+    if value < 0
+      ['minus', ['number', 0], ['number', Math.abs(value)]]
+    else
+      ['number', value]
 
 
   # Integers.
@@ -442,6 +446,16 @@ class Grammar
   #
   integer: (digits) ->
     return parseInt digits.join(''), 10
+
+
+  # Signed integers.
+  #
+  # @param sign [String]
+  # @param integer [Number]
+  # @return [Number]
+  #
+  signedInteger: (sign, integer) ->
+    return parseInt "#{sign}#{integer}", 10
 
 
   # Reals.

@@ -130,7 +130,7 @@ Integer
   = digits:[0-9]+ { return grammar.integer(digits); }
 
 Real
-  = digits:(Integer "." Integer) { return grammar.real(digits); }
+  = digits:(Integer? "." Integer) { return grammar.real(digits); }
 
 SignedInteger
   = [-+]? [0-9]+

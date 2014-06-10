@@ -1040,6 +1040,17 @@ describe 'CCSS-to-AST', ->
           }
 
   parse """
+          [left] == 0-1; // negative via additive expression without spaces
+        """
+        ,
+          {
+            selectors: []
+            commands: [
+              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+            ]
+          }
+
+  parse """
           [left] == -1; // negative without additive expression
         """
         ,

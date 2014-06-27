@@ -369,16 +369,6 @@ class Grammar
     }
 
 
-  # Primary expressions.
-  #
-  # @param expression [Array]
-  # @return [Object]
-  #
-  primaryExpression: ->
-    return {
-      andOrExpression: (expression) -> expression
-    }
-
 
   # Variables.
   #
@@ -584,19 +574,6 @@ class Grammar
         return "(#{selector})"
 
     }
-
-
-  # Reserved pseudo selectors.
-  #
-  # @return [Object]
-  #
-  reservedPseudoSelector: ->
-    return {
-      window: -> 'window'
-      this: -> 'this'
-    }
-
-
 
 
   ### Strength and weight directives ###

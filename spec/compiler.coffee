@@ -349,6 +349,85 @@ describe 'CCSS-to-AST', ->
               ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
             ]
           }
+    
+    
+  
+  
+  # Adv Selectors
+  # ====================================================================
+
+  #describe '/* Advanced Selectors */', ->
+  #
+  #  parse """
+  #          (html #main .boxes)[width] == [col-width]
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            'html #main .boxes'
+  #          ]
+  #          commands: [
+  #            ['eq',['get$','width',['$all','html #main .boxes']], ['get','[col-width]']]
+  #          ]
+  #        }
+  #
+  #  parse """
+  #          (html #main:not(.disabled) .boxes[data-target="true"])[width] == [col-width]
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            'html #main:not(.disabled) .boxes[data-target=\"true\"]'
+  #          ]
+  #          commands: [
+  #            ['eq', ['get$','width',['$all','html #main:not(.disabled) .boxes[data-target=\"true\"]']], ['get', '[col-width]']]
+  #          ]
+  #        }
+  #  
+  #  parse """
+  #          (&.featured)[width] == [w];
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '::this.featured'
+  #          ]
+  #          commands: [
+  #            ['eq', 
+  #              ['get$','width',['$filter',['$reserved','this'],'.featured']], 
+  #              ['get', '[w]']]
+  #          ]
+  #        }
+  #        
+  #  parse """
+  #          (&"column2")[width] == [w];
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '::this'
+  #          ]
+  #          commands: [
+  #            ['eq', 
+  #              ['get$','width',['$virtual','column2',['$reserved','this']]], 
+  #              ['get', '[w]']]
+  #          ]
+  #        }
+  #  
+  #  ###
+  #  parse """
+  #          (::parent[disabled] > li:first)[width] == [col-width]
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '::parent[disabled] > li:first'
+  #          ]
+  #          commands: [
+  #            ['eq', ['get$','width',['$nth','> li'['$filter',['$reserved','parent'],'[disabled]'],1]], ['get', '[col-width]']]
+  #          ]
+  #        }
+  #  ###
 
 
   # Intrinsics
@@ -1045,156 +1124,227 @@ describe 'CCSS-to-AST', ->
   # Numbers
   # ====================================================================
 
-  parse """
-          [left] == 0.4; // with leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', 0.4]]
-            ]
-          }
+  describe '/* Numbers */', ->
+  
+    parse """
+            [left] == 0.4; // with leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', 0.4]]
+              ]
+            }
 
-  parse """
-          [left] == .4; // without leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', 0.4]]
-            ]
-          }
+    parse """
+            [left] == .4; // without leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', 0.4]]
+              ]
+            }
 
-  parse """
-          [left] == 0 - 1; // negative via additive expression
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == 0 - 1; // negative via additive expression
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == (0 - 1); // negative via additive expression with parentheses
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == (0 - 1); // negative via additive expression with parentheses
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == 0-1; // negative via additive expression without spaces
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == 0-1; // negative via additive expression without spaces
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == -1; // negative without additive expression
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', -1]]
-            ]
-          }
+    parse """
+            [left] == -1; // negative without additive expression
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', -1]]
+              ]
+            }
 
-  parse """
-          [left] == -0.4; // negative floating point with leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', -0.4]]
-            ]
-          }
+    parse """
+            [left] == -0.4; // negative floating point with leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', -0.4]]
+              ]
+            }
 
-  parse """
-          [left] == -.4; // negative floating point without leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', -0.4]]
-            ]
-          }
+    parse """
+            [left] == -.4; // negative floating point without leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', -0.4]]
+              ]
+            }
 
-  parse """
-          [left] == 0 + 1; // positive via additive expression
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == 0 + 1; // positive via additive expression
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == (0 + 1); // positive via additive expression with parentheses
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == (0 + 1); // positive via additive expression with parentheses
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == 0+1; // positive via additive expression without spaces
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
-            ]
-          }
+    parse """
+            [left] == 0+1; // positive via additive expression without spaces
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
+              ]
+            }
 
-  parse """
-          [left] == +1; // positive without additive expression
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', 1]]
-            ]
-          }
+    parse """
+            [left] == +1; // positive without additive expression
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', 1]]
+              ]
+            }
 
-  parse """
-          [left] == +0.4; // positive floating point with leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', 0.4]]
-            ]
-          }
+    parse """
+            [left] == +0.4; // positive floating point with leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', 0.4]]
+              ]
+            }
 
-  parse """
-          [left] == +.4; // positive floating point without leading zero
-        """
-        ,
-          {
-            selectors: []
-            commands: [
-              ['eq', ['get', '[left]'], ['number', 0.4]]
-            ]
-          }
+    parse """
+            [left] == +.4; // positive floating point without leading zero
+          """
+          ,
+            {
+              selectors: []
+              commands: [
+                ['eq', ['get', '[left]'], ['number', 0.4]]
+              ]
+            }
+  
+  
+  #describe '/* Parans */', ->
+  #  
+  #  # normalize ::this selector
+  #  
+  #  target = {
+  #      selectors: [
+  #        '::this'
+  #      ]
+  #      commands: [
+  #        ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
+  #        ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
+  #      ]
+  #    }
+  #  
+  #  parse """
+  #          ::[width] == ::this[x] == &[y]
+  #        """
+  #      , target
+  #      
+  #  parse """
+  #          /* parans ignored */
+  #          (::)[width] == (::this)[x] == (&)[y]
+  #        """
+  #      , target
+  #  
+  #  
+  #  parse """
+  #          /* paran craziness */
+  #          ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '#box1'
+  #            '#box2'
+  #            '::window'
+  #          ]
+  #          commands: [
+  #            ['eq', 
+  #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
+  #              ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+  #            ]
+  #          ]
+  #        }
+  #  
+  #  parse """
+  #          /* 2D expressions w/ paran craziness */
+  #          ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));
+  #        """
+  #      ,
+  #        {
+  #          selectors: [
+  #            '#box1'
+  #            '#box2'
+  #            '::window'
+  #          ]
+  #          commands: [
+  #            ['eq', 
+  #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
+  #              ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+  #            ],
+  #            ['eq', 
+  #              ['plus',['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$virtual', 'area']]], 
+  #              ['plus',['get$', 'height', ['$id', 'box2']], ['get$', 'height', ['$reserved', 'window']]], 
+  #            ]
+  #          ]
+  #        }

@@ -108,9 +108,7 @@ ConstraintPrimaryExpression
 PrimaryExpression
   = Var
   / Literal
-  / "(" __ expression:AndOrExpression __ ")" {
-    return grammar.primaryExpression().andOrExpression(expression);
-  }
+  / "(" __ expression:AndOrExpression __ ")" { return expression; }
 
 Var "variable"
   = selector:Selector? "[" variableNameCharacters:NameChars+ "]" {
@@ -192,6 +190,9 @@ Selector "selector"
   / "::" selectorName:ReservedPseudos {
     return grammar.selector().reservedPseudoSelector(selectorName);
   }
+  / "&" {
+    return grammar.selector().reservedPseudoSelector("this");
+  }
   / '"' nameCharacters:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
     return grammar.selector().virtual(nameCharacters);
   }
@@ -218,8 +219,8 @@ QuerySelectorChars
 
 ReservedPseudos
   = ("document" / "host" / "scope" / "parent")
-  / ("window" / "viewport") { return grammar.reservedPseudoSelector().window(); }
-  / ("this" / "") { return grammar.reservedPseudoSelector().this(); }
+  / ("window" / "viewport") { return "window"; }
+  / ("this" / "") { return "this"; }
 
 
 

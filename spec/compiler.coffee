@@ -18,10 +18,6 @@ parse = (source, expectation, pending) ->
       expect(result).to.be.an 'object'
     itFn 'commands ✓', ->
       expect(result.commands).to.eql expectation.commands or []
-    itFn 'selectors ✓', ->
-      expect(result.selectors).to.eql expectation.selectors or []
-      #expect(result.vars).to.eql expectation.vars or []
-      #expect(result.constraints).to.eql expectation.constraints or []
 
 
 # Helper function for expecting errors to be thrown when parsing.
@@ -289,11 +285,34 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              'html #main .boxes'
-            ]
             commands: [
-              ['eq',['get$','width',['$all','html #main .boxes']], ['get','[col-width]']]
+              ['eq',
+                [
+                  'get$',
+                  'width',
+                  [
+                     "$class",
+                     [
+                        "$combin",
+                        [
+                           "$id",
+                           [
+                              "$combin",
+                              [
+                                 "$tag",
+                                 "html"
+                              ],
+                              " "
+                           ],
+                           "main"
+                        ],
+                        " "
+                     ],
+                     "boxes"
+                  ]
+                ], 
+                ['get','[col-width]']
+              ]
             ]
           }
 
@@ -302,11 +321,43 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              'html #main:not(.disabled) .boxes[data-target=\"true\"]'
-            ]
             commands: [
-              ['eq', ['get$','width',['$all','html #main:not(.disabled) .boxes[data-target=\"true\"]']], ['get', '[col-width]']]
+              ['eq', 
+                [
+                  'get$',
+                  'width',
+                  [
+                     "attr",
+                     [
+                        "$class",
+                        [
+                           "$combin",
+                           [
+                              "$pseudo",
+                              [
+                                 "$id",
+                                 [
+                                    "$combin",
+                                    [
+                                       "$tag",
+                                       "html"
+                                    ],
+                                    " "
+                                 ],
+                                 "main"
+                              ],
+                              "not",
+                              ".disabled"
+                           ],
+                           " "
+                        ],
+                        "boxes"
+                     ],
+                     "data-target=\"true\""
+                  ]
+                ], 
+                ['get', '[col-width]']
+              ]
             ]
           }
 
@@ -321,10 +372,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '::this'
-              '::parent'
-            ]
             commands: [
               ['eq', ['get$','width',['$reserved','this']], ['get$','width',['$reserved', 'parent']]]
             ]
@@ -336,12 +383,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '::scope'
-              '::this'
-              '::document'
-              '::window'
-            ]
             commands: [
               ['eq', ['get$','width',['$reserved','scope']],    ['get$','width',['$reserved','this']]]
               ['eq', ['get$','width',['$reserved','this']],     ['get$','width',['$reserved','document']]]

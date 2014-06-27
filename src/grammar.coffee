@@ -9,7 +9,7 @@ class Grammar
   #
   # @return [Array]
   #
-  @_createExpressionAST: (head, tail) ->
+  headTail: (head, tail) ->
     result = head
 
     for item, index in tail
@@ -148,27 +148,6 @@ class Grammar
     }
 
 
-  # And / Or expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  andOrExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-  # Conditional expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  conditionalExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-
   # Linear constraints.
   #
   # @param head [Array]
@@ -219,57 +198,6 @@ class Grammar
     return "LinaearExpression" # FIXME
 
 
-  # Constraint additive expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  constraintAdditiveExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-  # Additive expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  additiveExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-  # Constraint multiplicative expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  constraintMultiplicativeExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-  # Multiplicative expressions.
-  #
-  # @param head [Array]
-  # @param tail [Array]
-  # @return [Array]
-  #
-  multiplicativeExpression: (head, tail) ->
-    return Grammar._createExpressionAST head, tail
-
-
-  # Constraint primary expressions.
-  #
-  # @param expression [Array]
-  # @return [Object]
-  #
-  constraintPrimaryExpression: ->
-    return {
-      constraintAdditiveExpression: (expression) -> expression
-    }
-
-
 
   # Variables.
   #
@@ -318,12 +246,6 @@ class Grammar
       return ['get', "[#{variableName}]"]
 
 
-  # Literals.
-  #
-  # @param value [Number]
-  # @return [Array]
-  #
-  literal: (value) -> ['number', value]
 
 
   # Integers.

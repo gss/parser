@@ -183,39 +183,66 @@ __
 // Query Selectors
 // ===================================================
 
-Selector "selector"
-  = "#" nameCharacters:NameChars+ {
-    return g.selector().id(nameCharacters);
-  }
-  / "::" selectorName:ReservedPseudos {
-    return g.selector().reservedPseudoSelector(selectorName);
-  }
-  / "&" {
-    return g.selector().reservedPseudoSelector("this");
-  }
-  / '"' nameCharacters:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
-    return g.selector().virtual(nameCharacters);
-  }
-  / "." nameCharacters:NameChars+  {
-    return g.selector().class(nameCharacters);
-  }
-  / nameCharacters:NameChars+  {
-    return g.selector().tag(nameCharacters);
-  }
-  / "(" parts:QuerySelectorAllParts+ ")"  {
-    return g.selector().all(parts);
+Selector
+  = "(" _ sel:SelectorFilterChain _ ")" {return sel;}
+  / left:SimpleSelector _ {return left;}
+
+SelectorFilterChain
+  = filters:ComplexSelector+  {
+    var i, len;
+    len = filters.length;
+    for (i=len-1; i>0; i--) {
+      filters[i].splice(1,0,filters[i-1]);
+    }
+    return filters[len-1];
   }
 
-QuerySelectorAllParts
-  = selectorCharacters:QuerySelectorChars+ {
-    return g.querySelectorAllParts().withoutParens(selectorCharacters);
-  }
-  / "(" selectorCharacters:[^)]* ")" {
-    return g.querySelectorAllParts().withParens(selectorCharacters);
-  }
+SimpleSelector "SimpleSelector"
+  = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
 
-QuerySelectorChars
-  = [a-zA-Z0-9#.\-_$=:+>'" \]\[]
+ComplexSelector 
+  = SimpleSelector  
+  / AttrSel
+  / c:Combinator              {return ["$combin",c]}
+
+Combinator "Combinator"
+  = _ c:([,><+~!]) _          {return c}
+  / " "+                      {return " "}
+
+VirtualSel
+  = ["] id:[^"]+ ["]          {return ["$virtual",id.join("")];}
+
+TagSel
+  = name:SelectorName         {return ["$tag",name];}
+  / "*"                       {return ["$*"];}
+  
+IdSel
+  = "#" name:SelectorName     {return ["$id",name];}
+
+ClassSel
+  = "." name:SelectorName     {return ["$class",name];}
+
+ReservedSel
+  = "::" name:ReservedPseudos {return ["$reserved",name];}
+  / "&"                       {return ["$reserved","this"];}
+
+PseudoSel
+  = ("::" / ":") name:SelectorName option:PseudoSelOption? {
+    if (option) {return ["$pseudo",name,option];}
+    return ["$pseudo",name];
+  }
+  
+PseudoSelOption
+  = "(" option:[^)]* ")" { return option.join(""); }
+
+AttrSel
+  = "[" attr:[^\]]+ "]" { return ["attr",attr.join("")]; }
+
+SelectorName
+  = name:SelectorNameChars+ {return name.join("")}
+
+SelectorNameChars
+  = [a-zA-Z0-9\-_$]
 
 ReservedPseudos
   = ("document" / "host" / "scope" / "parent")

@@ -140,7 +140,7 @@ class Grammar
 
   # The start rule.
   #
-  # @return [Object] An object consisting of commands and selectors.
+  # @return [Object] An object consisting of commands
   #
   start: ->
     return {
@@ -211,7 +211,6 @@ class Grammar
     # If bound to DOM query
     #
     if selector? and selector.length isnt 0
-      {selector:selectorName} = selector
 
       # Normalize variables names when query bound
       #
@@ -231,7 +230,7 @@ class Grammar
 
       # Normalize window variable names
       #
-      if selectorName is '::window'
+      if selector.toString().indexOf('$reserved,window') isnt -1
         switch variableName
           when 'right'
             variableName = 'width'
@@ -240,8 +239,8 @@ class Grammar
             variableName = 'height'
             break
 
-    if selector? and (selectorName? or selector.isVirtual?)
-      return ['get$', variableName, selector.ast]
+    if selector?
+      return ['get$', variableName, selector]
     else
       return ['get', "[#{variableName}]"]
 
@@ -305,10 +304,7 @@ class Grammar
       id: (nameCharacters) ->
         selectorName = Grammar._toString nameCharacters
 
-        return {
-          selector: "##{selectorName}"
-          ast: ['$id', selectorName]
-        }
+        return ['$id', selectorName]
 
 
       # Reserved pseudo selectors.
@@ -317,10 +313,7 @@ class Grammar
       # @return [Object]
       #
       reservedPseudoSelector: (selectorName) ->
-        return {
-          selector: "::#{selectorName}"
-          ast: ['$reserved', selectorName]
-        }
+        return ['$reserved', selectorName]
 
 
       # Virtuals.
@@ -331,10 +324,7 @@ class Grammar
       virtual: (nameCharacters) ->
         name = Grammar._toString nameCharacters
 
-        return {
-          isVirtual: true
-          ast: ['$virtual', name]
-        }
+        return ['$virtual', name]
 
 
       # Classes.
@@ -345,10 +335,7 @@ class Grammar
       class: (nameCharacters) ->
         selectorName = Grammar._toString nameCharacters
 
-        return {
-          selector: ".#{selectorName}"
-          ast: ['$class', selectorName]
-        }
+        return ['$class', selectorName]
 
 
       # Tags.
@@ -359,10 +346,7 @@ class Grammar
       tag: (nameCharacters) ->
         selectorName = Grammar._toString nameCharacters
 
-        return {
-          selector: selectorName
-          ast: ['$tag', selectorName]
-        }
+        return ['$tag', selectorName]
 
 
       # Advanced selectors.
@@ -373,10 +357,7 @@ class Grammar
       all: (parts) ->
         selector = Grammar._toString parts
 
-        return {
-          selector: selector
-          ast: ['$all', selector]
-        }
+        return ['$all', selector]
 
     }
 
@@ -525,8 +506,7 @@ class Grammar
   # @param javaScript [Array<String>]
   #
   forEach: (type, selector, javaScript) ->
-    {selector:selectorName} = selector
-    @_addCommand [type, selector.ast, javaScript]
+    @_addCommand [type, selector, javaScript]
 
 
   # JavaScript statements.
@@ -562,9 +542,8 @@ class Grammar
   # @param chainers [Array]
   #
   chain: (selector, chainers) ->
-    {selector:selectorName} = selector
 
-    ast = ['chain', selector.ast]
+    ast = ['chain', selector]
     ast = ast.concat chainer for chainer in chainers
     @_addCommand ast
 

@@ -32,19 +32,17 @@ StatementTypes
   / ForEach
 
 AndOrExpression
-  = head:ConditionalExpression
-    tail:(__ AndOrOp __ ConditionalExpression)* {
-      return g.andOrExpression(head, tail);
-    }
+  = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 
+    return g.headTail(head, tail); 
+  }
 
 AndOrOp
   = ("AND" / "and" / "And" / "&&") { return '&&'; }
   / ("OR"  / "or"  / "Or"  / "||") { return '||'; }
 
 ConditionalExpression
-  = head:AdditiveExpression
-    tail:(__ CondOperator __ AdditiveExpression)* {
-      return g.conditionalExpression(head, tail);
+  = head:AdditiveExpression tail:(__ CondOperator __ AdditiveExpression)* {
+      return g.headTail(head, tail);
     }
 
 CondOperator
@@ -71,13 +69,13 @@ LinearConstraintOperator
 ConstraintAdditiveExpression
   = head:ConstraintMultiplicativeExpression
     tail:(__ AdditiveOperator __ ConstraintMultiplicativeExpression)* {
-      return g.constraintAdditiveExpression(head, tail);
+      return g.headTail(head, tail);
     }
 
 AdditiveExpression
   = head:MultiplicativeExpression
     tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
-      return g.additiveExpression(head, tail);
+      return g.headTail(head, tail);
     }
 
 AdditiveOperator
@@ -87,13 +85,13 @@ AdditiveOperator
 ConstraintMultiplicativeExpression
   = head:ConstraintPrimaryExpression
     tail:(__ MultiplicativeOperator __ ConstraintPrimaryExpression)* {
-      return g.constraintMultiplicativeExpression(head, tail);
+      return g.headTail(head, tail);
     }
 
 MultiplicativeExpression
   = head:PrimaryExpression
     tail:(__ MultiplicativeOperator __ PrimaryExpression)* {
-      return g.multiplicativeExpression(head, tail);
+      return g.headTail(head, tail);
     }
 
 MultiplicativeOperator
@@ -104,7 +102,7 @@ ConstraintPrimaryExpression
   = Var
   / Literal
   / "(" __ expression:ConstraintAdditiveExpression __ ")" {
-    return g.constraintPrimaryExpression().constraintAdditiveExpression(expression);
+    return expression;
   }
 
 PrimaryExpression
@@ -124,7 +122,7 @@ NameCharsWithSpace
   = NameChars / " "
 
 Literal
-  = value:(Real / Integer / SignedReal / SignedInteger) { return g.literal(value); }
+  = value:(Real / Integer / SignedReal / SignedInteger) { return ['number', value]; }
 
 Integer
   = digits:[0-9]+ { return g.integer(digits); }

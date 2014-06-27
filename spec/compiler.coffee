@@ -231,9 +231,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
             ]
@@ -476,7 +473,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['virtual','Zone']
             ]
@@ -488,7 +484,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
             ]
@@ -499,7 +494,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
             ]
@@ -507,7 +501,6 @@ describe 'CCSS-to-AST', ->
 
     parse '"box"[right] == "box2"[left];',
           {
-            selectors: []
             commands: [
               ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
             ]
@@ -525,10 +518,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-              '#box2'
-            ]
             commands: [
               ['?==', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
             ]
@@ -539,8 +528,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-            ]
             commands: [
               ['?==',['multiply',['number',2],['get','[right]']], ['plus',['get','[x]'],['number',100]] ]
             ]
@@ -551,10 +538,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-              '#box2'
-            ]
             commands: [
               ["&&"
                 ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
@@ -568,10 +551,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-              '#box2'
-            ]
             commands: [
               ["&&"
                 ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
@@ -585,10 +564,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-              '#box2'
-            ]
             commands: [
               ["&&"
                 ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
@@ -617,9 +592,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
 
               ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
@@ -644,9 +616,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'for-all',
@@ -670,9 +639,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -688,9 +654,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -705,9 +668,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -725,9 +685,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -743,9 +700,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -760,9 +714,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -777,9 +728,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -795,9 +743,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -817,9 +762,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               [
                 'chain',
@@ -840,9 +782,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '.box'
-            ]
             commands: [
               ['chain', ['$class', 'box'], ['eq-chain','width','width']]
               ['var', '.box:first[width]', 'width', ['$contextual',':first',['$class', 'box']]]
@@ -863,9 +802,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['var','.box[width]', 'width', ['$class', 'box']]
               ['var','.box(.header)[width]', 'width', ['$class', 'header', ['$class', 'box']]]
@@ -899,10 +835,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'x', ['$id', 'box1']], ['get$', 'x', ['$id', 'box2']]]
               ['eq', ['get$', 'y', ['$id', 'box1']], ['get$', 'y', ['$id', 'box2']]]
@@ -914,10 +846,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
               ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
@@ -929,10 +857,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
               ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
@@ -944,10 +868,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
               ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
@@ -959,10 +879,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
               ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
@@ -974,10 +890,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'intrinsic-width', ['$id', 'box2']]]
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'intrinsic-height', ['$id', 'box2']]]
@@ -989,10 +901,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'right', ['$id', 'box2']]]
               ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'bottom', ['$id', 'box2']]]
@@ -1004,10 +912,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
@@ -1019,10 +923,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
@@ -1034,10 +934,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
@@ -1049,10 +945,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
@@ -1064,9 +956,7 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
+
             commands: [
               ['stay', ['get$', 'width', ['$id','box']]]
               ['stay', ['get$', 'height', ['$id','box']]]
@@ -1078,9 +968,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box']], ['number', 100]]
               ['eq', ['get$', 'height', ['$id', 'box']], ['number', 100]]
@@ -1093,9 +980,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['eq', ['get', '[square-size]'], ['number', 100]]
               ['eq', ['get$', 'width', ['$id', 'box']], ['get', '[square-size]']]
@@ -1109,9 +993,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['eq', ['get$', '$square-size', ['$id', 'box']], ['number', 100]]
               ['eq', ['get$', 'width', ['$id', 'box']], ['get$', '$square-size', ['$id', 'box']]]
@@ -1129,7 +1010,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
               ]
@@ -1140,7 +1020,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
               ]
@@ -1151,7 +1030,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
               ]
@@ -1162,7 +1040,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
               ]
@@ -1173,7 +1050,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['minus', ['number', 0], ['number', 1]]]
               ]
@@ -1184,7 +1060,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', -1]]
               ]
@@ -1195,7 +1070,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', -0.4]]
               ]
@@ -1206,7 +1080,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', -0.4]]
               ]
@@ -1217,7 +1090,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
               ]
@@ -1228,7 +1100,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
               ]
@@ -1239,7 +1110,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['plus', ['number', 0], ['number', 1]]]
               ]
@@ -1250,7 +1120,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', 1]]
               ]
@@ -1261,7 +1130,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
               ]
@@ -1272,7 +1140,6 @@ describe 'CCSS-to-AST', ->
           """
           ,
             {
-              selectors: []
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
               ]
@@ -1284,9 +1151,6 @@ describe 'CCSS-to-AST', ->
   #  # normalize ::this selector
   #  
   #  target = {
-  #      selectors: [
-  #        '::this'
-  #      ]
   #      commands: [
   #        ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
   #        ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
@@ -1311,11 +1175,6 @@ describe 'CCSS-to-AST', ->
   #        """
   #      ,
   #        {
-  #          selectors: [
-  #            '#box1'
-  #            '#box2'
-  #            '::window'
-  #          ]
   #          commands: [
   #            ['eq', 
   #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
@@ -1330,11 +1189,6 @@ describe 'CCSS-to-AST', ->
   #        """
   #      ,
   #        {
-  #          selectors: [
-  #            '#box1'
-  #            '#box2'
-  #            '::window'
-  #          ]
   #          commands: [
   #            ['eq', 
   #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 

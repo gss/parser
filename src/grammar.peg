@@ -206,7 +206,7 @@ ComplexSelector
   / c:Combinator              {return ["$combin",c]}
 
 Combinator "Combinator"
-  = _ c:([,><+~!]) _          {return c}
+  = _ c:[,><+~!]+ _           {return c.join('');}
   / " "+                      {return " "}
 
 VirtualSel
@@ -263,14 +263,14 @@ StrengthAndWeight
   }
 
 Weight
-  = weight:[0-9]+ { return g.weight(weight); }
+  = weight:[0-9]+ { return Number(weight.join('')); }
 
 Strength
-  = ("required" / "REQUIRED" / "Required") { return g.strength().required(); }
-  / ("require"  / "REQUIRE"  / "Require")  { return g.strength().require(); }
-  / ("strong"   / "STRONG"   / "Strong")   { return g.strength().strong(); }
-  / ("medium"   / "MEDIUM"   / "Medium")   { return g.strength().medium(); }
-  / ("weak"     / "WEAK"     / "Weak")     { return g.strength().weak(); }
+  = ("required" / "REQUIRED" / "Required") { return "require"; }
+  / ("require"  / "REQUIRE"  / "Require")  { return "require"; }
+  / ("strong"   / "STRONG"   / "Strong")   { return "strong"; }
+  / ("medium"   / "MEDIUM"   / "Medium")   { return "medium"; }
+  / ("weak"     / "WEAK"     / "Weak")     { return "weak"; }
 
 
 // Virtual
@@ -283,8 +283,8 @@ Virtual
   }
 
 VirtualName
-  = '"' nameCharacters:[^"]+ '"' __ {
-    return g.virtualElementName(nameCharacters);
+  = '"' name:[^"]+ '"' __ {
+    return name.join('');
   }
 
 

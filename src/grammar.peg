@@ -233,13 +233,13 @@ PseudoSel
   }
   
 PseudoSelOption
-  = "(" option:[^)]* ")" { return option.join(""); }
+  = "(" option:[^)]* ")"       {return option.join(""); }
 
 AttrSel
-  = "[" attr:[^\]]+ "]" { return ["attr",attr.join("")]; }
+  = "[" attr:[^\]]+ "]"        {return ["$attr",attr.join("")]; }
 
 SelectorName
-  = name:SelectorNameChars+ {return name.join("")}
+  = name:SelectorNameChars+    {return name.join("")}
 
 SelectorNameChars
   = [a-zA-Z0-9\-_$]

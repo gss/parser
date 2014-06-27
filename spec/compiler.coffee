@@ -54,7 +54,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['lte', ['number', 10], ['number', 2]]
               ['eq', ['number', 2], ['number', 3]]
@@ -68,7 +67,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['eq',
                 ['get', '[md-width]'],
@@ -98,7 +96,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ["#box2"]
             commands: [
               ['lte', [
                 'multiply', ['get', '[grid-height]'], ['get$', 'width', ['$id', 'box2']]
@@ -123,7 +120,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['#b']
             commands: [
               ['eq', ['get$', 'x', ['$id', 'b']], ['get', '[left]']]
               ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
@@ -134,7 +130,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['#b']
             commands: [
               ['eq',['get$','y',['$id','b']],['get','[top]']]
             ]
@@ -145,7 +140,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['::window']
             commands: [
               ['eq',['get','[right]'],['get$','width',['$reserved','window']]]
             ]
@@ -155,7 +149,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['::window']
             commands: [
               ['eq', ['get','[left]'], ['get$','x',['$reserved','window']]]
             ]
@@ -165,7 +158,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['::window']
             commands: [
               ['eq', ['get', '[top]'], ['get$','y',['$reserved','window']]]
             ]
@@ -175,7 +167,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['::window']
             commands: [
               ['eq', ['get','[bottom]'], ['get$','height',['$reserved','window']]]
             ]
@@ -186,7 +177,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['#b']
             commands: [
               ['eq', ['get$', 'center-x',['$id', 'b']], ['get', '[cx]']]
             ]
@@ -196,7 +186,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: ['#b']
             commands: [
               ['eq', ['get$','center-y',['$id', 'b']], ['get', '[cy]']]
             ]
@@ -213,7 +202,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: []
             commands: [
               ['eq', ['number', 4], ['number', 5], 'strong', 10]
               ['eq', ['number', 5], ['number', 6], 'strong', 10]
@@ -234,9 +222,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box'
-            ]
             commands: [
               ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
             ]
@@ -479,39 +464,6 @@ describe 'CCSS-to-AST', ->
           }
     
 
-
-  # Intrinsics
-  # ====================================================================
-
-  describe '/ Intrinsic Props /', ->
-
-    # should do nothing special...
-    parse """
-            #box[width] == #box[intrinsic-width];
-            [grid-col-width] == #box[intrinsic-width];
-          """
-        ,
-          {
-            selectors: [
-              '#box'
-            ]
-            commands: [
-              ['eq',['get$','width',['$id','box']], ['get$','intrinsic-width',['$id','box']]]
-              ['eq',['get','[grid-col-width]'], ['get$','intrinsic-width',['$id','box']]]
-            ]
-          }
-    parse """
-            #box[right] == #box[intrinsic-right];
-          """
-        ,
-          {
-            selectors: [
-              '#box'
-            ]
-            commands: [
-              ['eq',['get$','right',['$id','box']],['get$','intrinsic-right',['$id','box']]]
-            ]
-          }
 
 
   # Virtual Elements
@@ -936,10 +888,6 @@ describe 'CCSS-to-AST', ->
           """
         ,
           {
-            selectors: [
-              '#box1'
-              '#box2'
-            ]
             commands: [
               ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
               ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]

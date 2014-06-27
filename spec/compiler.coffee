@@ -307,7 +307,7 @@ describe 'CCSS-to-AST', ->
                   'get$',
                   'width',
                   [
-                     "attr",
+                     "$attr",
                      [
                         "$class",
                         [
@@ -377,6 +377,78 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
+    parse """
+            (&.featured)[width] == 100;
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                [
+                  'get$',
+                  'width',
+                  ['$class',['$reserved','this'],'featured']
+                ], 
+                ['number', 100]
+              ]
+            ]
+          }
+          
+    parse """
+            (&"column2")[width] == 100;
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                [
+                  'get$',
+                  'width',
+                  ['$virtual',['$reserved','this'],'column2']
+                ], 
+                ['number', 100]
+              ]
+            ]
+          }
+    
+
+    parse """
+            (::parent[disabled] ~ li:first)[width] == 100
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                [
+                  'get$',
+                  'width',
+                  [
+                     "$pseudo",
+                     [
+                        "$tag",
+                        [
+                           "$combin",
+                           [
+                              "$attr",
+                              [
+                                 "$reserved",
+                                 "parent"
+                              ],
+                              "disabled"
+                           ],
+                           "~"
+                        ],
+                        "li"
+                     ],
+                     "first"
+                  ]
+                ], 
+                ['number', 100]
+              ]
+            ]
+          }
+    
+  
   # Pseudos
   # ====================================================================
 
@@ -406,84 +478,6 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
-    
-  
-  
-  # Adv Selectors
-  # ====================================================================
-
-  #describe '/* Advanced Selectors */', ->
-  #
-  #  parse """
-  #          (html #main .boxes)[width] == [col-width]
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            'html #main .boxes'
-  #          ]
-  #          commands: [
-  #            ['eq',['get$','width',['$all','html #main .boxes']], ['get','[col-width]']]
-  #          ]
-  #        }
-  #
-  #  parse """
-  #          (html #main:not(.disabled) .boxes[data-target="true"])[width] == [col-width]
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            'html #main:not(.disabled) .boxes[data-target=\"true\"]'
-  #          ]
-  #          commands: [
-  #            ['eq', ['get$','width',['$all','html #main:not(.disabled) .boxes[data-target=\"true\"]']], ['get', '[col-width]']]
-  #          ]
-  #        }
-  #  
-  #  parse """
-  #          (&.featured)[width] == [w];
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            '::this.featured'
-  #          ]
-  #          commands: [
-  #            ['eq', 
-  #              ['get$','width',['$filter',['$reserved','this'],'.featured']], 
-  #              ['get', '[w]']]
-  #          ]
-  #        }
-  #        
-  #  parse """
-  #          (&"column2")[width] == [w];
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            '::this'
-  #          ]
-  #          commands: [
-  #            ['eq', 
-  #              ['get$','width',['$virtual','column2',['$reserved','this']]], 
-  #              ['get', '[w]']]
-  #          ]
-  #        }
-  #  
-  #  ###
-  #  parse """
-  #          (::parent[disabled] > li:first)[width] == [col-width]
-  #        """
-  #      ,
-  #        {
-  #          selectors: [
-  #            '::parent[disabled] > li:first'
-  #          ]
-  #          commands: [
-  #            ['eq', ['get$','width',['$nth','> li'['$filter',['$reserved','parent'],'[disabled]'],1]], ['get', '[col-width]']]
-  #          ]
-  #        }
-  #  ###
 
 
   # Intrinsics

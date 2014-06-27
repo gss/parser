@@ -109,89 +109,6 @@ describe 'CCSS-to-AST', ->
           }
 
 
-  # Name Normalization
-  # ====================================================================
-
-  describe "/* Normalize Names */", ->
-
-    parse """
-            #b[left] == [left];
-            [left-col] == [col-left];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get$', 'x', ['$id', 'b']], ['get', '[left]']]
-              ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
-            ]
-          }
-    parse """
-            #b[top] == [top];
-          """
-        ,
-          {
-            commands: [
-              ['eq',['get$','y',['$id','b']],['get','[top]']]
-            ]
-          }
-
-    parse """
-            [right] == ::window[right];
-          """
-        ,
-          {
-            commands: [
-              ['eq',['get','[right]'],['get$','width',['$reserved','window']]]
-            ]
-          }
-    parse """
-            [left] == ::window[left];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get','[left]'], ['get$','x',['$reserved','window']]]
-            ]
-          }
-    parse """
-            [top] == ::window[top];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get', '[top]'], ['get$','y',['$reserved','window']]]
-            ]
-          }
-    parse """
-            [bottom] == ::window[bottom];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get','[bottom]'], ['get$','height',['$reserved','window']]]
-            ]
-          }
-
-    parse """
-            #b[cx] == [cx];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get$', 'center-x',['$id', 'b']], ['get', '[cx]']]
-            ]
-          }
-    parse """
-            #b[cy] == [cy];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get$','center-y',['$id', 'b']], ['get', '[cy]']]
-            ]
-          }
-
-
   # Strength
   # ====================================================================
 
@@ -460,7 +377,26 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
-
+    # normalize ::this selector
+    
+    target = {
+        commands: [
+          ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
+          ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
+        ]
+      }
+    
+    parse """
+            ::[width] == ::this[x] == &[y]
+          """
+        , target
+        
+    parse """
+            /* parans ignored */
+            (::)[width] == (::this)[x] == (&)[y]
+          """
+        , target
+    
 
 
   # Virtual Elements
@@ -790,29 +726,91 @@ describe 'CCSS-to-AST', ->
             ]
           }
     ###
+  
+  
+  # Prop Normalization
+  # ====================================================================
 
-  ###
-  describe '/ contextual ::this iterators /', ->
+  describe "/* Normalize Prop Names */", ->
 
     parse """
-            .node[height] >= .node(.inports)[height];
-            .box {
-              width: == ::this(.header)[width];
-            }
+            #b[left] == [left];
+            [left-col] == [col-left];
           """
         ,
           {
             commands: [
-              ['var','.box[width]', 'width', ['$class', 'box']]
-              ['var','.box(.header)[width]', 'width', ['$class', 'header', ['$class', 'box']]]
-              ['foreach', ['$class', 'box'],
-              ['var','#box[intrinsic-width]', 'intrinsic-width', ['$id', 'box']]
-              ['eq',['get','#box[width]','#box'],['get','#box[intrinsic-width]','#box']]
-              ['var','[grid-col-width]']
-              ['eq',['get','[grid-col-width]'],['get','#box[intrinsic-width]','#box']]
+              ['eq', ['get$', 'x', ['$id', 'b']], ['get', '[left]']]
+              ['eq', ['get', '[left-col]'], ['get', '[col-left]']]
             ]
           }
-  ###
+    parse """
+            #b[top] == [top];
+          """
+        ,
+          {
+            commands: [
+              ['eq',['get$','y',['$id','b']],['get','[top]']]
+            ]
+          }
+
+    parse """
+            [right] == ::window[right];
+          """
+        ,
+          {
+            commands: [
+              ['eq',['get','[right]'],['get$','width',['$reserved','window']]]
+            ]
+          }
+    parse """
+            [left] == ::window[left];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get','[left]'], ['get$','x',['$reserved','window']]]
+            ]
+          }
+    parse """
+            [top] == ::window[top];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get', '[top]'], ['get$','y',['$reserved','window']]]
+            ]
+          }
+    parse """
+            [bottom] == ::window[bottom];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get','[bottom]'], ['get$','height',['$reserved','window']]]
+            ]
+          }
+
+    parse """
+            #b[cx] == [cx];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get$', 'center-x',['$id', 'b']], ['get', '[cx]']]
+            ]
+          }
+    parse """
+            #b[cy] == [cy];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get$','center-y',['$id', 'b']], ['get', '[cy]']]
+            ]
+          }
+  
+  
 
   # 2D
   # ====================================================================
@@ -1146,57 +1144,37 @@ describe 'CCSS-to-AST', ->
             }
   
   
-  #describe '/* Parans */', ->
-  #  
-  #  # normalize ::this selector
-  #  
-  #  target = {
-  #      commands: [
-  #        ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
-  #        ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
-  #      ]
-  #    }
-  #  
-  #  parse """
-  #          ::[width] == ::this[x] == &[y]
-  #        """
-  #      , target
-  #      
-  #  parse """
-  #          /* parans ignored */
-  #          (::)[width] == (::this)[x] == (&)[y]
-  #        """
-  #      , target
-  #  
-  #  
-  #  parse """
-  #          /* paran craziness */
-  #          ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
-  #        """
-  #      ,
-  #        {
-  #          commands: [
-  #            ['eq', 
-  #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
-  #              ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
-  #            ]
-  #          ]
-  #        }
-  #  
-  #  parse """
-  #          /* 2D expressions w/ paran craziness */
-  #          ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));
-  #        """
-  #      ,
-  #        {
-  #          commands: [
-  #            ['eq', 
-  #              ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
-  #              ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
-  #            ],
-  #            ['eq', 
-  #              ['plus',['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$virtual', 'area']]], 
-  #              ['plus',['get$', 'height', ['$id', 'box2']], ['get$', 'height', ['$reserved', 'window']]], 
-  #            ]
-  #          ]
-  #        }
+  describe '/* Parans */', ->        
+    
+    
+    parse """
+            /* paran craziness */
+            ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
+                ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+              ]
+            ]
+          }
+    
+    #parse """
+    #        /* 2D expressions w/ paran craziness */
+    #        ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));
+    #      """
+    #    ,
+    #      {
+    #        commands: [
+    #          ['eq', 
+    #            ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
+    #            ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+    #          ],
+    #          ['eq', 
+    #            ['plus',['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$virtual', 'area']]], 
+    #            ['plus',['get$', 'height', ['$id', 'box2']], ['get$', 'height', ['$reserved', 'window']]], 
+    #          ]
+    #        ]
+    #      }

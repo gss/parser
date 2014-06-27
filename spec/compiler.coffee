@@ -255,33 +255,13 @@ describe 'CCSS-to-AST', ->
           }
 
 
-  # Expressions
-  # ====================================================================
-
-  describe "/* Variable Expressions */", ->
-
-    parse """
-            #box[right] == #box2[x];
-          """
-        ,
-          {
-            selectors: [
-              '#box'
-              '#box2'
-            ]
-            commands: [
-              ['eq', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
-            ]
-          }
-
-
   # Adv Selectors
   # ====================================================================
 
   describe '/* Advanced Selectors */', ->
 
     parse """
-            (html #main .boxes)[width] == [col-width]
+            (html #main .boxes)[width] == 100
           """
         ,
           {
@@ -311,13 +291,13 @@ describe 'CCSS-to-AST', ->
                      "boxes"
                   ]
                 ], 
-                ['get','[col-width]']
+                ['number', 100]
               ]
             ]
           }
 
     parse """
-            (html #main:not(.disabled) .boxes[data-target="true"])[width] == [col-width]
+            (html #main:not(.disabled) .boxes[data-target="true"])[width] == 100
           """
         ,
           {
@@ -356,12 +336,47 @@ describe 'CCSS-to-AST', ->
                      "data-target=\"true\""
                   ]
                 ], 
-                ['get', '[col-width]']
+                ['number', 100]
               ]
             ]
           }
 
-
+    
+    parse """
+            (header !> h2.gizoogle ! section div:get('parentNode'))[target-size] == 100
+          """
+        ,
+          {
+            commands: [
+              [
+                'eq', 
+                [
+                  'get$',
+                  'target-size',
+                  ['$pseudo',
+                  ['$tag',
+                    ['$combin', 
+                      ['$tag', 
+                        ['$combin', 
+                          ['$class',
+                            ['$tag', 
+                              ['$combin', 
+                                ['$tag', 
+                                  'header']
+                                '!>']
+                              'h2']
+                            'gizoogle']
+                          '!']
+                        'section']
+                      ' '] 
+                    'div']
+                  'get', "'parentNode'"]
+                ], 
+                ['number', 100]
+              ]
+            ]
+          }
+    
   # Pseudos
   # ====================================================================
 

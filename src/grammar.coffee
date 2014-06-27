@@ -407,30 +407,6 @@ class Grammar
     }
 
 
-  # Weight directives.
-  #
-  # @param weight [Array<Number>]
-  # @return [Number]
-  #
-  weight: (weight) ->
-    return Number weight.join('')
-
-
-  # Strength directives.
-  #
-  # @return [Object]
-  #
-  strength: (strength) ->
-    return {
-      require: -> 'require'
-      strong: -> 'strong'
-      medium: -> 'medium'
-      weak: -> 'weak'
-      required: -> 'require'
-    }
-
-
-
 
   ### Virtual Elements ###
 
@@ -443,14 +419,6 @@ class Grammar
     command = ['virtual'].concat names
     @_addCommand command
     return command
-
-
-  # Virtual element names.
-  #
-  # @param namesCharacters[Array<String>]
-  # @return [String]
-  #
-  virtualElementName: (nameCharacters) -> nameCharacters.join ''
 
 
 

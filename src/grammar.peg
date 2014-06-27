@@ -1,5 +1,5 @@
 {
-  var grammar = (function() {
+  var g = (function() {
     var getLineNumber = function() {
       return line();
     };
@@ -18,91 +18,93 @@
 }
 
 start
-  = __ statements:(Statement*) __ { return grammar.start(); }
+  = __ statements:(Statement*) __ { return g.start(); }
 
 Statement
-  = expression:LinearConstraint EOS __ { return grammar.statement().linearConstraint(expression); }
-  / virtual:Virtual EOS __ { return grammar.statement().virtual(virtual); }
-  / conditional:Conditional EOS __ { return grammar.statement().conditional(conditional); }
-  / stay:Stay EOS __ { return grammar.statement().stay(stay); }
-  / chain:Chain EOS __ { return grammar.statement().chain(chain); }
-  / javaScript:ForEach EOS __ { return grammar.statement().forEach(javaScript); }
+  = s:StatementTypes EOS __ { return s; }
 
+StatementTypes 
+  = LinearConstraint 
+  / Virtual 
+  / Conditional 
+  / Stay
+  / Chain
+  / ForEach
 
 AndOrExpression
   = head:ConditionalExpression
     tail:(__ AndOrOp __ ConditionalExpression)* {
-      return grammar.andOrExpression(head, tail);
+      return g.andOrExpression(head, tail);
     }
 
 AndOrOp
-  = ("AND" / "and" / "And" / "&&") { return grammar.andOrOperator().and(); }
-  / ("OR"  / "or"  / "Or"  / "||") { return grammar.andOrOperator().or(); }
+  = ("AND" / "and" / "And" / "&&") { return '&&'; }
+  / ("OR"  / "or"  / "Or"  / "||") { return '||'; }
 
 ConditionalExpression
   = head:AdditiveExpression
     tail:(__ CondOperator __ AdditiveExpression)* {
-      return grammar.conditionalExpression(head, tail);
+      return g.conditionalExpression(head, tail);
     }
 
 CondOperator
-  = "==" { return grammar.conditionalOperator().equal(); }
-  / ("<=" / "=<") { return grammar.conditionalOperator().lte(); }
-  / (">=" / "=>") { return grammar.conditionalOperator().gte(); }
-  / "<"  { return grammar.conditionalOperator().lt(); }
-  / ">"  { return grammar.conditionalOperator().gt(); }
-  / "!="  { return grammar.conditionalOperator().notEqual(); }
+  = "=="          { return "?=="; }
+  / ("<=" / "=<") { return "?<="; }
+  / (">=" / "=>") { return "?>="; }
+  / "<"           { return "?<";  }
+  / ">"           { return "?>";  }
+  / "!="          { return "?!="; }
 
 LinearConstraint
   = head:ConstraintAdditiveExpression
     tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
-      return grammar.linearConstraint(head, tail, strengthAndWeight);
+      return g.linearConstraint(head, tail, strengthAndWeight);
     }
 
 LinearConstraintOperator
-  = "==" { return grammar.linearConstraintOperator().equal() }
-  / ("<=" / "=<") { return grammar.linearConstraintOperator().lte() }
-  / (">=" / "=>") { return grammar.linearConstraintOperator().gte() }
-  / "<"  { return grammar.linearConstraintOperator().lt()  }
-  / ">"  { return grammar.linearConstraintOperator().gt()  }
+  = "=="          { return "eq";  }
+  / ("<=" / "=<") { return "lte"; }
+  / (">=" / "=>") { return "gte"; }
+  / "<"           { return "lt";  }
+  / ">"           { return "gt";  }
 
 ConstraintAdditiveExpression
   = head:ConstraintMultiplicativeExpression
     tail:(__ AdditiveOperator __ ConstraintMultiplicativeExpression)* {
-      return grammar.constraintAdditiveExpression(head, tail);
+      return g.constraintAdditiveExpression(head, tail);
     }
 
 AdditiveExpression
   = head:MultiplicativeExpression
     tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
-      return grammar.additiveExpression(head, tail);
+      return g.additiveExpression(head, tail);
     }
 
 AdditiveOperator
-  = "+" { return grammar.additiveOperator().plus(); }
-  / "-" { return grammar.additiveOperator().minus(); }
+  = "+" { return "plus";  }
+  / "-" { return "minus"; }
 
 ConstraintMultiplicativeExpression
   = head:ConstraintPrimaryExpression
     tail:(__ MultiplicativeOperator __ ConstraintPrimaryExpression)* {
-      return grammar.constraintMultiplicativeExpression(head, tail);
+      return g.constraintMultiplicativeExpression(head, tail);
     }
 
 MultiplicativeExpression
   = head:PrimaryExpression
     tail:(__ MultiplicativeOperator __ PrimaryExpression)* {
-      return grammar.multiplicativeExpression(head, tail);
+      return g.multiplicativeExpression(head, tail);
     }
 
 MultiplicativeOperator
-  = "*" { return grammar.multiplicativeOperator().multiply(); }
-  / "/" { return grammar.multiplicativeOperator().divide(); }
+  = "*" { return 'multiply'; }
+  / "/" { return 'divide';   }
 
 ConstraintPrimaryExpression
   = Var
   / Literal
   / "(" __ expression:ConstraintAdditiveExpression __ ")" {
-    return grammar.constraintPrimaryExpression().constraintAdditiveExpression(expression);
+    return g.constraintPrimaryExpression().constraintAdditiveExpression(expression);
   }
 
 PrimaryExpression
@@ -112,7 +114,7 @@ PrimaryExpression
 
 Var "variable"
   = selector:Selector? "[" variableNameCharacters:NameChars+ "]" {
-      return grammar.variable(selector, variableNameCharacters);
+      return g.variable(selector, variableNameCharacters);
     }
 
 NameChars
@@ -122,19 +124,19 @@ NameCharsWithSpace
   = NameChars / " "
 
 Literal
-  = value:(Real / Integer / SignedReal / SignedInteger) { return grammar.literal(value); }
+  = value:(Real / Integer / SignedReal / SignedInteger) { return g.literal(value); }
 
 Integer
-  = digits:[0-9]+ { return grammar.integer(digits); }
+  = digits:[0-9]+ { return g.integer(digits); }
 
 SignedInteger
-  = sign:[-+] integer:Integer? { return grammar.signedInteger(sign, integer); }
+  = sign:[-+] integer:Integer? { return g.signedInteger(sign, integer); }
 
 Real
-  = digits:(Integer? "." Integer) { return grammar.real(digits); }
+  = digits:(Integer? "." Integer) { return g.real(digits); }
 
 SignedReal
-  = sign:[-+] real:Real { return grammar.signedReal(sign, real); }
+  = sign:[-+] real:Real { return g.signedReal(sign, real); }
 
 SourceCharacter
   = .
@@ -185,33 +187,33 @@ __
 
 Selector "selector"
   = "#" nameCharacters:NameChars+ {
-    return grammar.selector().id(nameCharacters);
+    return g.selector().id(nameCharacters);
   }
   / "::" selectorName:ReservedPseudos {
-    return grammar.selector().reservedPseudoSelector(selectorName);
+    return g.selector().reservedPseudoSelector(selectorName);
   }
   / "&" {
-    return grammar.selector().reservedPseudoSelector("this");
+    return g.selector().reservedPseudoSelector("this");
   }
   / '"' nameCharacters:[a-zA-Z0-9.\-_$=:+><~ ]+ '"' {
-    return grammar.selector().virtual(nameCharacters);
+    return g.selector().virtual(nameCharacters);
   }
   / "." nameCharacters:NameChars+  {
-    return grammar.selector().class(nameCharacters);
+    return g.selector().class(nameCharacters);
   }
   / nameCharacters:NameChars+  {
-    return grammar.selector().tag(nameCharacters);
+    return g.selector().tag(nameCharacters);
   }
   / "(" parts:QuerySelectorAllParts+ ")"  {
-    return grammar.selector().all(parts);
+    return g.selector().all(parts);
   }
 
 QuerySelectorAllParts
   = selectorCharacters:QuerySelectorChars+ {
-    return grammar.querySelectorAllParts().withoutParens(selectorCharacters);
+    return g.querySelectorAllParts().withoutParens(selectorCharacters);
   }
   / "(" selectorCharacters:[^)]* ")" {
-    return grammar.querySelectorAllParts().withParens(selectorCharacters);
+    return g.querySelectorAllParts().withParens(selectorCharacters);
   }
 
 QuerySelectorChars
@@ -229,21 +231,21 @@ ReservedPseudos
 
 StrengthAndWeight
   = "!" strength:Strength weight:Weight?  {
-    return grammar.strengthAndWeight().valid(strength, weight);
+    return g.strengthAndWeight().valid(strength, weight);
   }
   / "!" .? {
-    return grammar.strengthAndWeight().invalid();
+    return g.strengthAndWeight().invalid();
   }
 
 Weight
-  = weight:[0-9]+ { return grammar.weight(weight); }
+  = weight:[0-9]+ { return g.weight(weight); }
 
 Strength
-  = ("required" / "REQUIRED" / "Required") { return grammar.strength().required(); }
-  / ("require"  / "REQUIRE"  / "Require")  { return grammar.strength().require(); }
-  / ("strong"   / "STRONG"   / "Strong")   { return grammar.strength().strong(); }
-  / ("medium"   / "MEDIUM"   / "Medium")   { return grammar.strength().medium(); }
-  / ("weak"     / "WEAK"     / "Weak")     { return grammar.strength().weak(); }
+  = ("required" / "REQUIRED" / "Required") { return g.strength().required(); }
+  / ("require"  / "REQUIRE"  / "Require")  { return g.strength().require(); }
+  / ("strong"   / "STRONG"   / "Strong")   { return g.strength().strong(); }
+  / ("medium"   / "MEDIUM"   / "Medium")   { return g.strength().medium(); }
+  / ("weak"     / "WEAK"     / "Weak")     { return g.strength().weak(); }
 
 
 // Virtual
@@ -252,12 +254,12 @@ Strength
 
 Virtual
   = "@" ("-gss-virtual" / "virtual") __ names:VirtualName+ {
-    return grammar.virtualElement(names);
+    return g.virtualElement(names);
   }
 
 VirtualName
   = '"' nameCharacters:[^"]+ '"' __ {
-    return grammar.virtualElementName(nameCharacters);
+    return g.virtualElementName(nameCharacters);
   }
 
 
@@ -266,11 +268,11 @@ VirtualName
 
 Stay
   =  StayStart variables:StayVars+ {
-      return grammar.stay(variables);
+      return g.stay(variables);
     }
 
 StayVars
-  = __ variable:Var __ ","?  { return grammar.stayVariable(variable); }
+  = __ variable:Var __ ","?  { return g.stayVariable(variable); }
 
 StayStart
   = ("@-gss-stay" / "@stay")
@@ -281,7 +283,7 @@ StayStart
 // ===================================================
 
 Conditional
-  = "@cond" __ result:AndOrExpression __ { return grammar.conditional(result); }
+  = "@cond" __ result:AndOrExpression __ { return g.conditional(result); }
 
 
 
@@ -290,15 +292,15 @@ Conditional
 
 ForEach
   = type:ForLooperType __ selector:Selector __ javaScript:JavaScript {
-    return grammar.forEach(type, selector, javaScript)
+    return g.forEach(type, selector, javaScript)
   }
 
 JavaScript
-  = "```" characters:[^`]* "```" { return grammar.javaScript(characters); }
+  = "```" characters:[^`]* "```" { return g.javaScript(characters); }
 
 ForLooperType
-  = ("@-gss-for-each" / "@for-each") { return grammar.forLoopType().forEach(); }
-  / ("@-gss-for-all" / "@for-all") { return grammar.forLoopType().forAll(); }
+  = ("@-gss-for-each" / "@for-each") { return g.forLoopType().forEach(); }
+  / ("@-gss-for-all" / "@for-all") { return g.forLoopType().forAll(); }
 
 
 
@@ -307,7 +309,7 @@ ForLooperType
 
 Chain
   = "@" "-gss-"? "chain" __ selector:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    grammar.chain(selector, chainers);
+    g.chain(selector, chainers);
   }
 
 Chainer
@@ -318,7 +320,7 @@ Chainer
     tailOperator:ChainEq? _
     strengthAndWeight:StrengthAndWeight? _ ")"
     tailCharacters:[a-zA-Z\-_0-9]* __ {
-      return grammar.chainer({
+      return g.chainer({
         headCharacters: headCharacters,
         headExpression: headExpression,
         headOperator: headOperator,
@@ -331,23 +333,23 @@ Chainer
 
 HeadExp
   = operator:ChainMath expression:AdditiveExpression {
-    return grammar.headExpression(operator, expression);
+    return g.headExpression(operator, expression);
   }
 
 TailExp
   = expression:AdditiveExpression operator:ChainMath {
-    return grammar.tailExpression(expression, operator);
+    return g.tailExpression(expression, operator);
   }
 
 ChainMath
-  = "+" { return grammar.chainMathOperator().plus(); }
-  / "-" { return grammar.chainMathOperator().minus(); }
-  / "*" { return grammar.chainMathOperator().multiply(); }
-  / "/" { return grammar.chainMathOperator().divide(); }
+  = "+" { return g.chainMathOperator().plus(); }
+  / "-" { return g.chainMathOperator().minus(); }
+  / "*" { return g.chainMathOperator().multiply(); }
+  / "/" { return g.chainMathOperator().divide(); }
 
 ChainEq
   = operator:LinearConstraintOperator? {
-    return grammar.chainLinearConstraintOperator(operator);
+    return g.chainLinearConstraintOperator(operator);
   }
 
 BridgeValue

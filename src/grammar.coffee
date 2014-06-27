@@ -91,15 +91,6 @@ class Grammar
   _Error: null
 
 
-  # @property [Array<String>] A list of selectors.
-  # @private
-  #
-  # @note Assigned in constructor to prevent the array from being passed by
-  # reference and shared between all instances.
-  #
-  _selectors: null
-
-
   # Add a command to @_commands.
   # @private
   #
@@ -108,17 +99,6 @@ class Grammar
   _addCommand: (command) ->
     @_commands.push command
 
-
-  # Add a selector to @_selectors, if not already in the list.
-  # @private
-  #
-  # @param selector [String] A selector.
-  # @return [String] The selector originally passed to the method.
-  #
-  _addSelector: (selector) ->
-    return unless selector?
-    @_selectors.push selector if selector not in @_selectors
-    return selector
 
 
   # Get the current column number as reported by the parser.
@@ -152,7 +132,6 @@ class Grammar
   #
   constructor: (lineNumber, columnNumber, errorType) ->
     @_commands = []
-    @_selectors = []
 
     @_lineNumber = lineNumber
     @_columnNumber = columnNumber
@@ -166,23 +145,6 @@ class Grammar
   start: ->
     return {
       commands: JSON.parse(JSON.stringify(@_commands))
-      selectors: @_selectors
-    }
-
-
-  # Statements.
-  #
-  # @return [Object] An object consisting of functions for handling various
-  # types of statement.
-  #
-  statement: ->
-    return {
-      linearConstraint: (expression) -> expression
-      virtual: (virtual) -> virtual
-      conditional: (conditional) -> conditional
-      stay: (stay) -> stay
-      chain: (chain) -> chain
-      forEach: (javaScript) -> javaScript
     }
 
 
@@ -196,17 +158,6 @@ class Grammar
     return Grammar._createExpressionAST head, tail
 
 
-  # And / Or operators.
-  #
-  # @return [Object]
-  #
-  andOrOperator: ->
-    return {
-      and: -> '&&'
-      or: -> '||'
-    }
-
-
   # Conditional expressions.
   #
   # @param head [Array]
@@ -216,20 +167,6 @@ class Grammar
   conditionalExpression: (head, tail) ->
     return Grammar._createExpressionAST head, tail
 
-
-  # Conditional operators.
-  #
-  # @return [Object]
-  #
-  conditionalOperator: ->
-    return {
-      equal: -> '?=='
-      gt: -> '?>'
-      gte: -> '?>='
-      lt: -> '?<'
-      lte: -> '?<='
-      notEqual: -> '?!='
-    }
 
 
   # Linear constraints.
@@ -282,20 +219,6 @@ class Grammar
     return "LinaearExpression" # FIXME
 
 
-  # Linear constraint operators.
-  #
-  # @return [Object]
-  #
-  linearConstraintOperator: ->
-    return {
-      equal: -> 'eq'
-      gt: -> 'gt'
-      gte: -> 'gte'
-      lt: -> 'lt'
-      lte: -> 'lte'
-    }
-
-
   # Constraint additive expressions.
   #
   # @param head [Array]
@@ -316,17 +239,6 @@ class Grammar
     return Grammar._createExpressionAST head, tail
 
 
-  # Additive operators.
-  #
-  # @return [Object]
-  #
-  additiveOperator: ->
-    return {
-      plus: -> 'plus'
-      minus: -> 'minus'
-    }
-
-
   # Constraint multiplicative expressions.
   #
   # @param head [Array]
@@ -345,17 +257,6 @@ class Grammar
   #
   multiplicativeExpression: (head, tail) ->
     return Grammar._createExpressionAST head, tail
-
-
-  # Multiplicative operators.
-  #
-  # @return [Object]
-  #
-  multiplicativeOperator: ->
-    return {
-      multiply: -> 'multiply'
-      divide: -> 'divide'
-    }
 
 
   # Constraint primary expressions.
@@ -383,7 +284,6 @@ class Grammar
     #
     if selector? and selector.length isnt 0
       {selector:selectorName} = selector
-      @_addSelector selectorName
 
       # Normalize variables names when query bound
       #
@@ -704,7 +604,6 @@ class Grammar
   #
   forEach: (type, selector, javaScript) ->
     {selector:selectorName} = selector
-    @_addSelector selectorName
     @_addCommand [type, selector.ast, javaScript]
 
 
@@ -742,7 +641,6 @@ class Grammar
   #
   chain: (selector, chainers) ->
     {selector:selectorName} = selector
-    @_addSelector selectorName
 
     ast = ['chain', selector.ast]
     ast = ast.concat chainer for chainer in chainers

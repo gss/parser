@@ -98,7 +98,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['lte', [
-                'multiply', ['get', 'grid-height'], ['get$', 'width', ['$id', 'box2']]
+                'multiply', ['get', 'grid-height'], ['get', ['$id', 'box2'], 'width']
                 ],
                 ['number', 2]
               ]
@@ -141,7 +141,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$','width',['$reserved','this']], ['get$','width',['$reserved', 'parent']]]
+              ['eq', ['get',['$reserved','this'],'width'], ['get',['$reserved', 'parent'],'width']]
             ]
           }
 
@@ -152,10 +152,10 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$','width',['$reserved','scope']],    ['get$','width',['$reserved','this']]]
-              ['eq', ['get$','width',['$reserved','this']],     ['get$','width',['$reserved','document']]]
-              ['eq', ['get$','width',['$reserved','document']], ['get$','width',['$reserved','window']]]
-              ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
+              ['eq', ['get',['$reserved','scope'],'width'],    ['get',['$reserved','this'],'width' ]]
+              ['eq', ['get',['$reserved','this'],'width'],     ['get',['$reserved','document'],'width' ]]
+              ['eq', ['get',['$reserved','document'],'width'], ['get',['$reserved','window'],'width' ]]
+              ['eq', ['get',['$reserved','window'],'width'],   ['get',['$reserved','window'],'height']]
             ]
           }
     
@@ -163,8 +163,8 @@ describe 'CCSS-to-AST', ->
     
     target = {
         commands: [
-          ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
-          ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
+          ['eq', ['get',['$reserved','this'],'width'],    ['get',['$reserved','this'],'x']]
+          ['eq', ['get',['$reserved','this'],'x'],        ['get',['$reserved','this'],'y']]
         ]
       }
     
@@ -203,7 +203,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
+              ['eq', ['get',['$virtual','Zone'],'width'], ['number',100]]
             ]
           }
 
@@ -213,14 +213,14 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
+              ['eq', ['get',['$virtual','A'],'x'],['get',['$virtual','1'],'y']]
             ]
           }
 
     parse '"box"[right] == "box2"[left];',
           {
             commands: [
-              ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
+              ['eq', ['get',['$virtual','box'],'right'],['get',['$virtual','box2'],'x']]
             ]
           }
 
@@ -239,8 +239,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq',
                 [
-                  'get$',
-                  'width',
+                  'get',                  
                   [
                      "$class",
                      [
@@ -260,7 +259,8 @@ describe 'CCSS-to-AST', ->
                         " "
                      ],
                      "boxes"
-                  ]
+                  ],
+                  'width',
                 ], 
                 ['number', 100]
               ]
@@ -275,8 +275,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq', 
                 [
-                  'get$',
-                  'width',
+                  'get',                  
                   [
                      "$attr",
                      [
@@ -305,7 +304,8 @@ describe 'CCSS-to-AST', ->
                         "boxes"
                      ],
                      "data-target=\"true\""
-                  ]
+                  ],
+                  'width',
                 ], 
                 ['number', 100]
               ]
@@ -322,26 +322,26 @@ describe 'CCSS-to-AST', ->
               [
                 'eq', 
                 [
-                  'get$',
-                  'target-size',
+                  'get',                  
                   ['$pseudo',
-                  ['$tag',
-                    ['$combin', 
-                      ['$tag', 
-                        ['$combin', 
-                          ['$class',
-                            ['$tag', 
-                              ['$combin', 
-                                ['$tag', 
-                                  'header']
-                                '!>']
-                              'h2']
-                            'gizoogle']
-                          '!']
-                        'section']
-                      ' '] 
-                    'div']
-                  'get', "'parentNode'"]
+                    ['$tag',
+                      ['$combin', 
+                        ['$tag', 
+                          ['$combin', 
+                            ['$class',
+                              ['$tag', 
+                                ['$combin', 
+                                  ['$tag', 
+                                    'header']
+                                  '!>']
+                                'h2']
+                              'gizoogle']
+                            '!']
+                          'section']
+                        ' '] 
+                      'div']
+                    'get', "'parentNode'"],
+                  'target-size',
                 ], 
                 ['number', 100]
               ]
@@ -355,11 +355,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq', 
-                [
-                  'get$',
-                  'width',
-                  ['$class',['$reserved','this'],'featured']
-                ], 
+                ['get',['$class',['$reserved','this'],'featured'],'width'], 
                 ['number', 100]
               ]
             ]
@@ -372,11 +368,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq', 
-                [
-                  'get$',
-                  'width',
-                  ['$virtual',['$reserved','this'],'column2']
-                ], 
+                ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
                 ['number', 100]
               ]
             ]
@@ -391,8 +383,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq', 
                 [
-                  'get$',
-                  'width',
+                  'get',                  
                   [
                      "$pseudo",
                      [
@@ -412,7 +403,8 @@ describe 'CCSS-to-AST', ->
                         "li"
                      ],
                      "first"
-                  ]
+                    ],
+                  'width',
                 ], 
                 ['number', 100]
               ]
@@ -425,15 +417,15 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq', 
                 [
-                  'get$',
-                  'width',
+                  'get',                  
                   [
                      ",",
                      ["$virtual",["$reserved","this"],"grid"],
                      ["$virtual",["$class","that"],"grid"]
                      ["$class","box"]
                      ["$class","thing"]
-                  ]
+                  ],
+                  'width',
                 ], 
                 ['number', 100]
               ]
@@ -472,7 +464,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq',
-                ['get$','x',['$reserved','this']]
+                ['get',['$reserved','this'],'x']
                 ['number',100]
               ]
             ]
@@ -500,13 +492,13 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['lte',
-                ['get$','x',['$reserved','this']]
-                ['get$','y',['$reserved','this']]                
+                ['get',['$reserved','this'],'x']
+                ['get',['$reserved','this'],'y']
               ]
               ['set','y','100px']
               ['gte',
-                ['get$','z',['$reserved','this']]
-                ['get$','y',['$reserved','this']]                
+                ['get',['$reserved','this'],'z']
+                ['get',['$reserved','this'],'y']
               ]
             ]
           }
@@ -532,7 +524,7 @@ describe 'CCSS-to-AST', ->
                 [
                   ['set','color','blue']
                   ['eq',
-                    ['get$','x',['$reserved','this']]
+                    ['get',['$reserved','this'],'x']
                     ['number',100]
                   ]                  
                 ]
@@ -565,7 +557,7 @@ describe 'CCSS-to-AST', ->
                     ['$virtual',['$class','bg'],'face']
                     [
                       ['eq',
-                        ['get$','x',['$reserved','this']]
+                        ['get',['$reserved','this'],'x']
                         ['get','y']
                       ]
                     ]
@@ -648,7 +640,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['stay',['get$','width',['$id','box']],['get','grid-height']]
+              ['stay',['get',['$id','box'],'width'],['get','grid-height']]
             ]
           }
     parse """
@@ -657,7 +649,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['stay',['get$','width',['$id','box']],['get','grid-height']]
+              ['stay',['get',['$id','box'],'width'],['get','grid-height']]
             ]
           }
 
@@ -674,7 +666,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['?==', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]]
+              ['?==', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']]
             ]
           }
 
@@ -695,8 +687,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ["&&"
-                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
-                ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]]
+                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x'    ]],
+                ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']]
               ]
             ]
           }
@@ -708,8 +700,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ["&&"
-                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
-                ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]]
+                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x'    ]],
+                ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']]
               ]
             ]
           }
@@ -721,9 +713,9 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ["&&"
-                ['?!=', ['get$','right',['$id','box']], ['get$','x',['$id','box2']]],
+                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']],
                 ["||"
-                  ['?<=', ['get$','width',['$id','box']], ['get$','width',['$id','box2']]],
+                  ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']],
                   ['?==', ['get','x'],['number',100]]
                 ]
               ]
@@ -959,7 +951,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'x', ['$id', 'b']], ['get', 'left']]
+              ['eq', ['get', ['$id', 'b'], 'x'], ['get', 'left']]
               ['eq', ['get', 'left-col'], ['get', 'col-left']]
             ]
           }
@@ -969,7 +961,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq',['get$','y',['$id','b']],['get','top']]
+              ['eq',['get',['$id','b'],'y'],['get','top']]
             ]
           }
 
@@ -979,7 +971,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq',['get','right'],['get$','width',['$reserved','window']]]
+              ['eq',['get','right'],['get',['$reserved','window'],'width']]
             ]
           }
     parse """
@@ -988,7 +980,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get','left'], ['get$','x',['$reserved','window']]]
+              ['eq', ['get','left'], ['get',['$reserved','window'],'x']]
             ]
           }
     parse """
@@ -997,7 +989,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get', 'top'], ['get$','y',['$reserved','window']]]
+              ['eq', ['get', 'top'], ['get',['$reserved','window'],'y']]
             ]
           }
     parse """
@@ -1006,7 +998,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get','bottom'], ['get$','height',['$reserved','window']]]
+              ['eq', ['get','bottom'], ['get',['$reserved','window'],'height']]
             ]
           }
 
@@ -1016,7 +1008,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'center-x',['$id', 'b']], ['get', 'cx']]
+              ['eq', ['get',['$id', 'b'],'center-x'], ['get', 'cx']]
             ]
           }
     parse """
@@ -1025,7 +1017,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$','center-y',['$id', 'b']], ['get', 'cy']]
+              ['eq', ['get',['$id', 'b'],'center-y'], ['get', 'cy']]
             ]
           }
   
@@ -1042,8 +1034,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'width' ], ['get', ['$id', 'box2'], 'width' ]]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'height']]
             ]
           }
 
@@ -1053,8 +1045,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'x', ['$id', 'box1']], ['get$', 'x', ['$id', 'box2']]]
-              ['eq', ['get$', 'y', ['$id', 'box1']], ['get$', 'y', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'x'], ['get', ['$id', 'box2'], 'x']]
+              ['eq', ['get', ['$id', 'box1'], 'y'], ['get', ['$id', 'box2'], 'y']]
             ]
           }
 
@@ -1064,8 +1056,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
-              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'right'], ['get', ['$id', 'box2'], 'center-x']]
+              ['eq', ['get', ['$id', 'box1'], 'top'  ], ['get', ['$id', 'box2'], 'center-y']]
             ]
           }
 
@@ -1075,8 +1067,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'right', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
-              ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'right' ], ['get', ['$id', 'box2'], 'center-x']]
+              ['eq', ['get', ['$id', 'box1'], 'bottom'], ['get', ['$id', 'box2'], 'center-y']]
             ]
           }
 
@@ -1086,8 +1078,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
-              ['eq', ['get$', 'bottom', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'left'  ], ['get', ['$id', 'box2'], 'center-x']]
+              ['eq', ['get', ['$id', 'box1'], 'bottom'], ['get', ['$id', 'box2'], 'center-y']]
             ]
           }
 
@@ -1097,8 +1089,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'center-x', ['$id', 'box2']]]
-              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'center-y', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'left'], ['get', ['$id', 'box2'], 'center-x']]
+              ['eq', ['get', ['$id', 'box1'], 'top' ], ['get', ['$id', 'box2'], 'center-y']]
             ]
           }
 
@@ -1108,8 +1100,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'intrinsic-width', ['$id', 'box2']]]
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'intrinsic-height', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'width' ], ['get', ['$id', 'box2'], 'intrinsic-width' ]]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'intrinsic-height']]
             ]
           }
 
@@ -1119,8 +1111,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'left', ['$id', 'box1']], ['get$', 'right', ['$id', 'box2']]]
-              ['eq', ['get$', 'top', ['$id', 'box1']], ['get$', 'bottom', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'left'], ['get', ['$id', 'box2'], 'right' ]]
+              ['eq', ['get', ['$id', 'box1'], 'top' ], ['get', ['$id', 'box2'], 'bottom']]
             ]
           }
 
@@ -1130,8 +1122,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'width' ], ['get', ['$id', 'box2'], 'width']]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'width']]
             ]
           }
 
@@ -1141,8 +1133,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'width' ], ['get', ['$id', 'box2'], 'height']]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'height']]
             ]
           }
 
@@ -1152,8 +1144,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
-              ['eq', ['get$', 'width', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'width'], ['get', ['$id', 'box2'], 'width' ]]
+              ['eq', ['get', ['$id', 'box1'], 'width'], ['get', ['$id', 'box2'], 'height']]
             ]
           }
 
@@ -1163,8 +1155,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'width', ['$id', 'box2']]]
-              ['eq', ['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$id', 'box2']]]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'width' ]]
+              ['eq', ['get', ['$id', 'box1'], 'height'], ['get', ['$id', 'box2'], 'height']]
             ]
           }
 
@@ -1175,8 +1167,8 @@ describe 'CCSS-to-AST', ->
           {
 
             commands: [
-              ['stay', ['get$', 'width', ['$id','box']]]
-              ['stay', ['get$', 'height', ['$id','box']]]
+              ['stay', ['get', ['$id','box'], 'width' ]]
+              ['stay', ['get', ['$id','box'], 'height']]
             ]
           }
 
@@ -1186,8 +1178,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', 'width', ['$id', 'box']], ['number', 100]]
-              ['eq', ['get$', 'height', ['$id', 'box']], ['number', 100]]
+              ['eq', ['get', ['$id', 'box'], 'width' ], ['number', 100]]
+              ['eq', ['get', ['$id', 'box'], 'height'], ['number', 100]]
             ]
           }
 
@@ -1199,8 +1191,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq', ['get', 'square-size'], ['number', 100]]
-              ['eq', ['get$', 'width', ['$id', 'box']], ['get', 'square-size']]
-              ['eq', ['get$', 'height', ['$id', 'box']], ['get', 'square-size']]
+              ['eq', ['get', ['$id', 'box'], 'width' ], ['get', 'square-size']]
+              ['eq', ['get', ['$id', 'box'], 'height'], ['get', 'square-size']]
             ]
           }
 
@@ -1211,9 +1203,9 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get$', '$square-size', ['$id', 'box']], ['number', 100]]
-              ['eq', ['get$', 'width', ['$id', 'box']], ['get$', '$square-size', ['$id', 'box']]]
-              ['eq', ['get$', 'height', ['$id', 'box']], ['get$', '$square-size', ['$id', 'box']]]
+              ['eq', ['get', ['$id', 'box'], '$square-size'], ['number', 100]]
+              ['eq', ['get', ['$id', 'box'], 'width'       ], ['get', ['$id', 'box'], '$square-size']]
+              ['eq', ['get', ['$id', 'box'], 'height'      ], ['get', ['$id', 'box'], '$square-size']]
             ]
           }
 
@@ -1423,8 +1415,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq', 
-                ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
-                ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+                ['plus',['get', ['$id', 'box1'], 'width'], ['get', ['$virtual', 'area'   ], 'width']], 
+                ['plus',['get', ['$id', 'box2'], 'width'], ['get', ['$reserved', 'window'], 'width']], 
               ]
             ]
           }
@@ -1437,12 +1429,12 @@ describe 'CCSS-to-AST', ->
     #      {
     #        commands: [
     #          ['eq', 
-    #            ['plus',['get$', 'width', ['$id', 'box1']], ['get$', 'width', ['$virtual', 'area']]], 
-    #            ['plus',['get$', 'width', ['$id', 'box2']], ['get$', 'width', ['$reserved', 'window']]], 
+    #            ['plus',['get', 'width', ['$id', 'box1']], ['get', 'width', ['$virtual', 'area']]], 
+    #            ['plus',['get', 'width', ['$id', 'box2']], ['get', 'width', ['$reserved', 'window']]], 
     #          ],
     #          ['eq', 
-    #            ['plus',['get$', 'height', ['$id', 'box1']], ['get$', 'height', ['$virtual', 'area']]], 
-    #            ['plus',['get$', 'height', ['$id', 'box2']], ['get$', 'height', ['$reserved', 'window']]], 
+    #            ['plus',['get', 'height', ['$id', 'box1']], ['get', 'height', ['$virtual', 'area']]], 
+    #            ['plus',['get', 'height', ['$id', 'box2']], ['get', 'height', ['$reserved', 'window']]], 
     #          ]
     #        ]
     #      }

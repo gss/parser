@@ -23,19 +23,19 @@ start
   = __ s:Statements __ { return s; }
   
 Ruleset
-  = __ q:Selector __ "{" __ s:Statements __ "}" __ {return {commands:['rule',q,s.commands]}}
+  = q:CSSSelector __ "{" __ s:Statements __ "}" {return {commands:[['rule',q,s.commands]]}}
 
 Statements
   = __ commandObjects:(Statement*) {return g.mergeCommands(commandObjects);}
 
 Statement
-  = s:StatementTypes EOS __ { return s; }
+  = __ s:StatementTypes EOS __ { return s; }
 
 StatementTypes 
-  = Constraint
-  / Ruleset 
+  = Constraint  
   / InlineConstraint
   / InlineSet
+  / Ruleset
   / Virtual
   / Conditional
   / Stay
@@ -132,7 +132,7 @@ PrimaryExpression
   / "(" __ expression:AndOrExpression __ ")" { return expression; }
 
 Var "variable"
-  = selector:Selector? "[" variableNameCharacters:NameChars+ "]" {
+  = selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {
       return g.variable(selector, variableNameCharacters);
     }
 
@@ -204,7 +204,11 @@ __
 // Query Selectors
 // ===================================================
 
-Selector
+CSSSelector
+  = _ sel:SelectorFilterChain _ {return sel;}
+  / left:SimpleSelector _ {return left;}
+
+GSSSelector
   = "(" _ sel:SelectorFilterChain _ ")" {return sel;}
   / left:SimpleSelector _ {return left;}
 
@@ -221,14 +225,19 @@ SelectorFilterChain
 SimpleSelector "SimpleSelector"
   = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
 
-ComplexSelector 
+Qualifier
   = SimpleSelector  
   / AttrSel
+
+ComplexSelector
+  = Qualifier
   / c:Combinator              {return ["$combin",c]}
 
 Combinator "Combinator"
   = _ c:[,><+~!]+ _           {return c.join('');}
-  / " "+                      {return " "}
+  
+  // TODO: &[^{] used for rulesets...
+  / " "+ &[^{]                     {return " "}
 
 VirtualSel
   = ["] id:[^"]+ ["]          {return ["$virtual",id.join("")];}
@@ -337,7 +346,7 @@ Conditional
 // ===================================================
 
 ForEach
-  = type:ForLooperType __ selector:Selector __ javaScript:JavaScript {
+  = type:ForLooperType __ selector:GSSSelector __ javaScript:JavaScript {
     return g.forEach(type, selector, javaScript)
   }
 
@@ -354,7 +363,7 @@ ForLooperType
 // ===================================================
 
 Chain
-  = "@" "-gss-"? "chain" __ selector:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
+  = "@" "-gss-"? "chain" __ selector:GSSSelector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
     return g.chain(selector, chainers);
   }
 

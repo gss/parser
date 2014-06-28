@@ -418,6 +418,27 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+    
+    parse """
+            (&"grid", .that"grid")[width] == 100
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                [
+                  'get$',
+                  'width',
+                  [
+                     ",",
+                     ["$virtual",["$reserved","this"],"grid"],
+                     ["$virtual",["$class","that"],"grid"]
+                  ]
+                ], 
+                ['number', 100]
+              ]
+            ]
+          }
   
   
   
@@ -1355,7 +1376,23 @@ describe 'CCSS-to-AST', ->
                 ['eq', ['em', -0.01], ['em', 0.01]]
               ]
             }
+    
+    parse """
+            10% == 0.4%;
+            -.01% == .01%;
+          """
+          ,
+            {
+              commands: [
+                ['eq', ['%', 10], ['%', 0.4]]
+                ['eq', ['%', -0.01], ['%', 0.01]]
+              ]
+            }
   
+  
+  
+  # Parans
+  # ====================================================================  
   
   describe '/* Parans */', ->        
     

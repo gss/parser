@@ -69,7 +69,7 @@ Directive
 
 AndOrExpression
   = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 
-    return g.headTail(head, tail); 
+    return g.nestedDualTermCommands(head, tail); 
   }
 
 AndOrOp
@@ -78,7 +78,7 @@ AndOrOp
 
 ConditionalExpression
   = head:AdditiveExpression tail:(__ CondOperator __ AdditiveExpression)* {
-      return g.headTail(head, tail);
+      return g.nestedDualTermCommands(head, tail);
     }
 
 CondOperator
@@ -99,13 +99,13 @@ ConstraintOperator "Constraint Operator"
 ConstraintAdditiveExpression
   = head:ConstraintMultiplicativeExpression
     tail:(__ AdditiveOperator __ ConstraintMultiplicativeExpression)* {
-      return g.headTail(head, tail);
+      return g.nestedDualTermCommands(head, tail);
     }
 
 AdditiveExpression
   = head:MultiplicativeExpression
     tail:(__ AdditiveOperator __ MultiplicativeExpression)* {
-      return g.headTail(head, tail);
+      return g.nestedDualTermCommands(head, tail);
     }
 
 AdditiveOperator
@@ -115,13 +115,13 @@ AdditiveOperator
 ConstraintMultiplicativeExpression
   = head:ConstraintPrimaryExpression
     tail:(__ MultiplicativeOperator __ ConstraintPrimaryExpression)* {
-      return g.headTail(head, tail);
+      return g.nestedDualTermCommands(head, tail);
     }
 
 MultiplicativeExpression
   = head:PrimaryExpression
     tail:(__ MultiplicativeOperator __ PrimaryExpression)* {
-      return g.headTail(head, tail);
+      return g.nestedDualTermCommands(head, tail);
     }
 
 MultiplicativeOperator
@@ -225,12 +225,12 @@ CSSSelector
   = _ sel:Selector _ {return sel;}
 
 GSSSelector
-  = "(" _ sel:CSSSelector _ ")" {return sel;}
+  = "(" __ sel:CSSSelector __ ")" {return sel;}
   / left:SimpleSelector _ {return left;}
 
 Selector
   = head:SelectorFilterChain tail:( __ "," __ SelectorFilterChain )+
-    { return g.headTail(head, tail); }
+    { return g.createSelectorCommaCommand(head, tail); }
   / SelectorFilterChain
 
 SelectorFilterChain
@@ -256,8 +256,8 @@ ComplexSelector
 
 Combinator "Combinator"
   = _ c:[><+~!]+ _           {return c.join('');}
-  // TODO: &[^{] used for rulesets...
-  / " "+ &[^{]                     {return " "}
+  // TODO: &[^... used for rulesets & other stuff...
+  / " "+ &[^{,)]                     {return " "}
 
 VirtualSel
   = ["] id:[^"]+ ["]          {return ["$virtual",id.join("")];}

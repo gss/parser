@@ -419,11 +419,9 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
-    parse """
-            (&"grid", .that"grid")[width] == 100
-          """
-        ,
-          {
+    # comma seperated
+    
+    target = {
             commands: [
               ['eq', 
                 [
@@ -433,12 +431,32 @@ describe 'CCSS-to-AST', ->
                      ",",
                      ["$virtual",["$reserved","this"],"grid"],
                      ["$virtual",["$class","that"],"grid"]
+                     ["$class","box"]
+                     ["$class","thing"]
                   ]
                 ], 
                 ['number', 100]
               ]
             ]
           }
+    
+    parse """
+            (&"grid", .that"grid" , .box ,.thing)[width] == 100
+          """
+        ,
+          target
+    
+    parse """
+            (
+              &"grid"
+              , 
+              .that"grid" , 
+              .box,.thing
+            )[width] == 100
+          """
+        ,
+          target
+          
   
   
   

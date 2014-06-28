@@ -1343,6 +1343,18 @@ describe 'CCSS-to-AST', ->
                 ['eq', ['px', -0.01], ['px', 0.01]]
               ]
             }
+    
+    parse """
+            10em == 0.4em;
+            -.01em == .01em;
+          """
+          ,
+            {
+              commands: [
+                ['eq', ['em', 10], ['em', 0.4]]
+                ['eq', ['em', -0.01], ['em', 0.01]]
+              ]
+            }
   
   
   describe '/* Parans */', ->        

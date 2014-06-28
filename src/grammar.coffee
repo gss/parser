@@ -36,7 +36,7 @@ class Grammar
       'top-right'     : ['right', 'top']
 
     expressions = [expression]
-    property = expression[1]
+    property = expression[2]
     properties = mapping[property]
 
     if properties?
@@ -44,7 +44,7 @@ class Grammar
 
       for item in properties
         expression = expression.slice()
-        expression[1] = item
+        expression[2] = item
         expressions.push expression
 
     return expressions
@@ -263,9 +263,9 @@ class Grammar
             break
 
     if selector?
-      return ['get$', variableName, selector]
+      return ['get', selector, variableName]
     else
-      return ['get', "#{variableName}"]
+      return ['get', variableName]
 
 
 

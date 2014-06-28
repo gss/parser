@@ -479,7 +479,9 @@ describe 'CCSS-to-AST', ->
   describe "/* Rulesets */", ->
 
     parse """
-          #box {
+          #box.class {
+            
+            color: blue;
             x: == 100;
           }
           """
@@ -487,16 +489,53 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ['$id','box']
+                ['$class',['$id','box'],'class']
                 [
+                  ['set','color','blue']
                   ['eq',
                     ['get$','x',['$reserved','this']]
                     ['number',100]
-                  ]
+                  ]                  
                 ]
               ]
             ]
-          }  
+          }
+    
+    parse """
+          article.featured > img {
+            
+            color: black;
+            
+            .bg"face" {
+              
+              &[x] == [y];
+                                          
+            }
+            
+            color: black;
+          }
+          """
+        ,
+          {
+            commands: [
+              ['rule',
+                ["$tag",["$combin",['$class',['$tag','article'],'featured'],">"],"img"]                
+                [
+                  ['set','color','black']
+                  ['rule',
+                    ['$virtual',['$class','bg'],'face']
+                    [
+                      ['eq',
+                        ['get$','x',['$reserved','this']]
+                        ['get','[y]']
+                      ]
+                    ]
+                  ]
+                  ['set','color','black']
+                ]
+              ]
+            ]
+          }
   
   
   

@@ -48,6 +48,8 @@ Ruleset
 Directive
   = "@" name:[^ {}]+ terms:[^{}]+ "{" __ s:Statements __ "}" 
     {return {commands:[['directive',name.join(''),terms.join('').trim(),s.commands]]}}
+  / "@" name:[^ {}]+ terms:[^;]+ ";"
+    {return {commands:[['directive',name.join(''),terms.join('').trim()]]}}
 
 AndOrExpression
   = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 

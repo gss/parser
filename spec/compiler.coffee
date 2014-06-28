@@ -583,6 +583,19 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+    
+    parse """
+          @my-custom-directive blah blah blah;
+          """
+        ,
+          {
+            commands: [
+              [ 'directive',
+                'my-custom-directive',
+                'blah blah blah'
+              ]
+            ]
+          }
   
   
   # Stays

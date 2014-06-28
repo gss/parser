@@ -222,12 +222,16 @@ __
 // ===================================================
 
 CSSSelector
-  = _ sel:SelectorFilterChain _ {return sel;}
-  / left:SimpleSelector _ {return left;}
+  = _ sel:Selector _ {return sel;}
 
 GSSSelector
-  = "(" _ sel:SelectorFilterChain _ ")" {return sel;}
+  = "(" _ sel:CSSSelector _ ")" {return sel;}
   / left:SimpleSelector _ {return left;}
+
+Selector
+  = head:SelectorFilterChain tail:( __ "," __ SelectorFilterChain )+
+    { return g.headTail(head, tail); }
+  / SelectorFilterChain
 
 SelectorFilterChain
   = filters:ComplexSelector+  {
@@ -251,8 +255,7 @@ ComplexSelector
   / c:Combinator              {return ["$combin",c]}
 
 Combinator "Combinator"
-  = _ c:[,><+~!]+ _           {return c.join('');}
-  
+  = _ c:[><+~!]+ _           {return c.join('');}
   // TODO: &[^{] used for rulesets...
   / " "+ &[^{]                     {return " "}
 

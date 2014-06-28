@@ -20,7 +20,10 @@
 }
 
 start
-  = __ statements:(Statement*) __ { return g.start(); }
+  = __ s:Statements __ { return s; }
+
+Statements
+  = __ commandObjects:(Statement*) {return g.mergeCommands(commandObjects);}
 
 Statement
   = s:StatementTypes EOS __ { return s; }
@@ -348,7 +351,7 @@ ForLooperType
 
 Chain
   = "@" "-gss-"? "chain" __ selector:Selector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    g.chain(selector, chainers);
+    return g.chain(selector, chainers);
   }
 
 Chainer

@@ -21,6 +21,9 @@
 
 start
   = __ s:Statements __ { return s; }
+  
+Ruleset
+  = __ q:Selector __ "{" __ s:Statements __ "}" __ {return {commands:['rule',q,s.commands]}}
 
 Statements
   = __ commandObjects:(Statement*) {return g.mergeCommands(commandObjects);}
@@ -29,7 +32,8 @@ Statement
   = s:StatementTypes EOS __ { return s; }
 
 StatementTypes 
-  = Constraint 
+  = Constraint
+  / Ruleset 
   / InlineConstraint
   / InlineSet
   / Virtual

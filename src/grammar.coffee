@@ -265,7 +265,7 @@ class Grammar
     if selector?
       return ['get$', variableName, selector]
     else
-      return ['get', "[#{variableName}]"]
+      return ['get', "#{variableName}"]
 
 
 

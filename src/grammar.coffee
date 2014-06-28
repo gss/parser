@@ -94,7 +94,7 @@ class Grammar
   #
   # @return [Array]
   #
-  headTail: (head, tail) ->
+  nestedDualTermCommands: (head, tail) ->
     result = head
 
     for item, index in tail
@@ -103,6 +103,14 @@ class Grammar
         result
         tail[index][3]
       ]
+
+    return result
+    
+  createSelectorCommaCommand: (head, tail) ->
+    result = [',',head]
+
+    for item, index in tail
+      result.push tail[index][3]
 
     return result
   

@@ -50,15 +50,6 @@ class Grammar
     return expressions
 
 
-  # @property [Array<Array>] A list of commands.
-  # @private
-  #
-  # @note Assigned in constructor to prevent the array from being passed by
-  # reference and shared between all instances.
-  #
-  _commands: null
-
-
   # The type of error thrown by the PEG parser.
   # @note Assigned in constructor.
   # @private
@@ -72,15 +63,6 @@ class Grammar
   # @param column [Number] The column number where the error occurred.
   #
   _Error: null
-
-
-  # Add a command to @_commands.
-  # @private
-  #
-  # @param command [Array]
-  #
-  _addCommand: (command) ->
-    @_commands.push command
 
 
 
@@ -123,6 +105,12 @@ class Grammar
       ]
 
     return result
+  
+  mergeCommands: (objs) ->
+    commands = []
+    for o in objs
+      commands = commands.concat o.commands
+    return {commands:commands}
 
   # Construct a new Grammar.
   #
@@ -134,21 +122,9 @@ class Grammar
   constructor: (parser, lineNumber, columnNumber, errorType) ->
     @parser = parser
     
-    @_commands = []
-    
     @_lineNumber = lineNumber
     @_columnNumber = columnNumber
     @_Error = errorType()
-
-
-  # The start rule.
-  #
-  # @return [Object] An object consisting of commands
-  #
-  start: ->
-    return {
-      commands: JSON.parse(JSON.stringify(@_commands))
-    }
 
 
   # constraints.
@@ -159,6 +135,9 @@ class Grammar
   # @return [String]
   #
   constraint: (head, tail, strengthAndWeight) ->
+    
+    commands = []
+    
     firstExpression = head
 
     if not strengthAndWeight? or strengthAndWeight.length is 0
@@ -194,11 +173,11 @@ class Grammar
             tailExpression
           ].concat strengthAndWeight
 
-          @_addCommand command
+          commands.push command
 
       firstExpression = secondExpression
 
-    return "constraint" # FIXME
+    return {commands:commands} # FIXME
   
   
   # constraints.
@@ -216,11 +195,10 @@ class Grammar
       "lt": "<"
       "gt": ">"            
     
-    command = @parser.parse("&[#{prop}] #{opMap[op]} #{rest}").commands[0]
+    result = @parser.parse("&[#{prop}] #{opMap[op]} #{rest}")
     
-    @_addCommand command
     
-    return "inline constraint"
+    return result
   
   
   # constraints.
@@ -231,9 +209,9 @@ class Grammar
     prop = prop.join('').trim()
     rest = rest.join('').trim()
     
-    @_addCommand ['set',prop,rest]
+    commands = [['set',prop,rest]]
     
-    return "inline set"
+    return {commands:commands}
     
 
   # Variables.
@@ -453,9 +431,7 @@ class Grammar
   # @return [Array]
   #
   virtualElement: (names) ->
-    command = ['virtual'].concat names
-    @_addCommand command
-    return command
+    return {commands:[['virtual'].concat(names)]}
 
 
 
@@ -470,13 +446,12 @@ class Grammar
   stay: (variables) ->
     stay = ['stay'].concat variables
     expressions = Grammar._unpack2DExpression stay[1]
-
+    commands = []
     for expression, index in expressions
       command = stay.slice()
       command[1] = expressions[index]
-      @_addCommand command
-
-    return stay
+      commands.push command
+    return {commands:commands}
 
 
   # Stay variables.
@@ -496,8 +471,8 @@ class Grammar
   # @param result [Array]
   # @return [Array]
   conditional: (result) ->
-    @_addCommand result
-    return result
+    commands = [result]
+    return {commands:commands}
 
 
 
@@ -511,7 +486,7 @@ class Grammar
   # @param javaScript [Array<String>]
   #
   forEach: (type, selector, javaScript) ->
-    @_addCommand [type, selector, javaScript]
+    return {commands:[[type, selector, javaScript]]}
 
 
   # JavaScript statements.
@@ -550,7 +525,7 @@ class Grammar
 
     ast = ['chain', selector]
     ast = ast.concat chainer for chainer in chainers
-    @_addCommand ast
+    return {commands:[ast]}
 
 
   # Chainers.

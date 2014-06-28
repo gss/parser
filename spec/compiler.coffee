@@ -129,29 +129,101 @@ describe 'CCSS-to-AST', ->
     expectError '[a] == [b] !strong0.5'
 
 
-  # Stays
+
+  # Pseudos
   # ====================================================================
 
-  describe "/* Stays */", ->
+  describe '/* Reserved Pseudos */', ->
 
     parse """
-            @-gss-stay #box[width], [grid-height];
+            ::[width] == ::parent[width]
           """
         ,
           {
             commands: [
-              ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
+              ['eq', ['get$','width',['$reserved','this']], ['get$','width',['$reserved', 'parent']]]
             ]
           }
+
+    # viewport gets normalized to window
     parse """
-            @stay #box[width], [grid-height];
+            ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
           """
         ,
           {
             commands: [
-              ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
+              ['eq', ['get$','width',['$reserved','scope']],    ['get$','width',['$reserved','this']]]
+              ['eq', ['get$','width',['$reserved','this']],     ['get$','width',['$reserved','document']]]
+              ['eq', ['get$','width',['$reserved','document']], ['get$','width',['$reserved','window']]]
+              ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
             ]
           }
+    
+    # normalize ::this selector
+    
+    target = {
+        commands: [
+          ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
+          ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
+        ]
+      }
+    
+    parse """
+            ::[width] == ::this[x] == &[y]
+          """
+        , target
+        
+    parse """
+            /* parans ignored */
+            (::)[width] == (::this)[x] == (&)[y]
+          """
+        , target
+    
+
+
+  # Virtual Elements
+  # ====================================================================
+
+  describe '/ "Virtual Elements" /', ->
+
+    parse """
+            @virtual "Zone";
+          """
+        ,
+          {
+            commands: [
+              ['virtual','Zone']
+            ]
+          }
+
+
+    parse """
+            "Zone"[width] == 100;
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
+            ]
+          }
+
+    parse """
+            "A"[left] == "1"[top];
+          """
+        ,
+          {
+            commands: [
+              ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
+            ]
+          }
+
+    parse '"box"[right] == "box2"[left];',
+          {
+            commands: [
+              ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
+            ]
+          }
+
 
 
   # Adv Selectors
@@ -346,99 +418,81 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+
+
+  # Inline Ruleset
+  # ====================================================================
+
+  describe "/* inline ruleset */", ->
+
+    parse """
+            x: == 100;
+          """
+        ,
+          {
+            commands: [
+              ['eq',
+                ['get$','x',['$reserved','this']]
+                ['number',100]
+              ]
+            ]
+          }
+    parse """
+            y: 100px;
+          """
+        ,
+          {
+            commands: [
+              ['set','y','100px']
+            ]
+          }
     
+    parse """
+            
+            x  :<= &[y];
+            
+            y  : 100px;
+            
+            z  :>= &[y];
+            
+          """
+        ,
+          {
+            commands: [
+              ['lte',
+                ['get$','x',['$reserved','this']]
+                ['get$','y',['$reserved','this']]                
+              ]
+              ['set','y','100px']
+              ['gte',
+                ['get$','z',['$reserved','this']]
+                ['get$','y',['$reserved','this']]                
+              ]
+            ]
+          }
   
-  # Pseudos
+  
+  # Stays
   # ====================================================================
 
-  describe '/* Reserved Pseudos */', ->
+  describe "/* Stays */", ->
 
     parse """
-            ::[width] == ::parent[width]
+            @-gss-stay #box[width], [grid-height];
           """
         ,
           {
             commands: [
-              ['eq', ['get$','width',['$reserved','this']], ['get$','width',['$reserved', 'parent']]]
+              ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
             ]
           }
-
-    # viewport gets normalized to window
     parse """
-            ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
+            @stay #box[width], [grid-height];
           """
         ,
           {
             commands: [
-              ['eq', ['get$','width',['$reserved','scope']],    ['get$','width',['$reserved','this']]]
-              ['eq', ['get$','width',['$reserved','this']],     ['get$','width',['$reserved','document']]]
-              ['eq', ['get$','width',['$reserved','document']], ['get$','width',['$reserved','window']]]
-              ['eq', ['get$','width',['$reserved','window']],   ['get$','height',['$reserved','window']]]
-            ]
-          }
-    
-    # normalize ::this selector
-    
-    target = {
-        commands: [
-          ['eq', ['get$','width',['$reserved','this']],    ['get$','x',['$reserved','this']]]
-          ['eq', ['get$','x',['$reserved','this']],        ['get$','y',['$reserved','this']]]
-        ]
-      }
-    
-    parse """
-            ::[width] == ::this[x] == &[y]
-          """
-        , target
-        
-    parse """
-            /* parans ignored */
-            (::)[width] == (::this)[x] == (&)[y]
-          """
-        , target
-    
-
-
-  # Virtual Elements
-  # ====================================================================
-
-  describe '/ "Virtual Elements" /', ->
-
-    parse """
-            @virtual "Zone";
-          """
-        ,
-          {
-            commands: [
-              ['virtual','Zone']
-            ]
-          }
-
-
-    parse """
-            "Zone"[width] == 100;
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get$','width',['$virtual','Zone']], ['number',100]]
-            ]
-          }
-
-    parse """
-            "A"[left] == "1"[top];
-          """
-        ,
-          {
-            commands: [
-              ['eq', ['get$','x',['$virtual','A']],['get$','y',['$virtual','1']]]
-            ]
-          }
-
-    parse '"box"[right] == "box2"[left];',
-          {
-            commands: [
-              ['eq', ['get$','right',['$virtual','box']],['get$','x',['$virtual','box2']]]
+              ['stay',['get$','width',['$id','box']],['get','[grid-height]']]
             ]
           }
 

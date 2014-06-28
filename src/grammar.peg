@@ -1,4 +1,5 @@
-{
+{  
+  var p = this;
   var g = (function() {
     var getLineNumber = function() {
       return line();
@@ -13,7 +14,8 @@
     };
 
     var Grammar = require('./grammar');
-    return new Grammar(getLineNumber, getColumnNumber, getErrorType);
+    
+    return new Grammar(p, getLineNumber, getColumnNumber, getErrorType);
   })();
 }
 
@@ -24,9 +26,11 @@ Statement
   = s:StatementTypes EOS __ { return s; }
 
 StatementTypes 
-  = LinearConstraint 
-  / Virtual 
-  / Conditional 
+  = Constraint 
+  / InlineConstraint
+  / InlineSet
+  / Virtual
+  / Conditional
   / Stay
   / Chain
   / ForEach
@@ -53,13 +57,23 @@ CondOperator
   / ">"           { return "?>";  }
   / "!="          { return "?!="; }
 
-LinearConstraint
+Constraint "Constraint"
   = head:ConstraintAdditiveExpression
-    tail:(__ LinearConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
-      return g.linearConstraint(head, tail, strengthAndWeight);
+    tail:(__ ConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
+      return g.constraint(head, tail, strengthAndWeight);
     }
 
-LinearConstraintOperator
+InlineConstraint "Inline Constraint"
+  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ ";" {
+      return g.inlineConstraint(prop,op,rest);
+    }
+
+InlineSet "Inline Set"
+  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ ";" {
+      return g.inlineSet(prop,rest);
+    }
+
+ConstraintOperator "Constraint Operator"
   = "=="          { return "eq";  }
   / ("<=" / "=<") { return "lte"; }
   / (">=" / "=>") { return "gte"; }
@@ -373,8 +387,8 @@ ChainMath
   / "/" { return g.chainMathOperator().divide(); }
 
 ChainEq
-  = operator:LinearConstraintOperator? {
-    return g.chainLinearConstraintOperator(operator);
+  = operator:ConstraintOperator? {
+    return g.chainConstraintOperator(operator);
   }
 
 BridgeValue

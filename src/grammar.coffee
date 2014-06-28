@@ -4,23 +4,6 @@ class Grammar
 
   ### Private ###
 
-  # Create an AST from the head and tail of an expression.
-  # @private
-  #
-  # @return [Array]
-  #
-  headTail: (head, tail) ->
-    result = head
-
-    for item, index in tail
-      result = [
-        tail[index][1]
-        result
-        tail[index][3]
-      ]
-
-    return result
-
 
   # Create a string from a list of characters.
   # @private
@@ -43,14 +26,14 @@ class Grammar
   #
   @_unpack2DExpression: (expression) ->
     mapping =
-      'bottom-left': ['left', 'bottom']
-      'bottom-right': ['right', 'bottom']
-      center: ['center-x', 'center-y']
+      'bottom-left'   : ['left', 'bottom']
+      'bottom-right'  : ['right', 'bottom']
+      center          : ['center-x', 'center-y']
       'intrinsic-size': ['intrinsic-width', 'intrinsic-height']
-      position: ['x', 'y']
-      size: ['width', 'height']
-      'top-left': ['left', 'top']
-      'top-right': ['right', 'top']
+      position        : ['x', 'y']
+      size            : ['width', 'height']
+      'top-left'      : ['left', 'top']
+      'top-right'     : ['right', 'top']
 
     expressions = [expression]
     property = expression[1]
@@ -122,6 +105,24 @@ class Grammar
 
 
   ### Public ###
+  
+  
+  # Create an AST from the head and tail of an expression.
+  # @private
+  #
+  # @return [Array]
+  #
+  headTail: (head, tail) ->
+    result = head
+
+    for item, index in tail
+      result = [
+        tail[index][1]
+        result
+        tail[index][3]
+      ]
+
+    return result
 
   # Construct a new Grammar.
   #
@@ -130,9 +131,11 @@ class Grammar
   # @param errorType [Function] A getter for the type of error thrown by the
   # PEG parser.
   #
-  constructor: (lineNumber, columnNumber, errorType) ->
+  constructor: (parser, lineNumber, columnNumber, errorType) ->
+    @parser = parser
+    
     @_commands = []
-
+    
     @_lineNumber = lineNumber
     @_columnNumber = columnNumber
     @_Error = errorType()
@@ -148,14 +151,14 @@ class Grammar
     }
 
 
-  # Linear constraints.
+  # constraints.
   #
   # @param head [Array]
   # @param tail [Array]
   # @param strengthAndWeight [Array]
   # @return [String]
   #
-  linearConstraint: (head, tail, strengthAndWeight) ->
+  constraint: (head, tail, strengthAndWeight) ->
     firstExpression = head
 
     if not strengthAndWeight? or strengthAndWeight.length is 0
@@ -195,9 +198,43 @@ class Grammar
 
       firstExpression = secondExpression
 
-    return "LinaearExpression" # FIXME
-
-
+    return "constraint" # FIXME
+  
+  
+  # constraints.
+  #
+  # x: == 100;
+  #
+  inlineConstraint: (prop,op,rest) ->
+    prop = prop.join('').trim()
+    rest = rest.join('').trim()
+    
+    opMap = 
+      "eq": "=="
+      "lte": "<="
+      "gte": ">="
+      "lt": "<"
+      "gt": ">"            
+    
+    command = @parser.parse("&[#{prop}] #{opMap[op]} #{rest}").commands[0]
+    
+    @_addCommand command
+    
+    return "inline constraint"
+  
+  
+  # constraints.
+  #
+  # x: == 100;
+  #
+  inlineSet: (prop,rest) ->
+    prop = prop.join('').trim()
+    rest = rest.join('').trim()
+    
+    @_addCommand ['set',prop,rest]
+    
+    return "inline set"
+    
 
   # Variables.
   #
@@ -604,7 +641,7 @@ class Grammar
   # @param operator [String]
   # @return [String]
   #
-  chainLinearConstraintOperator: (operator = 'eq') ->
+  chainConstraintOperator: (operator = 'eq') ->
     operator = "#{operator}-chain"
     return operator
 

@@ -41,6 +41,22 @@ StatementTypes
   / Directive
 
 
+Constraint "Constraint"
+  = head:ConstraintAdditiveExpression
+    tail:(__ ConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
+      return g.constraint(head, tail, strengthAndWeight);
+    }
+
+InlineConstraint "Inline Constraint"
+  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ ";" {
+      return g.inlineConstraint(prop,op,rest);
+    }
+
+InlineSet "Inline Set"
+  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ ";" {
+      return g.inlineSet(prop,rest);
+    }
+
 Ruleset
   = q:CSSSelector __ "{" __ s:Statements __ "}" 
     {return {commands:[['rule',q,s.commands]]}}
@@ -72,22 +88,6 @@ CondOperator
   / "<"           { return "?<";  }
   / ">"           { return "?>";  }
   / "!="          { return "?!="; }
-
-Constraint "Constraint"
-  = head:ConstraintAdditiveExpression
-    tail:(__ ConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
-      return g.constraint(head, tail, strengthAndWeight);
-    }
-
-InlineConstraint "Inline Constraint"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ ";" {
-      return g.inlineConstraint(prop,op,rest);
-    }
-
-InlineSet "Inline Set"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ ";" {
-      return g.inlineSet(prop,rest);
-    }
 
 ConstraintOperator "Constraint Operator"
   = "=="          { return "eq";  }
@@ -152,7 +152,11 @@ NameCharsWithSpace
   = NameChars / " "
 
 Literal
-  = value:(Real / Integer / SignedReal / SignedInteger) { return ['number', value]; }
+  = val:Numeric "px" { return ['px', val]; }
+  / val:Numeric { return ['number', val]; }
+
+Numeric
+  = Real / Integer / SignedReal / SignedInteger
 
 Integer
   = digits:[0-9]+ { return g.integer(digits); }
@@ -161,7 +165,7 @@ SignedInteger
   = sign:[-+] integer:Integer? { return g.signedInteger(sign, integer); }
 
 Real
-  = digits:(Integer? "." Integer) { return g.real(digits); }
+  = left:[0-9]* "." right:[0-9]+ { return parseFloat(left.join('') + "." + right.join('')); }
 
 SignedReal
   = sign:[-+] real:Real { return g.signedReal(sign, real); }

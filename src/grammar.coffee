@@ -281,15 +281,6 @@ class Grammar
     return parseInt "#{sign}#{integer}", 10
 
 
-  # Reals.
-  #
-  # @param digits [Array<Number>]
-  # @return [Number]
-  #
-  real: (digits) ->
-    return parseFloat digits.join('')
-
-
   # Signed reals.
   #
   # @param sign [String]

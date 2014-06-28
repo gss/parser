@@ -1195,11 +1195,13 @@ describe 'CCSS-to-AST', ->
 
     parse """
             [left] == .4; // without leading zero
+            [left] == .004;
           """
           ,
             {
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
+                ['eq', ['get', '[left]'], ['number', 0.004]]
               ]
             }
 
@@ -1320,6 +1322,25 @@ describe 'CCSS-to-AST', ->
             {
               commands: [
                 ['eq', ['get', '[left]'], ['number', 0.4]]
+              ]
+            }
+  
+  
+  
+  # Units
+  # ====================================================================
+
+  describe '/* Units */', ->
+  
+    parse """
+            10px == 0.4px;
+            -.01px == .01px;
+          """
+          ,
+            {
+              commands: [
+                ['eq', ['px', 10], ['px', 0.4]]
+                ['eq', ['px', -0.01], ['px', 0.01]]
               ]
             }
   

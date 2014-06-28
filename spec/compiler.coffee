@@ -418,12 +418,13 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-
-
-  # Inline Ruleset
+  
+  
+  
+  # Inline Statements
   # ====================================================================
 
-  describe "/* inline ruleset */", ->
+  describe "/* inline statements */", ->
 
     parse """
             x: == 100;
@@ -470,6 +471,33 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+  
+  
+  # Rulesets
+  # ====================================================================
+
+  describe "/* Rulesets */", ->
+
+    parse """
+          #box {
+            x: == 100;
+          }
+          """
+        ,
+          {
+            commands: [
+              ['rule',
+                ['$id','box']
+                [
+                  ['eq',
+                    ['get$','x',['$reserved','this']]
+                    ['number',100]
+                  ]
+                ]
+              ]
+            ]
+          }  
+  
   
   
   # Stays

@@ -538,6 +538,52 @@ describe 'CCSS-to-AST', ->
           }
   
   
+  # Rulesets
+  # ====================================================================
+
+  describe "/* Directives */", ->
+
+    parse """
+          @my-custom-directive blah blah blah {            
+            color: blue;
+          }
+          """
+        ,
+          {
+            commands: [
+              ['directive',
+                'my-custom-directive',
+                'blah blah blah',
+                [
+                  ['set','color','blue']   
+                ]
+              ]
+            ]
+          }
+    
+    parse """
+          @my-custom-directive blah blah blah {            
+            @my-other-directive blah... {            
+            }
+          }
+          """
+        ,
+          {
+            commands: [
+              [ 'directive',
+                'my-custom-directive',
+                'blah blah blah',
+                [
+                  [ 'directive',
+                    'my-other-directive',
+                    'blah...',
+                    []
+                  ]
+                ]
+              ]
+            ]
+          }
+  
   
   # Stays
   # ====================================================================

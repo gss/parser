@@ -21,9 +21,6 @@
 
 start
   = __ s:Statements __ { return s; }
-  
-Ruleset
-  = q:CSSSelector __ "{" __ s:Statements __ "}" {return {commands:[['rule',q,s.commands]]}}
 
 Statements
   = __ commandObjects:(Statement*) {return g.mergeCommands(commandObjects);}
@@ -41,6 +38,16 @@ StatementTypes
   / Stay
   / Chain
   / ForEach
+  / Directive
+
+
+Ruleset
+  = q:CSSSelector __ "{" __ s:Statements __ "}" 
+    {return {commands:[['rule',q,s.commands]]}}
+
+Directive
+  = "@" name:[^ {}]+ terms:[^{}]+ "{" __ s:Statements __ "}" 
+    {return {commands:[['directive',name.join(''),terms.join('').trim(),s.commands]]}}
 
 AndOrExpression
   = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 

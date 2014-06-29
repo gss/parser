@@ -29,31 +29,50 @@ Statement
   = __ s:StatementTypes EOS __ { return s; }
 
 StatementTypes 
-  = Constraint  
-  / InlineConstraint
-  / InlineSet
-  / Ruleset
-  / Virtual
-  / Conditional
-  / Stay
-  / Chain
-  / ForEach
+  = ConstraintStatement       
+  / InlineConstraintStatement 
+  / InlineSet                 
+  / Ruleset                   
+  / Virtual                   
+  / IfElseStatement           
+  / Conditional               
+  / Stay                      
+  / Chain                     
+  / ForEach                   
   / Directive
 
 
-Constraint "Constraint"
+IfElseStatement "IfElseStatement"
+  = i:If es:ElseChain+ 
+    {return {commands:[i.concat(es)]};}
+  / i:If 
+    {return {commands:[i]};}
+  
+    
+ElseChain
+  = __ e:Else {return e;}
+
+If 
+  = "@if" _ test:Expression __ "{" __ s:Statements __ "}"
+    {return ["if",test,s.commands];}
+
+Else
+  = "@else" _ test:Expression? __ "{" __ s:Statements __ "}"
+    {return [test || true,s.commands];}
+
+ConstraintStatement "ConstraintStatement"
   = head:ConstraintAdditiveExpression
     tail:(__ ConstraintOperator __ ConstraintAdditiveExpression)* __ strengthAndWeight:StrengthAndWeight? {
       return g.constraint(head, tail, strengthAndWeight);
     }
 
-InlineConstraint "Inline Constraint"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ ";" {
+InlineConstraintStatement "InlineConstraintStatement"
+  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ &";" {
       return g.inlineConstraint(prop,op,rest);
     }
 
 InlineSet "Inline Set"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ ";" {
+  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ &";" {
       return g.inlineSet(prop,rest);
     }
 
@@ -64,8 +83,12 @@ Ruleset
 Directive
   = "@" name:[^ {}]+ terms:[^{}]+ "{" __ s:Statements __ "}" 
     {return {commands:[['directive',name.join(''),terms.join('').trim(),s.commands]]}}
-  / "@" name:[^ {}]+ terms:[^;]+ ";"
+  / "@" name:[^ {}]+ terms:[^;]+ &";"
     {return {commands:[['directive',name.join(''),terms.join('').trim()]]}}
+
+
+Expression
+  = AndOrExpression
 
 AndOrExpression
   = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 
@@ -82,12 +105,12 @@ ConditionalExpression
     }
 
 CondOperator
-  = "=="          { return "?=="; }
-  / ("<=" / "=<") { return "?<="; }
-  / (">=" / "=>") { return "?>="; }
-  / "<"           { return "?<";  }
-  / ">"           { return "?>";  }
-  / "!="          { return "?!="; }
+  = "=="          { return "=="; }
+  / ("<=" / "=<") { return "<="; }
+  / (">=" / "=>") { return ">="; }
+  / "<"           { return "<";  }
+  / ">"           { return ">";  }
+  / "!="          { return "!="; }
 
 ConstraintOperator "Constraint Operator"
   = "=="          { return "eq";  }
@@ -138,7 +161,7 @@ ConstraintPrimaryExpression
 PrimaryExpression
   = Var
   / Literal
-  / "(" __ expression:AndOrExpression __ ")" { return expression; }
+  / "(" __ expression:Expression __ ")" { return expression; }
 
 Var "variable"
   = selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {

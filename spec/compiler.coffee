@@ -7,17 +7,20 @@ else
 {expect} = chai
 
 
-parse = (source, expectation, pending) ->
+parse = (sources, expectation, pending) ->
   itFn = if pending then xit else it
+  
+  if !(sources instanceof Array)
+    sources = [sources]
+  for source in sources
+    describe source, ->
+      result = null
 
-  describe source, ->
-    result = null
-
-    itFn 'should do something', ->
-      result = parser.parse source
-      expect(result).to.be.an 'object'
-    itFn 'commands ✓', ->
-      expect(result.commands).to.eql expectation.commands or []
+      itFn 'should do something', ->
+        result = parser.parse source
+        expect(result).to.be.an 'object'
+      itFn 'commands ✓', ->
+        expect(result.commands).to.eql expectation.commands or []
 
 
 # Helper function for expecting errors to be thrown when parsing.
@@ -569,7 +572,7 @@ describe 'CCSS-to-AST', ->
           }
   
   
-  # Rulesets
+  # Directives
   # ====================================================================
 
   describe "/* Directives */", ->
@@ -629,6 +632,167 @@ describe 'CCSS-to-AST', ->
           }
   
   
+  # If Else
+  # ====================================================================
+
+  describe "/* If Else */", ->
+
+    parse """
+          @if [x] >= 100 {            
+            font-family: awesome;
+          }
+          """
+        ,
+          {
+            commands: [
+              ['if',
+                ['>=', ['get','x'], ['number',100]]
+                [
+                  ['set', 'font-family', 'awesome']
+                ]
+              ]
+            ]
+          }
+    
+    parse [
+            """
+              @if [x] != 20 && [y] == 200 {
+              }
+              @else {
+              }
+            """,
+            """
+              @if[x]!=20&&[y]==200{}@else{}
+            """
+          ]
+        ,
+          {
+            commands: [
+              ['if',
+                ['&&',['!=', ['get','x'], ['number',20]],['==', ['get','y'], ['number',200]]]
+                []
+                [
+                  true
+                  []
+                ]
+              ]
+            ]
+          }
+    
+    parse """
+            @if #box[right] == #box2[x] {}
+          """
+        ,
+          {
+            commands: [
+              ['if',
+                ['==', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']]
+                []
+              ]
+            ]
+          }
+
+    parse """
+            @if 2 * [right] == [x] + 100 {}
+          """
+        ,
+          {
+            commands: [
+              ['if',
+                ['==',['multiply',['number',2],['get','right']], ['plus',['get','x'],['number',100]] ]
+                []
+              ]
+            ]
+          }
+
+    parse """
+            @if (#box[right] != #box2[x]) AND (#box[width] <= #box2[width]) {}
+          """
+        ,
+          {
+            commands: [
+              [ "if"
+                ["&&"
+                  ['!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x'    ]],
+                  ['<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']]
+                ]
+                []
+              ]
+            ]
+          }
+    
+    
+    conditionCommands = [
+        "&&"
+        ['!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']],
+        ["||"
+          ['<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']],
+          ['==', ['get','x'],['number',100]]
+        ]
+      ]          
+    parse """
+            @if   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
+            @else (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
+            @else (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
+            @else {}
+            @if   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
+            @else {}
+          """
+        ,
+          {
+            commands: [
+              [ "if"
+                conditionCommands 
+                []
+                [
+                  conditionCommands 
+                  []
+                ]
+                [
+                  conditionCommands 
+                  []
+                ]
+                [
+                  true
+                  []
+                ]
+              ]
+              [ "if"
+                conditionCommands 
+                []
+                [
+                  true
+                  []
+                ]
+              ]
+            ]
+          }
+    
+    
+    
+    
+    #parse """
+    #      @if [font-family] == 'awesome-nueu' {
+    #        z: == 100;
+    #      }
+    #      @else {
+    #        z: == 1000;
+    #      }
+    #      """
+    #    ,
+    #      {
+    #        commands: [
+    #          ['if',
+    #            ['==', ['get','x'], ['number',20]]
+    #            [
+    #              ['set', 'font-family', 'awesome']
+    #            ]
+    #          ]
+    #        ]
+    #      }
+          
+  
+  
   # Stays
   # ====================================================================
 
@@ -653,74 +817,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-
-
-  # Conditionals
-  # ====================================================================
-
-  describe '/ @? conditionals /', ->
-
-    parse """
-            @cond #box[right] == #box2[x];
-          """
-        ,
-          {
-            commands: [
-              ['?==', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']]
-            ]
-          }
-
-    parse """
-            @cond 2 * [right] == [x] + 100;
-          """
-        ,
-          {
-            commands: [
-              ['?==',['multiply',['number',2],['get','right']], ['plus',['get','x'],['number',100]] ]
-            ]
-          }
-
-    parse """
-            @cond #box[right] != #box2[x] AND #box[width] <= #box2[width];
-          """
-        ,
-          {
-            commands: [
-              ["&&"
-                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x'    ]],
-                ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']]
-              ]
-            ]
-          }
-
-    parse """
-            @cond (#box[right] != #box2[x]) AND (#box[width] <= #box2[width]);
-          """
-        ,
-          {
-            commands: [
-              ["&&"
-                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x'    ]],
-                ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']]
-              ]
-            ]
-          }
-
-    parse """
-            @cond (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100);
-          """
-        ,
-          {
-            commands: [
-              ["&&"
-                ['?!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']],
-                ["||"
-                  ['?<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']],
-                  ['?==', ['get','x'],['number',100]]
-                ]
-              ]
-            ]
-          }
+    
 
 
   # JS Shit... WIP

@@ -35,7 +35,6 @@ StatementTypes
   / Ruleset                   
   / Virtual                   
   / IfElseStatement           
-  / Conditional               
   / Stay                      
   / Chain                     
   / ForEach                   
@@ -91,7 +90,7 @@ Expression
   = AndOrExpression
 
 AndOrExpression
-  = head:ConditionalExpression tail:(__ AndOrOp __ ConditionalExpression)* { 
+  = head:DualOperatorExpression tail:(__ AndOrOp __ DualOperatorExpression)* { 
     return g.nestedDualTermCommands(head, tail); 
   }
 
@@ -99,18 +98,20 @@ AndOrOp
   = ("AND" / "and" / "And" / "&&") { return '&&'; }
   / ("OR"  / "or"  / "Or"  / "||") { return '||'; }
 
-ConditionalExpression
-  = head:AdditiveExpression tail:(__ CondOperator __ AdditiveExpression)* {
+DualOperatorExpression
+  = head:AdditiveExpression tail:(__ DualOperator __ AdditiveExpression)* {
       return g.nestedDualTermCommands(head, tail);
     }
 
-CondOperator
+DualOperator
   = "=="          { return "=="; }
   / ("<=" / "=<") { return "<="; }
   / (">=" / "=>") { return ">="; }
   / "<"           { return "<";  }
   / ">"           { return ">";  }
   / "!="          { return "!="; }
+  / "="           { return "="; }
+  / "~="          { return "~="; }
 
 ConstraintOperator "Constraint Operator"
   = "=="          { return "eq";  }
@@ -161,12 +162,20 @@ ConstraintPrimaryExpression
 PrimaryExpression
   = Var
   / Literal
+  / String
+  / "true"        {return true;}
+  / "false"       {return false;}
+  / "null"        {return null;}
+  / "undefined"   {return undefined;}
   / "(" __ expression:Expression __ ")" { return expression; }
 
 Var "variable"
   = selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {
       return g.variable(selector, variableNameCharacters);
     }
+
+String
+  = ["'] string:([^"'])* ["'] {return string.join('');}   //"
 
 NameChars
   = [a-zA-Z0-9#.\-_$]
@@ -309,7 +318,9 @@ PseudoSelOption
   = "(" option:[^)]* ")"       {return option.join(""); }
 
 AttrSel
-  = "[" attr:[^\]]+ "]"        {return ["$attr",attr.join("")]; }
+  = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["$attr",op.join(""),left.join("").trim(),right.join("").trim()]; }
+  / "[" attr:[^\]]+ "]"        {return ["$attr",attr.join("")]; }
+  
 
 SelectorName
   = name:SelectorNameChars+    {return name.join("")}
@@ -375,13 +386,6 @@ StayVars
 StayStart
   = ("@-gss-stay" / "@stay")
 
-
-
-// Conditionals
-// ===================================================
-
-Conditional
-  = "@cond" __ result:AndOrExpression __ { return g.conditional(result); }
 
 
 

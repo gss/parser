@@ -185,11 +185,11 @@ NameCharsWithSpace
 
 Literal
   = val:Numeric u:Unit { return [u, val]; }
+  / val:Numeric        { return val; }
   
 Unit
   = "px" / "em" / "vh" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
   / "cm" / "mm" / "in" / "pt" / "pc" 
-  / {return "number"}
 
 Numeric
   = Real / Integer / SignedReal / SignedInteger

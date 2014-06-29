@@ -58,10 +58,10 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['lte', ['number', 10], ['number', 2]]
-              ['eq', ['number', 2], ['number', 3]]
-              ['lt', ['number', 3], ['number', 4]]
-              ['eq', ['number', 4], ['number', 5]]
+              ['lte', 10, 2]
+              ['eq',  2 , 3]
+              ['lt',  3 , 4]
+              ['eq',  4 , 5]
             ]
           }
 
@@ -76,18 +76,12 @@ describe 'CCSS-to-AST', ->
                 ['plus'
                   [ 'divide',
                     ['minus',
-                      ['multiply',
-                        ['get','width'],
-                        ['number',2]
-                      ],
-                      ['multiply',
-                        ['get','gap'],
-                        ['number',2]
-                      ]
+                      ['multiply', ['get','width'], 2],
+                      ['multiply',['get','gap'],2]
                     ],
-                    ['number',4]
+                    4
                   ],
-                  ['number',10]
+                  10
                 ],
                 "require"]
             ]
@@ -103,11 +97,11 @@ describe 'CCSS-to-AST', ->
               ['lte', [
                 'multiply', ['get', 'grid-height'], ['get', ['$id', 'box2'], 'width']
                 ],
-                ['number', 2]
+                2
               ]
-              ['eq', ['number', 2], ['number', 3]]
-              ['lt', ['number', 3], ['number', 4]]
-              ['eq', ['number', 4], ['number', 5]]
+              ['eq', 2, 3]
+              ['lt', 3, 4]
+              ['eq', 4, 5]
             ]
           }
 
@@ -123,8 +117,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['number', 4], ['number', 5], 'strong', 10]
-              ['eq', ['number', 5], ['number', 6], 'strong', 10]
+              ['eq', 4, 5, 'strong', 10]
+              ['eq', 5, 6, 'strong', 10]
             ]
           }
 
@@ -206,7 +200,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get',['$virtual','Zone'],'width'], ['number',100]]
+              ['eq', ['get',['$virtual','Zone'],'width'],100]
             ]
           }
 
@@ -265,7 +259,7 @@ describe 'CCSS-to-AST', ->
                   ],
                   'width',
                 ], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -310,7 +304,7 @@ describe 'CCSS-to-AST', ->
                   ],
                   'width',
                 ], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -346,7 +340,7 @@ describe 'CCSS-to-AST', ->
                     'get', "'parentNode'"],
                   'target-size',
                 ], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -359,7 +353,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq', 
                 ['get',['$class',['$reserved','this'],'featured'],'width'], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -372,7 +366,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['eq', 
                 ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -431,7 +425,7 @@ describe 'CCSS-to-AST', ->
                     ],
                   'width',
                 ], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -452,7 +446,7 @@ describe 'CCSS-to-AST', ->
                   ],
                   'width',
                 ], 
-                ['number', 100]
+                100
               ]
             ]
           }
@@ -488,10 +482,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq',
-                ['get',['$reserved','this'],'x']
-                ['number',100]
-              ]
+              ['eq',['get',['$reserved','this'],'x'],100]
             ]
           }
     parse """
@@ -548,10 +539,7 @@ describe 'CCSS-to-AST', ->
                 ['$class',['$id','box'],'class']
                 [
                   ['set','color','blue']
-                  ['eq',
-                    ['get',['$reserved','this'],'x']
-                    ['number',100]
-                  ]                  
+                  ['eq',['get',['$reserved','this'],'x'],100]                  
                 ]
               ]
             ]
@@ -668,7 +656,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['if',
-                ['>=', ['get','x'], ['number',100]]
+                ['>=',['get','x'],100]
                 [
                   ['set', 'font-family', 'awesome']
                 ]
@@ -691,7 +679,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['if',
-                ['&&',['!=', ['get','x'], ['number',20]],['==', ['get','y'], ['number',200]]]
+                ['&&',['!=',['get','x'],20],['==',['get','y'],200]]
                 []
                 [
                   true
@@ -829,7 +817,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['if',
-                ['==',['multiply',['number',2],['get','right']], ['plus',['get','x'],['number',100]] ]
+                ['==',['multiply',2,['get','right']], ['plus',['get','x'],100] ]
                 []
               ]
             ]
@@ -857,7 +845,7 @@ describe 'CCSS-to-AST', ->
         ['!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']],
         ["||"
           ['<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']],
-          ['==', ['get','x'],['number',100]]
+          ['==', ['get','x'],100]
         ]
       ]          
     parse """
@@ -932,7 +920,7 @@ describe 'CCSS-to-AST', ->
     #      {
     #        commands: [
     #          ['if',
-    #            ['==', ['get','x'], ['number',20]]
+    #            ['==', ['get','x'],20]
     #            [
     #              ['set', 'font-family', 'awesome']
     #            ]
@@ -1066,8 +1054,8 @@ describe 'CCSS-to-AST', ->
                 'chain',
                 ['$class', 'box'],
                 ['eq-chain','width','width'],
-                ['gte-chain','height',['number',10]],
-                ['gte-chain',['number',10],'height'],
+                ['gte-chain','height',10],
+                ['gte-chain',10,'height'],
                 ['lte-chain','bottom','top']
               ]
             ]
@@ -1082,8 +1070,8 @@ describe 'CCSS-to-AST', ->
               [
                 'chain',
                 ['$class', 'box'],
-                ['eq-chain','width',['multiply',['get','hgap'],['number',2]]]
-                ['eq-chain',['multiply',['get','hgap'],['number',2]],'width']
+                ['eq-chain','width',['multiply',['get','hgap'],2]]
+                ['eq-chain',['multiply',['get','hgap'],2],'width']
               ]
             ]
           }
@@ -1097,7 +1085,7 @@ describe 'CCSS-to-AST', ->
               [
                 'chain',
                 ['$class', 'box'],
-                ['eq-chain',['plus-chain','width',['multiply',['get','hgap'],['number',2]]],'width']
+                ['eq-chain',['plus-chain','width',['multiply',['get','hgap'],2]],'width']
               ]
             ]
           }
@@ -1111,7 +1099,7 @@ describe 'CCSS-to-AST', ->
               [
                 'chain',
                 ['$class', 'box'],
-                ['eq-chain',['plus-chain','right',['number',10]],'left']
+                ['eq-chain',['plus-chain','right',10],'left']
               ]
             ]
           }
@@ -1159,7 +1147,7 @@ describe 'CCSS-to-AST', ->
               [
                 'chain',
                 ['$class', 'box'],
-                ['eq-chain','height',['multiply-chain',['number',2],'center-x']]
+                ['eq-chain','height',['multiply-chain',2,'center-x']]
               ]
             ]
           }
@@ -1424,8 +1412,8 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get', ['$id', 'box'], 'width' ], ['number', 100]]
-              ['eq', ['get', ['$id', 'box'], 'height'], ['number', 100]]
+              ['eq', ['get', ['$id', 'box'], 'width' ], 100]
+              ['eq', ['get', ['$id', 'box'], 'height'], 100]
             ]
           }
 
@@ -1436,7 +1424,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get', 'square-size'], ['number', 100]]
+              ['eq', ['get', 'square-size'], 100]
               ['eq', ['get', ['$id', 'box'], 'width' ], ['get', 'square-size']]
               ['eq', ['get', ['$id', 'box'], 'height'], ['get', 'square-size']]
             ]
@@ -1449,7 +1437,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['eq', ['get', ['$id', 'box'], '$square-size'], ['number', 100]]
+              ['eq', ['get', ['$id', 'box'], '$square-size'], 100]
               ['eq', ['get', ['$id', 'box'], 'width'       ], ['get', ['$id', 'box'], '$square-size']]
               ['eq', ['get', ['$id', 'box'], 'height'      ], ['get', ['$id', 'box'], '$square-size']]
             ]
@@ -1466,7 +1454,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', 0.4]]
+                ['eq', ['get', 'left'], 0.4]
               ]
             }
 
@@ -1477,8 +1465,8 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', 0.4]]
-                ['eq', ['get', 'left'], ['number', 0.004]]
+                ['eq', ['get', 'left'], 0.4  ]
+                ['eq', ['get', 'left'], 0.004]
               ]
             }
 
@@ -1488,7 +1476,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['minus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['minus', 0, 1]]
               ]
             }
 
@@ -1498,7 +1486,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['minus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['minus', 0, 1]]
               ]
             }
 
@@ -1508,7 +1496,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['minus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['minus', 0, 1]]
               ]
             }
 
@@ -1518,7 +1506,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', -1]]
+                ['eq', ['get', 'left'], -1]
               ]
             }
 
@@ -1528,7 +1516,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', -0.4]]
+                ['eq', ['get', 'left'], -0.4]
               ]
             }
 
@@ -1538,7 +1526,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', -0.4]]
+                ['eq', ['get', 'left'], -0.4]
               ]
             }
 
@@ -1548,7 +1536,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['plus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['plus', 0, 1]]
               ]
             }
 
@@ -1558,7 +1546,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['plus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['plus', 0, 1]]
               ]
             }
 
@@ -1568,7 +1556,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['plus', ['number', 0], ['number', 1]]]
+                ['eq', ['get', 'left'], ['plus', 0, 1]]
               ]
             }
 
@@ -1578,7 +1566,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', 1]]
+                ['eq', ['get', 'left'], 1]
               ]
             }
 
@@ -1588,7 +1576,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', 0.4]]
+                ['eq', ['get', 'left'], 0.4]
               ]
             }
 
@@ -1598,7 +1586,7 @@ describe 'CCSS-to-AST', ->
           ,
             {
               commands: [
-                ['eq', ['get', 'left'], ['number', 0.4]]
+                ['eq', ['get', 'left'], 0.4]
               ]
             }
   

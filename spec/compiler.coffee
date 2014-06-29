@@ -679,6 +679,114 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
+    parse [
+            """
+              @if [x] 
+              {
+                
+                font-family: awesome;                
+                font-family: awesomer;                
+                
+              }
+              @else 
+              {
+                font-family: lame;
+                
+                font-family: lamer;
+              }
+            """,
+            """
+              @if[x]{font-family:awesome;font-family:awesomer;}@else{font-family:lame;font-family:lamer;}
+            """
+          ]
+        ,
+          {
+            commands: [
+              ['if',
+                ['get','x']
+                [['set', 'font-family', 'awesome'],['set', 'font-family', 'awesomer']]
+                [
+                  true
+                  [['set', 'font-family', 'lame'],['set', 'font-family', 'lamer']]
+                ]
+              ]
+            ]
+          }
+    
+    parse [
+            """
+              @if [x] { 
+                @if [x] { 
+                  @if [x] { 
+                  } 
+                  @else {
+                  }
+                } 
+                @else {
+                }
+              } 
+              @else {
+                @if [x] { 
+                } 
+                @else {
+                }
+              }
+            """
+            # Throws Range Error? 
+            #"""
+            #  @if [x] { @if [x] { @if [x] { } @else {} } 
+            #    @else {
+            #    }
+            #  } 
+            #  @else {
+            #    @if [x] { 
+            #    } 
+            #    @else {
+            #    }
+            #  }
+            #"""
+          ]
+        ,
+          {
+            commands: [
+              ['if',
+                ['get','x']
+                [
+                  ['if',
+                    ['get','x']
+                    [
+                      ['if',
+                        ['get','x']
+                        []
+                        [
+                          true
+                          []
+                        ]
+                      ]
+                    ]
+                    [
+                      true
+                      []
+                    ]
+                  ]
+                ]
+                [
+                  true
+                  [
+                    ['if',
+                      ['get','x']
+                      []
+                      [
+                        true
+                        []
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          }
+    
     parse """
             @if #box[right] == #box2[x] {}
           """
@@ -731,11 +839,24 @@ describe 'CCSS-to-AST', ->
         ]
       ]          
     parse """
-            @if   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
-            @else (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
-            @else (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
-            @else {}
-            @if   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {}
+            @if     (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+            }
+            @else   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+            }
+            @else   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+            }
+            @else {
+            }
+            @if     (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+              @if   (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+                @if (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
+                }
+                @else {
+                }
+              }
+              @else {
+              }
+            }
             @else {}
           """
         ,
@@ -752,25 +873,31 @@ describe 'CCSS-to-AST', ->
                   conditionCommands 
                   []
                 ]
-                [
-                  true
-                  []
-                ]
+                [ true, [] ]
               ]
               [ "if"
                 conditionCommands 
-                []
                 [
-                  true
-                  []
+                  [ "if"
+                    conditionCommands 
+                    [
+                      [ "if"
+                        conditionCommands 
+                        []
+                        [ true, [] ]
+                      ]
+                    ]
+                    [ true, [] ]
+                  ]
                 ]
+                [ true, [] ]
               ]
             ]
           }
     
     
     
-    
+    # what to do with strings?
     #parse """
     #      @if [font-family] == 'awesome-nueu' {
     #        z: == 100;

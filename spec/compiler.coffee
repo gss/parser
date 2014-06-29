@@ -271,7 +271,7 @@ describe 'CCSS-to-AST', ->
           }
 
     parse """
-            (html #main:not(.disabled) .boxes[data-target="true"])[width] == 100
+            (html #main:not(.disabled) .boxes[data-target])[width] == 100
           """
         ,
           {
@@ -306,7 +306,7 @@ describe 'CCSS-to-AST', ->
                         ],
                         "boxes"
                      ],
-                     "data-target=\"true\""
+                     "data-target",
                   ],
                   'width',
                 ], 
@@ -377,6 +377,28 @@ describe 'CCSS-to-AST', ->
             ]
           }
     
+    parse """
+            ([foo~="bar"])[x] == ([foo!="bar"])[x];
+            ([foo$="bar"])[x] == ([foo*="bar"])[x];
+            ([foo ^= "bar"])[x] == ([foo  = "bar"])[x];
+          """
+        ,
+          {
+            commands: [
+              ['eq', 
+                ['get',['$attr','~=','foo','"bar"'],'x'] 
+                ['get',['$attr','!=','foo','"bar"'],'x']
+              ]
+              ['eq', 
+                ['get',['$attr','$=','foo','"bar"'],'x'] 
+                ['get',['$attr','*=','foo','"bar"'],'x']
+              ]
+              ['eq', 
+                ['get',['$attr','^=','foo','"bar"'],'x'] 
+                ['get',['$attr','=','foo','"bar"'],'x']
+              ]
+            ]
+          }
 
     parse """
             (::parent[disabled] ~ li:first)[width] == 100

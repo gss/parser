@@ -1672,3 +1672,34 @@ describe 'CCSS-to-AST', ->
     #          ]
     #        ]
     #      }
+    
+    
+  
+  
+  
+  
+  # Plugins
+  # ====================================================================  
+  
+  describe '/* API Hooks */', ->        
+    
+    
+    parse """
+            @h [#left][#right] !strong {}
+          """
+        ,
+          {
+            commands: [
+              ['eq',['get',['$id','left'],'right'],['get',['$id','right'],'x'],'strong']
+            ]
+          }
+    
+    parse """
+            @v [#top][#bottom] !strong;
+          """
+        ,
+          {
+            commands: [
+              ['eq',['get',['$id','top'],'bottom'],['get',['$id','bottom'],'y'],'strong']
+            ]
+          }

@@ -26,6 +26,10 @@
     "grunt-contrib-coffee": "~0.7.0",
     "error-reporter": "~0.1.0"
   },
+  "dependencies": {
+    "vfl-compiler": "*",
+    "vgl-compiler": "*"
+  },
   "keywords": [],
   "scripts": {
     "test": "node_modules/.bin/grunt test"

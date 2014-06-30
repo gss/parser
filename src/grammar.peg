@@ -81,9 +81,9 @@ Ruleset
 
 Directive
   = "@" name:[^ {}]+ terms:[^{}]+ "{" __ s:Statements __ "}" 
-    {return {commands:[['directive',name.join(''),terms.join('').trim(),s.commands]]}}
+    {return g.directive(name.join(''),terms.join('').trim(),s.commands);}
   / "@" name:[^ {}]+ terms:[^;]+ &";"
-    {return {commands:[['directive',name.join(''),terms.join('').trim()]]}}
+    {return g.directive(name.join(''),terms.join('').trim());}
 
 
 Expression

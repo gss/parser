@@ -134,7 +134,7 @@ class Grammar
     @_columnNumber = columnNumber
     @_Error = errorType()
 
-
+    
   # constraints.
   #
   # @param head [Array]
@@ -220,7 +220,17 @@ class Grammar
     commands = [['set',prop,rest]]
     
     return {commands:commands}
-    
+  
+  
+  # Directives
+  #
+  directive: (name,terms,commands) ->
+    hook = @parser.hooks.directives[name]
+    if hook then return hook(name,terms,commands)
+    ast = ['directive',name,terms]
+    if commands
+      ast.push commands
+    return {commands:[ast]}
 
   # Variables.
   #

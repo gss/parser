@@ -104,21 +104,17 @@ DualOperatorExpression
     }
 
 DualOperator
-  = "=="          { return "=="; }
-  / ("<=" / "=<") { return "<="; }
-  / (">=" / "=>") { return ">="; }
-  / "<"           { return "<";  }
-  / ">"           { return ">";  }
+  = ConstraintOperator
   / "!="          { return "!="; }
   / "="           { return "="; }
   / "~="          { return "~="; }
 
 ConstraintOperator "Constraint Operator"
-  = "=="          { return "eq";  }
-  / ("<=" / "=<") { return "lte"; }
-  / (">=" / "=>") { return "gte"; }
-  / "<"           { return "lt";  }
-  / ">"           { return "gt";  }
+  = "=="          { return "==";  }
+  / ("<=" / "=<") { return "<="; }
+  / (">=" / "=>") { return ">="; }
+  / "<"           { return "<";  }
+  / ">"           { return ">";  }
 
 ConstraintAdditiveExpression
   = head:ConstraintMultiplicativeExpression
@@ -133,8 +129,8 @@ AdditiveExpression
     }
 
 AdditiveOperator
-  = "+" { return "plus";  }
-  / "-" { return "minus"; }
+  = "+" { return "+";  }
+  / "-" { return "-"; }
 
 ConstraintMultiplicativeExpression
   = head:ConstraintPrimaryExpression
@@ -149,8 +145,8 @@ MultiplicativeExpression
     }
 
 MultiplicativeOperator
-  = "*" { return 'multiply'; }
-  / "/" { return 'divide';   }
+  = "*" { return '*'; }
+  / "/" { return '/';   }
 
 ConstraintPrimaryExpression
   = Var

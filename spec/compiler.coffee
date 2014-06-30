@@ -240,11 +240,11 @@ describe 'CCSS-to-AST', ->
                   [
                      "$class",
                      [
-                        "$combin",
+                        "$combinator",
                         [
                            "$id",
                            [
-                              "$combin",
+                              "$combinator",
                               [
                                  "$tag",
                                  "html"
@@ -274,17 +274,17 @@ describe 'CCSS-to-AST', ->
                 [
                   'get',                  
                   [
-                     "$attr",
+                     "$attribute",
                      [
                         "$class",
                         [
-                           "$combin",
+                           "$combinator",
                            [
                               "$pseudo",
                               [
                                  "$id",
                                  [
-                                    "$combin",
+                                    "$combinator",
                                     [
                                        "$tag",
                                        "html"
@@ -322,12 +322,12 @@ describe 'CCSS-to-AST', ->
                   'get',                  
                   ['$pseudo',
                     ['$tag',
-                      ['$combin', 
+                      ['$combinator', 
                         ['$tag', 
-                          ['$combin', 
+                          ['$combinator', 
                             ['$class',
                               ['$tag', 
-                                ['$combin', 
+                                ['$combinator', 
                                   ['$tag', 
                                     'header']
                                   '!>']
@@ -380,16 +380,16 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['eq', 
-                ['get',['$attr','~=','foo','"bar"'],'x'] 
-                ['get',['$attr','!=','foo','"bar"'],'x']
+                ['get',['$attribute','~=','foo','"bar"'],'x'] 
+                ['get',['$attribute','!=','foo','"bar"'],'x']
               ]
               ['eq', 
-                ['get',['$attr','$=','foo','"bar"'],'x'] 
-                ['get',['$attr','*=','foo','"bar"'],'x']
+                ['get',['$attribute','$=','foo','"bar"'],'x'] 
+                ['get',['$attribute','*=','foo','"bar"'],'x']
               ]
               ['eq', 
-                ['get',['$attr','^=','foo','"bar"'],'x'] 
-                ['get',['$attr','=','foo','"bar"'],'x']
+                ['get',['$attribute','^=','foo','"bar"'],'x'] 
+                ['get',['$attribute','=','foo','"bar"'],'x']
               ]
             ]
           }
@@ -408,9 +408,9 @@ describe 'CCSS-to-AST', ->
                      [
                         "$tag",
                         [
-                           "$combin",
+                           "$combinator",
                            [
-                              "$attr",
+                              "$attribute",
                               [
                                  "$reserved",
                                  "parent"
@@ -563,7 +563,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["$tag",["$combin",['$class',['$tag','article'],'featured'],">"],"img"]                
+                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]                
                 [
                   ['set','color','black']
                   ['rule',

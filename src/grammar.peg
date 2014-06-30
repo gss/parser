@@ -284,7 +284,7 @@ Qualifier
 
 ComplexSelector
   = Qualifier
-  / c:Combinator              {return ["$combin",c]}
+  / c:Combinator              {return ["$combinator",c]}
 
 Combinator "Combinator"
   = _ c:[><+~!]+ _           {return c.join('');}
@@ -318,8 +318,8 @@ PseudoSelOption
   = "(" option:[^)]* ")"       {return option.join(""); }
 
 AttrSel
-  = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["$attr",op.join(""),left.join("").trim(),right.join("").trim()]; }
-  / "[" attr:[^\]]+ "]"        {return ["$attr",attr.join("")]; }
+  = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["$attribute",op.join(""),left.join("").trim(),right.join("").trim()]; }
+  / "[" attr:[^\]]+ "]"        {return ["$attribute",attr.join("")]; }
   
 
 SelectorName

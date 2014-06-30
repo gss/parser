@@ -265,7 +265,7 @@ describe 'CCSS-to-AST', ->
           }
 
     parse """
-            (html #main:not(.disabled) .boxes[data-target])[width] == 100
+            (* #main:not(.disabled) .boxes[data-target])[width] == 100
           """
         ,
           {
@@ -287,7 +287,7 @@ describe 'CCSS-to-AST', ->
                                     "$combinator",
                                     [
                                        "$tag",
-                                       "html"
+                                       "*"
                                     ],
                                     " "
                                  ],

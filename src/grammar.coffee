@@ -194,16 +194,9 @@ class Grammar
   #
   inlineConstraint: (prop,op,rest) ->
     prop = prop.join('').trim()
-    rest = rest.join('').trim()
+    rest = rest.join('').trim()     
     
-    opMap = 
-      "eq": "=="
-      "lte": "<="
-      "gte": ">="
-      "lt": "<"
-      "gt": ">"            
-    
-    result = @parser.parse("&[#{prop}] #{opMap[op]} #{rest}")
+    result = @parser.parse("&[#{prop}] #{op} #{rest}")
     
     
     return result
@@ -625,8 +618,14 @@ class Grammar
   # @param operator [String]
   # @return [String]
   #
-  chainConstraintOperator: (operator = 'eq') ->
-    operator = "#{operator}-chain"
+  chainConstraintOperator: (op = '==') ->
+    opMap = 
+      "==": "eq"   
+      "<=": "lte"  
+      ">=": "gte"  
+      "<" : "lt"   
+      ">" : "gt"   
+    operator = "#{opMap[op]}-chain"
     return operator
 
 

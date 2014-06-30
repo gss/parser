@@ -296,7 +296,7 @@ VirtualSel
 
 TagSel
   = name:SelectorName         {return ["$tag",name];}
-  / "*"                       {return ["$*"];}
+  / "*"                       {return ["$tag", "*"];}
   
 IdSel
   = "#" name:SelectorName     {return ["$id",name];}

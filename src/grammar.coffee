@@ -88,6 +88,14 @@ class Grammar
 
   ### Public ###
   
+  reverseFilterNest: (commands) ->
+    len = commands.length;
+    i=len-1
+    while i > 0
+      commands[i].splice 1, 0, commands[i-1]
+      i--
+    return commands[len-1]
+    
   
   # Create an AST from the head and tail of an expression.
   # @private

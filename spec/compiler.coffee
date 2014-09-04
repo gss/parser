@@ -378,6 +378,7 @@ describe 'CCSS-to-AST', ->
           
     parse """
             (&"column2")[width] == 100;
+             &"column2"[width]  == 100;
           """
         ,
           {
@@ -385,6 +386,41 @@ describe 'CCSS-to-AST', ->
               ['==', 
                 ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
                 100
+              ],
+              ['==', 
+                ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
+                100
+              ]
+            ]
+          }
+    
+    parse """
+            (&:next)[left] == 666;
+            &:previous[left] == 111;
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',['$pseudo',['$reserved','this'],'next'],'x'],
+                666
+              ],
+              ['==', 
+                ['get',['$pseudo',['$reserved','this'],'previous'],'x'],
+                111
+              ]
+            ]
+          }
+    
+    parse """
+            &:next.selected[width] == &:previous.selected[width];
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',['$class',['$pseudo',['$reserved','this'],'next'],    'selected'], 'width'],
+                ['get',['$class',['$pseudo',['$reserved','this'],'previous'],'selected'], 'width']
               ]
             ]
           }

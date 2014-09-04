@@ -121,9 +121,27 @@ describe 'CCSS-to-AST', ->
               ['==', 5, 6, 'strong', 10]
             ]
           }
-
-    expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+    
+    # custom strengths accepted & lower cased
+    parse """
+            4 == 5 == 6 !my-custom-strength99;
+            4 == 5 == 6 !My-CUSTOM-strengtH99;
+          """
+        ,
+          {
+            commands: [
+              ['==', 4, 5, 'my-custom-strength', 99]
+              ['==', 5, 6, 'my-custom-strength', 99]
+              ['==', 4, 5, 'my-custom-strength', 99]
+              ['==', 5, 6, 'my-custom-strength', 99]
+            ]
+          }
+    
+    expectError '[a] == [b] !stron88afdklj23'
     expectError '[a] == [b] !strong0.5'
+    
+    #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+    
 
 
 

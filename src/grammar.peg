@@ -334,7 +334,7 @@ ReservedPseudos
 // Strength & Weight
 // ===================================================
 
-StrengthAndWeight
+StrengthAndWeight "Strength and Weight"
   = "!" strength:Strength weight:Weight?  {
     return g.strengthAndWeight().valid(strength, weight);
   }
@@ -351,6 +351,7 @@ Strength
   / ("strong"   / "STRONG"   / "Strong")   { return "strong"; }
   / ("medium"   / "MEDIUM"   / "Medium")   { return "medium"; }
   / ("weak"     / "WEAK"     / "Weak")     { return "weak"; }
+  / strength:[a-zA-Z\-_]+                   { return strength.join('').toLowerCase(); }
 
 
 // Virtual

@@ -249,27 +249,23 @@ __
 // Query Selectors
 // ===================================================
 
+GSSSelector
+  = "(" __ sel:CSSSelector __ ")" {return sel;}
+  / left:SimpleSelectorChain _ {return left;}
+  
 CSSSelector
   = _ sel:Selector _ {return sel;}
 
-GSSSelector
-  = "(" __ sel:CSSSelector __ ")" {return sel;}
-  / left:SimpleSelector _ {return left;}
-
 Selector
-  = head:SelectorFilterChain tail:( __ "," __ SelectorFilterChain )+
+  = head:ComplexSelectorChain tail:( __ "," __ ComplexSelectorChain )+
     { return g.createSelectorCommaCommand(head, tail); }
-  / SelectorFilterChain
+  / ComplexSelectorChain
 
-SelectorFilterChain
-  = filters:ComplexSelector+  {
-    var i, len;
-    len = filters.length;
-    for (i=len-1; i>0; i--) {
-      filters[i].splice(1,0,filters[i-1]);
-    }
-    return filters[len-1];
-  }
+ComplexSelectorChain
+  = filters:ComplexSelector+  { return g.reverseFilterNest(filters);}
+
+SimpleSelectorChain
+  = filters:SimpleSelector+  { return g.reverseFilterNest(filters);}
 
 SimpleSelector "SimpleSelector"
   = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
@@ -302,7 +298,7 @@ ClassSel
 
 ReservedSel
   = "::" name:ReservedPseudos {return ["$reserved",name];}
-  / "&"                       {return ["$reserved","this"];}
+  / "&" &[^&]                       {return ["$reserved","this"];}
 
 PseudoSel
   = ("::" / ":") name:SelectorName option:PseudoSelOption? {

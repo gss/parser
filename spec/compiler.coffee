@@ -9,7 +9,7 @@ else
 
 parse = (sources, expectation, pending) ->
   itFn = if pending then xit else it
-  
+
   if !(sources instanceof Array)
     sources = [sources]
   for source in sources
@@ -121,7 +121,7 @@ describe 'CCSS-to-AST', ->
               ['==', 5, 6, 'strong', 10]
             ]
           }
-    
+
     # custom strengths accepted & lower cased
     parse """
             4 == 5 == 6 !my-custom-strength99;
@@ -136,12 +136,12 @@ describe 'CCSS-to-AST', ->
               ['==', 5, 6, 'my-custom-strength', 99]
             ]
           }
-    
+
     expectError '[a] == [b] !stron88afdklj23'
     expectError '[a] == [b] !strong0.5'
-    
+
     #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
-    
+
 
 
 
@@ -173,27 +173,27 @@ describe 'CCSS-to-AST', ->
               ['==', ['get',['$reserved','window'],'width'],   ['get',['$reserved','window'],'height']]
             ]
           }
-    
+
     # normalize ::this selector
-    
+
     target = {
         commands: [
           ['==', ['get',['$reserved','this'],'width'],    ['get',['$reserved','this'],'x']]
           ['==', ['get',['$reserved','this'],'x'],        ['get',['$reserved','this'],'y']]
         ]
       }
-    
+
     parse """
             ::[width] == ::this[x] == &[y]
           """
         , target
-        
+
     parse """
             /* parans ignored */
             (::)[width] == (::this)[x] == (&)[y]
           """
         , target
-    
+
 
 
   # Virtual Elements
@@ -254,7 +254,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['==',
                 [
-                  'get',                  
+                  'get',
                   [
                      "$class",
                      [
@@ -276,7 +276,7 @@ describe 'CCSS-to-AST', ->
                      "boxes"
                   ],
                   'width',
-                ], 
+                ],
                 100
               ]
             ]
@@ -288,9 +288,9 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 [
-                  'get',                  
+                  'get',
                   [
                      "$attribute",
                      [
@@ -321,13 +321,13 @@ describe 'CCSS-to-AST', ->
                      "data-target",
                   ],
                   'width',
-                ], 
+                ],
                 100
               ]
             ]
           }
 
-    
+
     parse """
             (header !> h2.gizoogle ! section div:get('parentNode'))[target-size] == 100
           """
@@ -335,47 +335,47 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               [
-                '==', 
+                '==',
                 [
-                  'get',                  
+                  'get',
                   ['$pseudo',
                     ['$tag',
-                      ['$combinator', 
-                        ['$tag', 
-                          ['$combinator', 
+                      ['$combinator',
+                        ['$tag',
+                          ['$combinator',
                             ['$class',
-                              ['$tag', 
-                                ['$combinator', 
-                                  ['$tag', 
+                              ['$tag',
+                                ['$combinator',
+                                  ['$tag',
                                     'header']
                                   '!>']
                                 'h2']
                               'gizoogle']
                             '!']
                           'section']
-                        ' '] 
+                        ' ']
                       'div']
                     'get', "'parentNode'"],
                   'target-size',
-                ], 
+                ],
                 100
               ]
             ]
           }
-    
+
     parse """
             (&.featured)[width] == 100;
           """
         ,
           {
             commands: [
-              ['==', 
-                ['get',['$class',['$reserved','this'],'featured'],'width'], 
+              ['==',
+                ['get',['$class',['$reserved','this'],'featured'],'width'],
                 100
               ]
             ]
           }
-          
+
     parse """
             (&"column2")[width] == 100;
              &"column2"[width]  == 100;
@@ -383,17 +383,17 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
-                ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
+              ['==',
+                ['get',['$virtual',['$reserved','this'],'column2'],'width'],
                 100
               ],
-              ['==', 
-                ['get',['$virtual',['$reserved','this'],'column2'],'width'], 
+              ['==',
+                ['get',['$virtual',['$reserved','this'],'column2'],'width'],
                 100
               ]
             ]
           }
-    
+
     parse """
             (&:next)[left] == 666;
             &:previous[left] == 111;
@@ -401,30 +401,30 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 ['get',['$pseudo',['$reserved','this'],'next'],'x'],
                 666
               ],
-              ['==', 
+              ['==',
                 ['get',['$pseudo',['$reserved','this'],'previous'],'x'],
                 111
               ]
             ]
           }
-    
+
     parse """
             &:next.selected[width] == &:previous.selected[width];
           """
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 ['get',['$class',['$pseudo',['$reserved','this'],'next'],    'selected'], 'width'],
                 ['get',['$class',['$pseudo',['$reserved','this'],'previous'],'selected'], 'width']
               ]
             ]
           }
-    
+
     parse """
             ([foo~="bar"])[x] == ([foo!="bar"])[x];
             ([foo$="bar"])[x] == ([foo*="bar"])[x];
@@ -433,16 +433,16 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
-                ['get',['$attribute','~=','foo','"bar"'],'x'] 
+              ['==',
+                ['get',['$attribute','~=','foo','"bar"'],'x']
                 ['get',['$attribute','!=','foo','"bar"'],'x']
               ]
-              ['==', 
-                ['get',['$attribute','$=','foo','"bar"'],'x'] 
+              ['==',
+                ['get',['$attribute','$=','foo','"bar"'],'x']
                 ['get',['$attribute','*=','foo','"bar"'],'x']
               ]
-              ['==', 
-                ['get',['$attribute','^=','foo','"bar"'],'x'] 
+              ['==',
+                ['get',['$attribute','^=','foo','"bar"'],'x']
                 ['get',['$attribute','=','foo','"bar"'],'x']
               ]
             ]
@@ -454,9 +454,9 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 [
-                  'get',                  
+                  'get',
                   [
                      "$pseudo",
                      [
@@ -478,19 +478,19 @@ describe 'CCSS-to-AST', ->
                      "first"
                     ],
                   'width',
-                ], 
+                ],
                 100
               ]
             ]
           }
-    
+
     # comma seperated
-    
+
     target = {
             commands: [
-              ['==', 
+              ['==',
                 [
-                  'get',                  
+                  'get',
                   [
                      ",",
                      ["$virtual",["$reserved","this"],"grid"],
@@ -499,32 +499,32 @@ describe 'CCSS-to-AST', ->
                      ["$class","thing"]
                   ],
                   'width',
-                ], 
+                ],
                 100
               ]
             ]
           }
-    
+
     parse """
             (&"grid", .that"grid" , .box ,.thing)[width] == 100
           """
         ,
           target
-    
+
     parse """
             (
               &"grid"
-              , 
-              .that"grid" , 
+              ,
+              .that"grid" ,
               .box,.thing
             )[width] == 100
           """
         ,
           target
-          
-  
-  
-  
+
+
+
+
   # Inline Statements
   # ====================================================================
 
@@ -548,15 +548,15 @@ describe 'CCSS-to-AST', ->
               ['set','y','100px']
             ]
           }
-    
+
     parse """
-            
+
             x  :<= &[y];
-            
+
             y  : 100px;
-            
+
             z  :>= &[y];
-            
+
           """
         ,
           {
@@ -572,8 +572,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-  
-  
+
+
   # Rulesets
   # ====================================================================
 
@@ -581,7 +581,7 @@ describe 'CCSS-to-AST', ->
 
     parse """
           #box.class {
-            
+
             color: blue;
             x: == 100;
           }
@@ -593,23 +593,43 @@ describe 'CCSS-to-AST', ->
                 ['$class',['$id','box'],'class']
                 [
                   ['set','color','blue']
-                  ['==',['get',['$reserved','this'],'x'],100]                  
+                  ['==',['get',['$reserved','this'],'x'],100]
                 ]
               ]
             ]
           }
-    
+
+    parse """
+          .class.foo, .class.bar {
+            color: blue;
+          }
+          """
+        ,
+          {
+            commands: [
+              ['rule',
+                [',',
+                  ['$class',['$class','class'],'foo'],
+                  ['$class',['$class','class'],'bar']
+                ]
+                [
+                  ['set','color','blue']
+                ]
+              ]
+            ]
+          }
+
     parse """
           article.featured > img {
-            
+
             color: black;
-            
+
             .bg"face" {
-              
+
               &[x] == [y];
-                                          
+
             }
-            
+
             color: black;
           }
           """
@@ -617,7 +637,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]                
+                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]
                 [
                   ['set','color','black']
                   ['rule',
@@ -634,15 +654,30 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-  
-  
+
+    parse """
+          article.featured > img {
+
+          }
+          """
+        ,
+          {
+            commands: [
+              ['rule',
+                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]
+                []
+              ]
+            ]
+          }
+
+
   # Directives
   # ====================================================================
 
   describe "/* Directives */", ->
 
     parse """
-          @my-custom-directive blah blah blah {            
+          @my-custom-directive blah blah blah {
             color: blue;
           }
           """
@@ -653,15 +688,15 @@ describe 'CCSS-to-AST', ->
                 'my-custom-directive',
                 'blah blah blah',
                 [
-                  ['set','color','blue']   
+                  ['set','color','blue']
                 ]
               ]
             ]
           }
-    
+
     parse """
-          @my-custom-directive blah blah blah {            
-            @my-other-directive blah... {            
+          @my-custom-directive blah blah blah {
+            @my-other-directive blah... {
             }
           }
           """
@@ -681,7 +716,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse """
           @my-custom-directive blah blah blah;
           """
@@ -694,15 +729,15 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-  
-  
+
+
   # If Else
   # ====================================================================
 
   describe "/* If Else */", ->
 
     parse """
-          @if [x] >= 100 {            
+          @if [x] >= 100 {
             font-family: awesome;
           }
           """
@@ -717,7 +752,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse [
             """
               @if [x] != 20 && [y] == 200 {
@@ -742,20 +777,20 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse [
             """
-              @if [x] 
+              @if [x]
               {
-                
-                font-family: awesome;                
-                font-family: awesomer;                
-                
+
+                font-family: awesome;
+                font-family: awesomer;
+
               }
-              @else 
+              @else
               {
                 font-family: lame;
-                
+
                 font-family: lamer;
               }
             """,
@@ -776,35 +811,35 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse [
             """
-              @if [x] { 
-                @if [x] { 
-                  @if [x] { 
-                  } 
+              @if [x] {
+                @if [x] {
+                  @if [x] {
+                  }
                   @else {
                   }
-                } 
+                }
                 @else {
                 }
-              } 
+              }
               @else {
-                @if [x] { 
-                } 
+                @if [x] {
+                }
                 @else {
                 }
               }
             """
-            # Throws Range Error? 
+            # Throws Range Error?
             #"""
-            #  @if [x] { @if [x] { @if [x] { } @else {} } 
+            #  @if [x] { @if [x] { @if [x] { } @else {} }
             #    @else {
             #    }
-            #  } 
+            #  }
             #  @else {
-            #    @if [x] { 
-            #    } 
+            #    @if [x] {
+            #    }
             #    @else {
             #    }
             #  }
@@ -850,7 +885,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse """
             @if #box[right] == #box2[x] {}
           """
@@ -892,8 +927,8 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
-    
+
+
     conditionCommands = [
         "&&"
         ['!=', ['get',['$id','box'],'right'], ['get',['$id','box2'],'x']],
@@ -901,7 +936,7 @@ describe 'CCSS-to-AST', ->
           ['<=', ['get',['$id','box'],'width'], ['get',['$id','box2'],'width']],
           ['==', ['get','x'],100]
         ]
-      ]          
+      ]
     parse """
             @if     (#box[right] != #box2[x]) and (#box[width] <= #box2[width] or [x] == 100) {
             }
@@ -927,26 +962,26 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               [ "if"
-                conditionCommands 
+                conditionCommands
                 []
                 [
-                  conditionCommands 
+                  conditionCommands
                   []
                 ]
                 [
-                  conditionCommands 
+                  conditionCommands
                   []
                 ]
                 [ true, [] ]
               ]
               [ "if"
-                conditionCommands 
+                conditionCommands
                 [
                   [ "if"
-                    conditionCommands 
+                    conditionCommands
                     [
                       [ "if"
-                        conditionCommands 
+                        conditionCommands
                         []
                         [ true, [] ]
                       ]
@@ -958,9 +993,9 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
-    
-    
+
+
+
     # what to do with strings?
     #parse """
     #      @if [font-family] == 'awesome-nueu' {
@@ -981,9 +1016,9 @@ describe 'CCSS-to-AST', ->
     #          ]
     #        ]
     #      }
-          
-  
-  
+
+
+
   # Stays
   # ====================================================================
 
@@ -1008,7 +1043,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    
+
 
 
   # JS Shit... WIP
@@ -1225,8 +1260,8 @@ describe 'CCSS-to-AST', ->
             ]
           }
     ###
-  
-  
+
+
   # Prop Normalization
   # ====================================================================
 
@@ -1308,8 +1343,8 @@ describe 'CCSS-to-AST', ->
               ['==', ['get',['$id', 'b'],'center-y'], ['get', 'cy']]
             ]
           }
-  
-  
+
+
 
   # 2D
   # ====================================================================
@@ -1501,7 +1536,7 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
 
   describe '/* Numbers */', ->
-  
+
     parse """
             [left] == 0.4; // with leading zero
           """
@@ -1643,14 +1678,14 @@ describe 'CCSS-to-AST', ->
                 ['==', ['get', 'left'], 0.4]
               ]
             }
-  
-  
-  
+
+
+
   # Units
   # ====================================================================
 
   describe '/* Units */', ->
-  
+
     parse """
             10px == 0.4px;
             -.01px == .01px;
@@ -1662,7 +1697,7 @@ describe 'CCSS-to-AST', ->
                 ['==', ['px', -0.01], ['px', 0.01]]
               ]
             }
-    
+
     parse """
             10em == 0.4em;
             -.01em == .01em;
@@ -1674,7 +1709,7 @@ describe 'CCSS-to-AST', ->
                 ['==', ['em', -0.01], ['em', 0.01]]
               ]
             }
-    
+
     parse """
             10% == 0.4%;
             -.01% == .01%;
@@ -1686,15 +1721,15 @@ describe 'CCSS-to-AST', ->
                 ['==', ['%', -0.01], ['%', 0.01]]
               ]
             }
-  
-  
-  
+
+
+
   # Parans
-  # ====================================================================  
-  
-  describe '/* Parans */', ->        
-    
-    
+  # ====================================================================
+
+  describe '/* Parans */', ->
+
+
     parse """
             /* paran craziness */
             ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
@@ -1702,13 +1737,13 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
-                ['+',['get', ['$id', 'box1'], 'width'], ['get', ['$virtual', 'area'   ], 'width']], 
-                ['+',['get', ['$id', 'box2'], 'width'], ['get', ['$reserved', 'window'], 'width']], 
+              ['==',
+                ['+',['get', ['$id', 'box1'], 'width'], ['get', ['$virtual', 'area'   ], 'width']],
+                ['+',['get', ['$id', 'box2'], 'width'], ['get', ['$reserved', 'window'], 'width']],
               ]
             ]
           }
-    
+
     #parse """
     #        /* 2D expressions w/ paran craziness */
     #        ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));
@@ -1716,30 +1751,30 @@ describe 'CCSS-to-AST', ->
     #    ,
     #      {
     #        commands: [
-    #          ['==', 
-    #            ['+',['get', 'width', ['$id', 'box1']], ['get', 'width', ['$virtual', 'area']]], 
-    #            ['+',['get', 'width', ['$id', 'box2']], ['get', 'width', ['$reserved', 'window']]], 
+    #          ['==',
+    #            ['+',['get', 'width', ['$id', 'box1']], ['get', 'width', ['$virtual', 'area']]],
+    #            ['+',['get', 'width', ['$id', 'box2']], ['get', 'width', ['$reserved', 'window']]],
     #          ],
-    #          ['==', 
-    #            ['+',['get', 'height', ['$id', 'box1']], ['get', 'height', ['$virtual', 'area']]], 
-    #            ['+',['get', 'height', ['$id', 'box2']], ['get', 'height', ['$reserved', 'window']]], 
+    #          ['==',
+    #            ['+',['get', 'height', ['$id', 'box1']], ['get', 'height', ['$virtual', 'area']]],
+    #            ['+',['get', 'height', ['$id', 'box2']], ['get', 'height', ['$reserved', 'window']]],
     #          ]
     #        ]
     #      }
-    
-    
-  
-  
-  
-  
+
+
+
+
+
+
   # Plugins
-  # ====================================================================  
-  
-  describe '/* API Hooks */', ->        
-    
-    
+  # ====================================================================
+
+  describe '/* API Hooks */', ->
+
+
     parse """
-            @h [#left][#right] !strong {}
+            @h (#left)(#right) !strong {}
           """
         ,
           {
@@ -1747,9 +1782,9 @@ describe 'CCSS-to-AST', ->
               ['==',['get',['$id','left'],'right'],['get',['$id','right'],'x'],'strong']
             ]
           }
-    
+
     parse """
-            @v [#top][#bottom] !strong;
+            @v (#top)(#bottom) !strong;
           """
         ,
           {
@@ -1757,3 +1792,112 @@ describe 'CCSS-to-AST', ->
               ['==',['get',['$id','top'],'bottom'],['get',['$id','bottom'],'y'],'strong']
             ]
           }
+
+    parse """
+            @h (button.featured)-10-(#b2) {
+              width: == 100;
+              height: == &:next[height];
+            }
+          """
+        ,
+          {
+            commands: [
+              ['==',
+                ['+', ['get',['$class',['$tag','button'],'featured'],'right'], 10],
+                ['get',['$id','b2'],'x']
+              ]
+              ['rule',
+                [',',['$class',['$tag','button'],'featured'],['$id','b2']],
+                parser.parse("width: == 100; height: == &:next[height];").commands
+              ]
+            ]
+          }
+
+
+    ###
+
+    psuedo selectors need to take into account not selector context!!!!
+
+      @h (#box1)(#box2) chain-width(100);
+
+      #box1, #box2 {
+        &[right] == &:next[left];
+        &[width] == 100]
+      }
+
+
+
+
+      @h |- (.box)-10-... - (#box2) (#box3)-| gap([gap]) in(#container) {
+        width: == &:next[width];
+        top: == ::window[top];
+      };
+
+      #container[left] + [gap] == .box:first[left];
+      .box {
+        &[right] + 10 == &:next[left];
+      }
+      .box:last[right] + [gap] == #box2[left];
+      #box2[right] == #box3[left];
+      .box, #box2, #box3 {
+        &[width: == &:next[width];
+        &[top] == ::window[top];
+      }
+      #box3[right] + [gap] == #container[right];
+
+
+
+      @h (.box)-10-...
+
+
+
+      @h |-(.box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
+
+      "--layout-1"[right] + 10 == "--layout-2"[left];
+      "--layout-2"[right] + [gap] == "--layout-3"[left];
+      .thing {
+        &[right] + [gap] == &:next[left];
+        &:first[left] == "--layout-1"[left];
+        &:last[right] == "--layout-1"[right];
+      }
+      #box2 {
+        &[left] == "--layout-2"[left];
+        &[left] == "--layout-2"[left];
+      }
+      #box3 {...}
+
+
+
+
+      @h |-(.box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
+
+      .box1, #box2
+
+
+      @h |-(#box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
+
+      #box1:first[left] + [gap] == #container[left];
+      #box1, #box2 {
+        &[right] + 10 == &:next[left];
+      }
+      #box2, #box3 {
+        &[right] + [gap] == &:next[left];
+      }
+      #box3:last[right] == #container[right];
+
+      #box1, #box2, #box3 {
+
+
+
+        &#box1[right] + 10 == &:next[left];
+
+        &[--layout-gap] == [gap]
+        #container[left] == &:first[left];
+        &[right] + [gap] == &:next[left];
+      }
+
+
+
+      @h [:first]
+
+    ###

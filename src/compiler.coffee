@@ -8,22 +8,27 @@ ErrorReporter = require 'error-reporter'
 
 parse = (source) ->
   results = null
-  
+
   try
     results = parser.parse source
   catch error
     errorReporter = new ErrorReporter source
     {message, line:lineNumber, column:columnNumber} = error
     errorReporter.reportError message, lineNumber, columnNumber
-  
+
   return results
 
 vflHook = (name,terms,commands=[]) ->
   newCommands = []
-  statements = vfl.parse("@#{name} #{terms}")
-  for s in statements
+  o = vfl.parse("@#{name} #{terms}")
+  for s in o.statements
     newCommands = newCommands.concat(parse(s).commands)
-  return {commands:commands.concat(newCommands)}
+  if commands.length > 0 and o.selectors.length > 0
+    nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
+    console.log nestedCommand
+    nestedCommand[2] = commands
+    newCommands.push nestedCommand
+  return {commands:newCommands}
 
 vglHook = (name,terms,commands=[]) ->
   newCommands = []
@@ -32,15 +37,15 @@ vglHook = (name,terms,commands=[]) ->
     newCommands = newCommands.concat(parse(s).commands)
   return {commands:commands.concat(newCommands)}
 
-parser.hooks = 
-  
+parser.hooks =
+
   directives:
-    
+
     'h'             : vflHook
     'v'             : vflHook
     'horizontal'    : vflHook
     'vertical'      : vflHook
-    
+
     'grid-template' : vglHook
     'grid-rows'     : vglHook
     'grid-cols'     : vglHook
@@ -53,7 +58,7 @@ parser.hooks =
 # a rule.
 #
 module.exports =
-  
+
   # Parse CCSS to produce an AST.
   #
   # @param source [String] A CCSS expression.

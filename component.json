@@ -2,8 +2,8 @@
   "name": "ccss-compiler",
   "description": "Constraint Cascading Style Sheets compiler",
   "author": "Dan Tocchini <d4@thegrid.io>",
-  "repo": "the-gss/ccss-compiler",
-  "version": "1.0.10-beta",
+  "repo": "gss/ccss-compiler",
+  "version": "1.1.0-beta",
   "json": [
     "component.json"
   ],
@@ -14,8 +14,8 @@
   ],
   "dependencies": {
     "gss/error-reporter": "~0.1.0",
-    "the-gss/vfl-compiler": "*",
-    "the-gss/vgl-compiler": "*"
+    "gss/vfl-compiler": "*",
+    "gss/vgl-compiler": "*"
   },
   "main": "lib/compiler.js",
   "license": "MIT"

@@ -1,4 +1,4 @@
-{  
+{
   var p = this;
   var g = (function() {
     var getLineNumber = function() {
@@ -14,7 +14,7 @@
     };
 
     var Grammar = require('./grammar');
-    
+
     return new Grammar(p, getLineNumber, getColumnNumber, getErrorType);
   })();
 }
@@ -28,36 +28,40 @@ Statements
 Statement
   = __ s:StatementTypes EOS __ { return s; }
 
-StatementTypes 
-  = ConstraintStatement       
-  / InlineConstraintStatement 
-  / InlineSet                 
-  / Ruleset                   
-  / Virtual                   
-  / IfElseStatement           
-  / Stay                      
-  / Chain                     
-  / ForEach                   
+StatementTypes
+  = ConstraintStatement
+  / InlineConstraintStatement
+  / InlineSet
+  / Ruleset
+  / Virtual
+  / IfElseStatement
+  / Stay
+  / Chain
+  / ForEach
   / Directive
 
 
 IfElseStatement "IfElseStatement"
-  = i:If es:ElseChain+ 
+  = i:If es:ElseChain+
     {return {commands:[i.concat(es)]};}
-  / i:If 
+  / i:If
     {return {commands:[i]};}
-  
-    
+
+
 ElseChain
   = __ e:Else {return e;}
 
-If 
+If
   = "@if" _ test:Expression __ "{" __ s:Statements __ "}"
     {return ["if",test,s.commands];}
+  / "@if" [^{]* __ "{" __ s:Statements __ "}"
+    {throw new g._Error('Invalid If Clause', null, null, null, g._lineNumber(), g._columnNumber());}
 
 Else
   = "@else" _ test:Expression? __ "{" __ s:Statements __ "}"
     {return [test || true,s.commands];}
+  / "@else" [^{]* __ "{" __ s:Statements __ "}"
+    {throw new g._Error('Invalid Else Clause', null, null, null, g._lineNumber(), g._columnNumber());}
 
 ConstraintStatement "ConstraintStatement"
   = head:ConstraintAdditiveExpression
@@ -76,11 +80,11 @@ InlineSet "Inline Set"
     }
 
 Ruleset
-  = q:CSSSelector __ "{" __ s:Statements __ "}" 
+  = q:CSSSelector __ "{" __ s:Statements __ "}"
     {return {commands:[['rule',q,s.commands]]}}
 
-Directive
-  = "@" name:[^ {}]+ terms:[^{}]+ "{" __ s:Statements __ "}" 
+Directive "Directive"
+  = "@" name:[^ {}]+ terms:[^{};]+ "{" __ s:Statements __ "}"
     {return g.directive(name.join(''),terms.join('').trim(),s.commands);}
   / "@" name:[^ {}]+ terms:[^;]+ &";"
     {return g.directive(name.join(''),terms.join('').trim());}
@@ -90,8 +94,8 @@ Expression
   = AndOrExpression
 
 AndOrExpression
-  = head:DualOperatorExpression tail:(__ AndOrOp __ DualOperatorExpression)* { 
-    return g.nestedDualTermCommands(head, tail); 
+  = head:DualOperatorExpression tail:(__ AndOrOp __ DualOperatorExpression)* {
+    return g.nestedDualTermCommands(head, tail);
   }
 
 AndOrOp
@@ -182,10 +186,10 @@ NameCharsWithSpace
 Literal
   = val:Numeric u:Unit { return [u, val]; }
   / val:Numeric        { return val; }
-  
+
 Unit
   = "px" / "em" / "vh" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
-  / "cm" / "mm" / "in" / "pt" / "pc" 
+  / "cm" / "mm" / "in" / "pt" / "pc"
 
 Numeric
   = Real / Integer / SignedReal / SignedInteger
@@ -252,7 +256,7 @@ __
 GSSSelector
   = "(" __ sel:CSSSelector __ ")" {return sel;}
   / left:SimpleSelectorChain _ {return left;}
-  
+
 CSSSelector
   = _ sel:Selector _ {return sel;}
 
@@ -271,7 +275,7 @@ SimpleSelector "SimpleSelector"
   = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
 
 Qualifier
-  = SimpleSelector  
+  = SimpleSelector
   / AttrSel
 
 ComplexSelector
@@ -289,7 +293,7 @@ VirtualSel
 TagSel
   = name:SelectorName         {return ["$tag",name];}
   / "*"                       {return ["$tag", "*"];}
-  
+
 IdSel
   = "#" name:SelectorName     {return ["$id",name];}
 
@@ -305,14 +309,14 @@ PseudoSel
     if (option) {return ["$pseudo",name,option];}
     return ["$pseudo",name];
   }
-  
+
 PseudoSelOption
   = "(" option:[^)]* ")"       {return option.join(""); }
 
 AttrSel
   = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["$attribute",op.join(""),left.join("").trim(),right.join("").trim()]; }
   / "[" attr:[^\]]+ "]"        {return ["$attribute",attr.join("")]; }
-  
+
 
 SelectorName
   = name:SelectorNameChars+    {return name.join("")}

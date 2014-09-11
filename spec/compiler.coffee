@@ -19,8 +19,10 @@ parse = (sources, expectation, pending) ->
       itFn 'should do something', ->
         result = parser.parse source
         expect(result).to.be.an 'object'
-      itFn 'commands ✓', ->
-        expect(result.commands).to.eql expectation.commands or []
+
+      if expectation
+        itFn 'commands ✓', ->
+          expect(result.commands).to.eql expectation.commands or []
 
 
 # Helper function for expecting errors to be thrown when parsing.
@@ -753,6 +755,12 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
+    expectError """
+        @if x >= 100 {
+          font-family: awesome;
+        }
+      """
+
     parse [
             """
               @if [x] != 20 && [y] == 200 {
@@ -808,6 +816,100 @@ describe 'CCSS-to-AST', ->
                   true
                   [['set', 'font-family', 'lame'],['set', 'font-family', 'lamer']]
                 ]
+              ]
+            ]
+          }
+
+    parse [
+            """
+              @if [x] {
+                font-family: awesome;
+              }
+              @else [y] {
+                font-family: awesomer;
+              }
+              @else [z] {
+                font-family: awesomest;
+              }
+            """
+          ]
+        ,
+          {
+            commands: [
+              ['if',
+                ['get','x']
+                [['set', 'font-family', 'awesome']]
+                [
+                  ['get','y']
+                  [['set', 'font-family', 'awesomer']]
+                ]
+                [
+                  ['get','z']
+                  [['set', 'font-family', 'awesomest']]
+                ]
+              ]
+            ]
+          }
+
+    parse [
+            """
+            .outie {
+              @if [x] > [xx] {
+                font-family: awesome;
+                .innie {
+                  color:blue;
+                }
+              }
+              @else [y] {
+                font-family: awesomer;
+                .innie {
+                  color:red;
+                }
+              }
+              @else [z] {
+                font-family: awesomest;
+                .innie {
+                  color:pink;
+                }
+              }
+            }
+            """
+          ]
+        ,
+          {
+            commands: [
+              ['rule'
+                ['$class', 'outie'],
+                [['if',
+                  ['>',['get','x'],['get','xx']]
+                  [
+                    ['set', 'font-family', 'awesome']
+                    ['rule'
+                      ['$class', 'innie']
+                      [['set', 'color', 'blue']]
+                    ]
+                  ],
+                  [
+                    ['get','y']
+                    [
+                      ['set', 'font-family', 'awesomer']
+                      ['rule'
+                        ['$class', 'innie']
+                        [['set', 'color', 'red']]
+                      ]
+                    ]
+                  ]
+                  [
+                    ['get','z']
+                    [
+                      ['set', 'font-family', 'awesomest']
+                      ['rule'
+                        ['$class', 'innie']
+                        [['set', 'color', 'pink']]
+                      ]
+                    ]
+                  ]
+                ]]
               ]
             ]
           }
@@ -1814,90 +1916,181 @@ describe 'CCSS-to-AST', ->
           }
 
 
-    ###
+    parse """
 
-    psuedo selectors need to take into account not selector context!!!!
+              @v |(.post)...| in(::window) {
+                  border-radius: == 4;
+                  @h |(&)| in(::window);
+                  opacity: == .5;
+                }
 
-      @h (#box1)(#box2) chain-width(100);
+          """,
+          {
+            commands: [].concat(
+                parser.parse("@v |(.post)...| in(::window);").commands
+              ).concat (
+                [['rule',
+                  ['$class','post'],
+                  [].concat(
+                    parser.parse("border-radius: == 4;").commands
+                  ).concat(
+                    parser.parse("@h |(&)| in(::window);").commands
+                  ).concat(
+                    parser.parse("opacity: == .5;").commands
+                  )
+                ]]
+              )
 
-      #box1, #box2 {
-        &[right] == &:next[left];
-        &[width] == 100]
-      }
-
-
-
-
-      @h |- (.box)-10-... - (#box2) (#box3)-| gap([gap]) in(#container) {
-        width: == &:next[width];
-        top: == ::window[top];
-      };
-
-      #container[left] + [gap] == .box:first[left];
-      .box {
-        &[right] + 10 == &:next[left];
-      }
-      .box:last[right] + [gap] == #box2[left];
-      #box2[right] == #box3[left];
-      .box, #box2, #box3 {
-        &[width: == &:next[width];
-        &[top] == ::window[top];
-      }
-      #box3[right] + [gap] == #container[right];
+          }
 
 
+    parse """
+              @v |
+                  -10-
+                  (#cover)
+                in(#profile-card);
 
-      @h (.box)-10-...
+              #follow[center-x] == #profile-card[center-x];
 
+              @h |-10-(#message)
+                in(#profile-card) {
+                  &[top] == &:next[top];
+                }
 
+              #follow[center-y] == #profile-card[center-y];
 
-      @h |-(.box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
+          """,
+          {
+            commands: [].concat(
+                parser.parse("@v |-10-(#cover) in(#profile-card);").commands
+              ).concat (
+                parser.parse("#follow[center-x] == #profile-card[center-x];").commands
+              ).concat (
+                parser.parse("""@h |-10-(#message)
+                in(#profile-card) {
+                  &[top] == &:next[top];
+                }""").commands
+              ).concat (
+                parser.parse("#follow[center-y] == #profile-card[center-y];").commands
+              )
 
-      "--layout-1"[right] + 10 == "--layout-2"[left];
-      "--layout-2"[right] + [gap] == "--layout-3"[left];
-      .thing {
-        &[right] + [gap] == &:next[left];
-        &:first[left] == "--layout-1"[left];
-        &:last[right] == "--layout-1"[right];
-      }
-      #box2 {
-        &[left] == "--layout-2"[left];
-        &[left] == "--layout-2"[left];
-      }
-      #box3 {...}
-
-
-
-
-      @h |-(.box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
-
-      .box1, #box2
-
-
-      @h |-(#box1)-10-(#box2)-(#box3)| gap([gap]) in(#container) id(layout);
-
-      #box1:first[left] + [gap] == #container[left];
-      #box1, #box2 {
-        &[right] + 10 == &:next[left];
-      }
-      #box2, #box3 {
-        &[right] + [gap] == &:next[left];
-      }
-      #box3:last[right] == #container[right];
-
-      #box1, #box2, #box3 {
+          }
 
 
 
-        &#box1[right] + 10 == &:next[left];
 
-        &[--layout-gap] == [gap]
-        #container[left] == &:first[left];
-        &[right] + [gap] == &:next[left];
-      }
+  # Should do something...
+  # ====================================================================
 
+  describe '/* Do Something... */', ->
 
 
-      @h [:first]
+    parse """
+              /* vars */
+              [gap] == 20 !require;
+              [flex-gap] >= [gap] * 2 !require;
+              [radius] == 10 !require;
+              [outer-radius] == [radius] * 2 !require;
 
-    ###
+              /* elements */
+              #profile-card {
+                width: == ::window[width] - 480;
+                height: == ::window[height] - 480;
+                center-x: == ::window[center-x];
+                center-y: == ::window[center-y];
+                border-radius: == [outer-radius];
+              }
+
+              #avatar {
+                height: == 160 !require;
+                width: == ::[height];
+                border-radius: == ::[height] / 2;
+              }
+
+              #name {
+                height: == ::[intrinsic-height] !require;
+                width: == ::[intrinsic-width] !require;
+              }
+
+              #cover {
+                border-radius: == [radius];
+              }
+
+              button {
+                width: == ::[intrinsic-width] !require;
+                height: == ::[intrinsic-height] !require;
+                padding: == [gap];
+                padding-top: == [gap] / 2;
+                padding-bottom: == [gap] / 2;
+                border-radius: == [radius];
+              }
+
+              @h |~-~(#name)~-~| in(#cover) gap([gap]*2) !strong;
+
+              /* landscape profile-card */
+              @if #profile-card[width] >= #profile-card[height] {
+
+                @v |
+                    -
+                    (#avatar)
+                    -
+                    (#name)
+                    -
+                   |
+                  in(#cover)
+                  gap([gap]) outer-gap([flex-gap]) {
+                    center-x: == #cover[center-x];
+                }
+
+                @h |-10-(#cover)-10-|
+                  in(#profile-card);
+
+                @v |
+                    -10-
+                    (#cover)
+                    -
+                    (#follow)
+                    -
+                   |
+                  in(#profile-card)
+                  gap([gap]);
+
+                #follow[center-x] == #profile-card[center-x];
+
+                @h |-(#message)~-~(#follow)~-~(#following)-(#followers)-|
+                  in(#profile-card)
+                  gap([gap])
+                  !strong {
+                    &[top] == &:next[top];
+                  }
+              }
+
+              /* portrait profile-card */
+              @else {
+                @v |
+                    -
+                    (#avatar)
+                    -
+                    (#name)
+                    -
+                    (#follow)
+                    -
+                    (#message)
+                    -
+                    (#following)
+                    -
+                    (#followers)
+                    -
+                   |
+                  in(#cover)
+                  gap([gap])
+                  outer-gap([flex-gap]) {
+                    center-x: == #profile-card[center-x];
+                }
+
+                @h |-10-(#cover)-10-| in(#profile-card);
+                @v |-10-(#cover)-10-| in(#profile-card);
+              }
+
+
+          """

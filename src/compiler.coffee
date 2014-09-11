@@ -25,7 +25,6 @@ vflHook = (name,terms,commands=[]) ->
     newCommands = newCommands.concat(parse(s).commands)
   if commands.length > 0 and o.selectors.length > 0
     nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
-    console.log nestedCommand
     nestedCommand[2] = commands
     newCommands.push nestedCommand
   return {commands:newCommands}

@@ -19,7 +19,7 @@
   })();
 }
 
-start
+start 
   = __ s:Statements __ { return s; }
 
 Statements
@@ -170,8 +170,8 @@ PrimaryExpression
   / "(" __ expression:Expression __ ")" { return expression; }
 
 Var "variable"
-  = selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {
-      return g.variable(selector, variableNameCharacters);
+  = negative:'-'? selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {
+      return g.variable(negative, selector, variableNameCharacters);
     }
 
 String

@@ -115,10 +115,24 @@ class Grammar
     return result
     
   createSelectorCommaCommand: (head, tail) ->
-    result = [',',head]
+    # *: Direct parent-sibling commas commands are merged
+    
+    # *
+    if head[0] is ','
+      result = head
+    else
+      result = [',',head]
 
     for item, index in tail
-      result.push tail[index][3]
+      subSel = tail[index][3]
+      
+      # *
+      if subSel[0] is ','
+        subSel.splice(0,1)
+        result = result.concat subSel
+        
+      else
+        result.push subSel
 
     return result
   
@@ -127,6 +141,47 @@ class Grammar
     for o in objs
       commands = commands.concat o.commands
     return {commands:commands}
+
+  
+  splatifyIfNeeded: (commandBase, o) ->
+    if o.splats
+      return @splatExpander commandBase, o
+    else
+      return [commandBase, o]
+  
+  splatExpander: (commandBase, o) ->
+    
+    {splats, postfix} = o
+    
+    names = null
+    
+    for splat in splats
+      
+      {prefix, from, to} = splat
+      
+      currentNames = []
+      
+      i = from
+      while i <= to
+        currentNames.push prefix + i
+        i++
+      
+      if !names
+        names = currentNames
+      else
+        newNames = []
+        for name in names
+          for cur in currentNames
+            newNames.push name + cur
+        names = newNames
+    
+    # build command
+    command = [',']    
+    for name in names
+      if postfix then name += postfix
+      command.push [commandBase, name]
+    
+    return command
 
   # Construct a new Grammar.
   #

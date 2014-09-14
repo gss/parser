@@ -4,7 +4,7 @@ else
   chai = require 'chai' unless chai
   parser = require '../lib/compiler'
 
-{expect} = chai
+{expect, assert} = chai
 
 
 parse = (sources, expectation, pending) ->
@@ -16,7 +16,7 @@ parse = (sources, expectation, pending) ->
     describe source, ->
       result = null
 
-      itFn 'should do something', ->
+      itFn 'ok ✓', ->
         result = parser.parse source
         expect(result).to.be.an 'object'
 
@@ -24,6 +24,22 @@ parse = (sources, expectation, pending) ->
         itFn 'commands ✓', ->
           expect(result.commands).to.eql expectation.commands or []
 
+
+equivalent = () -> # ( "title", source0, source1, source2...)
+  sources = [arguments...]
+  title = sources.splice(0,1)[0]
+  results = []
+  describe title + " ok", ->        
+    it "sources ok ✓", ->
+      for source, i in sources
+        results.push parser.parse source        
+        assert results[results.length-1].commands?, "source #{i} is ok"
+  describe title, ->    
+    for source, i in sources
+      if i isnt 0
+        it "source #{i} == source #{i - 1}  ✓", ->
+          expect(results[1]).to.eql results.splice(0,1)[0]
+  
 
 # Helper function for expecting errors to be thrown when parsing.
 #
@@ -198,10 +214,10 @@ describe 'CCSS-to-AST', ->
 
 
 
-  # Virtual Elements
+  # Virtuals
   # ====================================================================
 
-  describe '/ "Virtual Elements" /', ->
+  describe '/ "Virtuals" /', ->
 
     parse """
             @virtual "Zone";
@@ -240,6 +256,163 @@ describe 'CCSS-to-AST', ->
               ['==', ['get',['$virtual','box'],'right'],['get',['$virtual','box2'],'x']]
             ]
           }
+    
+    
+  # Selector Splats
+  # ====================================================================
+  
+  describe '/* Selector Splats */', ->
+  
+    parse [
+            """
+              "col1...5"[x] == 0; // virtual splats
+            """,
+            """
+              ("col1","col2","col3","col4","col5")[x] == 0;
+            """
+          ]
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',
+                  [',',
+                    ['$virtual','col1']
+                    ['$virtual','col2']
+                    ['$virtual','col3']
+                    ['$virtual','col4']
+                    ['$virtual','col5']
+                  ],
+                  'x'
+                ],
+                0
+              ]
+            ]
+          }
+    
+    equivalent "/* Virtual Splats Constraints */", 
+      '"col-1...4"[x] == 0;',
+      '("col-1","col-2","col-3","col-4")[x] == 0;',
+      '("col-1","col-2...3","col-4")[x] == 0;',
+      '("col-1...2","col-3...3","col-4...4")[x] == 0;'
+      
+    
+    equivalent "/* Virtual Splats Rulesets */", """
+        "col1...5" { x: == 0; }
+      """,
+      """
+        "col1...1","col2...2","col3...3","col4...4","col5...5" { &[x] == 0; }
+      """,
+      """
+        "col1","col2","col3","col4","col5" { &[x] == 0; }
+      """,
+      """
+        "col1","col2...4","col5" { &[x] == 0; }
+      """,
+      """
+        "col1...3","col4...5" { &[x] == 0; }
+      """ 
+    
+    parse '"zone-1-1...3"[x] == 0',
+      {
+        commands: [
+          ['==', 
+            ['get',
+              [',',
+                ['$virtual','zone-1-1']
+                ['$virtual','zone-1-2']
+                ['$virtual','zone-1-3']
+              ],
+              'x'
+            ],
+            0
+          ]
+        ]
+      }
+    
+    parse '"zone-1...3-1...3"[x] == 0',
+      {
+        commands: [
+          ['==', 
+            ['get',
+              [',',
+                ['$virtual','zone-1-1']
+                ['$virtual','zone-1-2']
+                ['$virtual','zone-1-3']
+                ['$virtual','zone-2-1']
+                ['$virtual','zone-2-2']
+                ['$virtual','zone-2-3']
+                ['$virtual','zone-3-1']
+                ['$virtual','zone-3-2']
+                ['$virtual','zone-3-3']
+              ],
+              'x'
+            ],
+            0
+          ]
+        ]
+      }
+    
+    parse '"zone-1...3-2"[x] == 0',
+      {
+        commands: [
+          ['==', 
+            ['get',
+              [',',
+                ['$virtual','zone-1-2']
+                ['$virtual','zone-2-2']
+                ['$virtual','zone-3-2']
+              ],
+              'x'
+            ],
+            0
+          ]
+        ]
+      }
+    
+    parse "#box-2...6[x] == 0",
+      {
+        commands: [
+          ['==', 
+            ['get',
+              [',',
+                ['$id','box-2']
+                ['$id','box-3']
+                ['$id','box-4']
+                ['$id','box-5']
+                ['$id','box-6']
+              ],
+              'x'
+            ],
+            0
+          ]
+        ]
+      }
+    
+    parse "#cell-x1...2-y1...2-z1...2[z] == 0",
+      {
+        commands: [
+          ['==', 
+            ['get',
+              [',',
+                ['$id','cell-x1-y1-z1']
+                ['$id','cell-x1-y1-z2']
+                ['$id','cell-x1-y2-z1']
+                ['$id','cell-x1-y2-z2']
+                ['$id','cell-x2-y1-z1']
+                ['$id','cell-x2-y1-z2']
+                ['$id','cell-x2-y2-z1']
+                ['$id','cell-x2-y2-z2']
+              ],
+              'z'
+            ],
+            0
+          ]
+        ]
+      }
+    
+    
+ 
 
 
 

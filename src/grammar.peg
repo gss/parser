@@ -288,21 +288,52 @@ Combinator "Combinator"
   / " "+ &[^{,)]                     {return " "}
 
 VirtualSel
-  = ["] id:[^"]+ ["]          {return ["$virtual",id.join("")];}
+  = ["] o:SplattedName ["]
+    {
+      return g.splatExpander('$virtual',o);
+    }
+  / ["] id:[^"]+ ["]
+    {return ["$virtual",id.join("")];}
+
+SplattedName
+  = splats:Splat+ postfix:SplatNameChar* 
+    {
+      return {splats:splats,postfix:postfix.join("")};
+    }
+
+Splat "Splat"
+  = prefix:SplatNameChar+ o:Range 
+    {
+       o.prefix = prefix.join("");       
+       return o;
+     }
+
+Range "Range"
+  = from:[0-9]+ "..." to:[0-9]+ 
+    {
+      from = Number(from.join(''));
+      to   = Number(to.join(''));
+      return {from:from,to:to}
+    }
+
+SplatNameChar
+  = !Range char:SelectorNameChars {return char}
 
 TagSel
   = name:SelectorName         {return ["$tag",name];}
   / "*"                       {return ["$tag", "*"];}
 
 IdSel
-  = "#" name:SelectorName     {return ["$id",name];}
+  = "#" name:(SplattedName / SelectorName)
+    {return g.splatifyIfNeeded('$id',name);}
 
 ClassSel
-  = "." name:SelectorName     {return ["$class",name];}
+  = "." name:(SplattedName / SelectorName)
+    {return g.splatifyIfNeeded('$class',name);}
 
 ReservedSel
   = "::" name:ReservedPseudos {return ["$reserved",name];}
-  / "&" &[^&]                       {return ["$reserved","this"];}
+  / "&" &[^&]                 {return ["$reserved","this"];}
 
 PseudoSel
   = ("::" / ":") name:SelectorName option:PseudoSelOption? {

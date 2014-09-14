@@ -239,9 +239,9 @@ class Grammar
   # @param variableNameCharacters [Array<String>]
   # @return [Array]
   #
-  variable: (selector, variableNameCharacters) ->
+  variable: (negative, selector, variableNameCharacters) ->
     variableName = variableNameCharacters.join ''
-
+    
     # If bound to DOM query
     #
     if selector? and selector.length isnt 0
@@ -274,9 +274,14 @@ class Grammar
             break
 
     if selector?
-      return ['get', selector, variableName]
+      command = ['get', selector, variableName]
     else
-      return ['get', variableName]
+      command = ['get', variableName]
+    
+    if negative
+      return ['-', 0, command]
+    else
+      return command
 
 
 

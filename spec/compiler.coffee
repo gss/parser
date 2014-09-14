@@ -1637,7 +1637,7 @@ describe 'CCSS-to-AST', ->
   # Numbers
   # ====================================================================
 
-  describe '/* Numbers */', ->
+  describe '/* Decimals & Negatives */', ->
 
     parse """
             [left] == 0.4; // with leading zero
@@ -1780,6 +1780,44 @@ describe 'CCSS-to-AST', ->
                 ['==', ['get', 'left'], 0.4]
               ]
             }
+      
+      parse """
+              -[x] == -[y]; // unary minus
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['-',0,['get', 'x']], ['-',0,['get','y']]]
+                ]
+              }
+      
+      parse """
+              -1 - -[x] == -[y] - -1; // minus unary minus
+            """
+            ,
+              {
+                commands: [
+                  ['==', 
+                    ['-', -1, ['-',0,['get', 'x']]],
+                    ['-', ['-',0,['get','y']], -1]
+                  ]
+                ]
+              }
+      
+      parse """
+              -1 + -[x] == -[y] - -[x]; // unary minus - unary minus
+            """
+            ,
+              {
+                commands: [
+                  ['==', 
+                    ['+', -1, ['-',0,['get', 'x']]],
+                    ['-', ['-',0,['get','y']], ['-',0,['get', 'x']]]
+                  ]
+                ]
+              }
+      
+      
 
 
 

@@ -24,7 +24,17 @@ vflHook = (name,terms,commands=[]) ->
   for s in o.statements
     newCommands = newCommands.concat(parse(s).commands)
   if commands.length > 0 and o.selectors.length > 0
-    nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
+    ruleSet = ""
+    for selector, i in o.selectors
+      if selector.indexOf("&") isnt 0
+        if selector.indexOf("::") isnt 0
+          ruleSet += "::scope "
+      ruleSet += selector
+      if i isnt o.selectors.length - 1
+        ruleSet += ", "              
+    ruleSet += " {}"
+    nestedCommand = parse(ruleSet).commands[0] 
+    #nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
     nestedCommand[2] = commands
     newCommands.push nestedCommand
   return {commands:newCommands}

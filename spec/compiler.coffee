@@ -12,11 +12,12 @@ parse = (sources, expectation, pending) ->
 
   if !(sources instanceof Array)
     sources = [sources]
-  for source in sources
+  sources.forEach (source) ->
     describe source, ->
       result = null
 
       itFn 'ok ✓', ->
+        console.log source
         result = parser.parse source
         expect(result).to.be.an 'object'
 
@@ -211,6 +212,8 @@ describe 'CCSS-to-AST', ->
             (::)[width] == (::this)[x] == (&)[y]
           """
         , target
+        
+      
 
 
 
@@ -411,6 +414,61 @@ describe 'CCSS-to-AST', ->
         ]
       }
     
+    parse [
+        ".btn0...2.featured[x]                <= 0"
+        "((.btn0, .btn1, .btn2).featured)[x]  <= 0"
+        #"(.btn0, .btn1, .btn2).featured[x]    <= 0"
+      ]
+      {
+        commands: [
+          ['<=', 
+            ['get',
+              ['$class', 
+                [',',
+                  ['$class','btn0']
+                  ['$class','btn1']
+                  ['$class','btn2']
+                ]
+              'featured']
+            'x'],
+            0
+          ]
+        ]
+      }
+    
+  
+  
+  describe '/* Special Cased Optimizations */', ->
+
+    parse [
+        '"col1...3":first[x] == 0'
+        '(("col1", "col2", "col3"):first)[x] == 0',
+      ]
+      {
+        commands: [
+          ['==', 
+            ['get',
+              ['$virtual','col1']
+            'x'],
+            0
+          ]
+        ]
+      }
+    
+    parse [
+        '"col1...3":last[x] == 0'
+        '(("col1", "col2", "col3"):last)[x] == 0',
+      ]
+      {
+        commands: [
+          ['==', 
+            ['get',
+              ['$virtual','col3']
+            'x'],
+            0
+          ]
+        ]
+      }
     
  
 
@@ -660,8 +718,58 @@ describe 'CCSS-to-AST', ->
           }
 
     # comma seperated
+    
+    parse """
+        ((#a, #b).c, (#x, #y).z)[a-z] == 0;
+      """,
+      {
+        commands: [
+          ['==',
+            [
+              'get',
+              [
+                ','
+                [
+                  '$class'
+                  [
+                     ",",
+                     ["$id","a"]
+                     ["$id","b"]
+                  ],
+                  'c'
+                ]
+                [
+                  '$class'
+                  [
+                     ",",
+                     ["$id","x"]
+                     ["$id","y"]
+                  ],
+                  'z'
+                ]
+              ]
+              'a-z',
+            ],
+            0
+          ]
+        ]
+      }
+    
 
-    target = {
+
+    parse [ """
+              (&"grid", .that"grid" , .box ,.thing)[width] == 100
+            """
+            """
+              (
+                &"grid"
+                ,
+                .that"grid" ,
+                .box,.thing
+              )[width] == 100
+            """
+          ]
+          {
             commands: [
               ['==',
                 [
@@ -679,23 +787,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-
-    parse """
-            (&"grid", .that"grid" , .box ,.thing)[width] == 100
-          """
-        ,
-          target
-
-    parse """
-            (
-              &"grid"
-              ,
-              .that"grid" ,
-              .box,.thing
-            )[width] == 100
-          """
-        ,
-          target
 
 
 
@@ -2120,7 +2211,21 @@ describe 'CCSS-to-AST', ->
                 ['get',['$id','b2'],'x']
               ]
               ['rule',
-                [',',['$class',['$tag','button'],'featured'],['$id','b2']],
+                [',',
+                  ['$class'
+                    ['$tag'
+                      ['$combinator',
+                        ['$reserved','scope'],
+                      ' ']
+                    'button']
+                  'featured']
+                  ,
+                  ['$id',
+                    ['$combinator',
+                      ['$reserved','scope'],
+                    ' ']
+                  'b2']                  
+                ],
                 parser.parse("width: == 100; height: == &:next[height];").commands
               ]
             ]
@@ -2141,7 +2246,7 @@ describe 'CCSS-to-AST', ->
                 parser.parse("@v |(.post)...| in(::window);").commands
               ).concat (
                 [['rule',
-                  ['$class','post'],
+                  ['$class',['$combinator',['$reserved','scope'],' '],'post'],
                   [].concat(
                     parser.parse("border-radius: == 4;").commands
                   ).concat(
@@ -2153,23 +2258,39 @@ describe 'CCSS-to-AST', ->
               )
 
           }
-
+    
+    #parse """
+    #
+    #        @h (&)(.box)(& .post)(::scope)(::this "fling") {
+    #            &[width] == 10;
+    #          }
+    #
+    #      """,
+    #      {
+    #        commands: [].concat(
+    #            parser.parse('@h (&)(.box)(& .post)(::scope)(::this "fling");').commands
+    #          ).concat("""
+    #            ::this, ::scope .box, ::this .post, ::scope, ::this .fling {
+    #              width: == 10;
+    #            }
+    #          """)
+    #      }
 
     parse """
               @v |
                   -10-
                   (#cover)
                 in(#profile-card);
-
+    
               #follow[center-x] == #profile-card[center-x];
-
+    
               @h |-10-(#message)
                 in(#profile-card) {
                   &[top] == &:next[top];
                 }
-
+    
               #follow[center-y] == #profile-card[center-y];
-
+    
           """,
           {
             commands: [].concat(
@@ -2184,7 +2305,7 @@ describe 'CCSS-to-AST', ->
               ).concat (
                 parser.parse("#follow[center-y] == #profile-card[center-y];").commands
               )
-
+    
           }
 
 

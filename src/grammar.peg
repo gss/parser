@@ -254,13 +254,13 @@ __
 // ===================================================
 
 GSSSelector
-  = "(" __ sel:CSSSelector __ ")" {return sel;}
+  = SafeCSSSelector
   / left:SimpleSelectorChain _ {return left;}
 
-CSSSelector
-  = _ sel:Selector _ {return sel;}
+SafeCSSSelector 
+  = "(" __ sel:CSSSelector __ ")" {return sel;}
 
-Selector
+CSSSelector
   = head:ComplexSelectorChain tail:( __ "," __ ComplexSelectorChain )+
     { return g.createSelectorCommaCommand(head, tail); }
   / ComplexSelectorChain
@@ -273,6 +273,7 @@ SimpleSelectorChain
 
 SimpleSelector "SimpleSelector"
   = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
+  / SafeCSSSelector
 
 Qualifier
   = SimpleSelector

@@ -89,10 +89,26 @@ class Grammar
   ### Public ###
   
   reverseFilterNest: (commands) ->
-    len = commands.length;
+    len = commands.length
     i=len-1
     while i > 0
-      commands[i].splice 1, 0, commands[i-1]
+      outie = commands[i]
+      innie = commands[i-1]
+      
+      if outie[0] is '$pseudo' and innie[0] is ',' 
+        
+        # unwrap ("virual", ...):first
+        if outie[1] is 'first' and innie[1][0] is '$virtual'
+          commands[i] = innie[1]
+        
+        # unwrap (..., "virual"):last
+        else if outie[1] is 'last' and innie[innie.length-1][0] is '$virtual'
+          commands[i] = innie[innie.length-1]
+      
+      
+      # just wrap that innie
+      else
+        outie.splice 1, 0, innie
       i--
     return commands[len-1]
     

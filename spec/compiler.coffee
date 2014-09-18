@@ -935,6 +935,77 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+    
+    parse [ """
+              ::this, ::scope .box, ::this .post, ::scope, ::this "fling" {
+              }
+            """,
+            """
+              (::this), (::scope .box), (::this .post), (::scope), (::this "fling") {
+              }
+            """,
+            """
+              ((::this), (::scope .box), (::this .post), (::scope), (::this "fling")) {
+              }
+            """
+          ]
+        ,
+          {
+            commands: [
+              [
+                "rule",
+                [
+                  ",",
+                  [
+                    "$reserved",
+                    "this"
+                  ],
+                  [
+                    "$class",
+                    [
+                      "$combinator",
+                      [
+                        "$reserved",
+                        "scope"
+                      ],
+                      " "
+                    ],
+                    "box"
+                  ],
+                  [
+                    "$class",
+                    [
+                      "$combinator",
+                      [
+                        "$reserved",
+                        "this"
+                      ],
+                      " "
+                    ]
+                    "post"
+                  ],
+                  [
+                    "$reserved",
+                    "scope"
+                  ],
+                  [
+                    "$virtual",
+                    [
+                      "$combinator",
+                      [
+                        "$reserved",
+                        "this"
+                      ],
+                      " "
+                    ],
+                    "fling"
+                  ]
+                ],
+                []
+              ]
+            ]
+          }
+    
 
 
   # Directives
@@ -2259,22 +2330,22 @@ describe 'CCSS-to-AST', ->
 
           }
     
-    #parse """
-    #
-    #        @h (&)(.box)(& .post)(::scope)(::this "fling") {
-    #            &[width] == 10;
-    #          }
-    #
-    #      """,
-    #      {
-    #        commands: [].concat(
-    #            parser.parse('@h (&)(.box)(& .post)(::scope)(::this "fling");').commands
-    #          ).concat("""
-    #            ::this, ::scope .box, ::this .post, ::scope, ::this .fling {
-    #              width: == 10;
-    #            }
-    #          """)
-    #      }
+    parse """ // special case how ::scope is prepended to rule selectors
+    
+            @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie) {
+                &[width] == 10;
+              }
+    
+          """,
+          {
+            commands: [].concat(
+                parser.parse('@h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie);').commands
+              ).concat(parser.parse("""
+                ::this, ::scope .box, ::scope .post, ::scope, ::this "fling", ::scope .outie .innie {
+                  width: == 10;
+                }
+              """).commands)
+          }
 
     parse """
               @v |

@@ -51,6 +51,10 @@ vflHook = (name,terms,commands=[]) ->
     #nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
     nestedCommand[2] = commands
     newCommands.push nestedCommand
+    
+    if window?.GSS?.console
+      window.GSS.console.row('@' + name, o.statements.concat([ruleSet]), terms)
+  
   return {commands:newCommands}
 
 vglHook = (name,terms,commands=[]) ->

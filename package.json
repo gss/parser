@@ -1,7 +1,7 @@
 {
   "name": "ccss-compiler",
   "description": "Constraint Cascading Style Sheets compiler",
-  "version": "1.1.1-beta",
+  "version": "1.1.2-beta",
   "repository": {
     "type": "git",
     "url": "git://github.com/gss/ccss-compiler.git"

@@ -2332,16 +2332,16 @@ describe 'CCSS-to-AST', ->
     
     parse """ // special case how ::scope is prepended to rule selectors
     
-            @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie) {
+            @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual") {
                 &[width] == 10;
               }
     
           """,
           {
             commands: [].concat(
-                parser.parse('@h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie);').commands
+                parser.parse('@h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual");').commands
               ).concat(parser.parse("""
-                ::this, ::scope .box, ::scope .post, ::scope, ::this "fling", ::scope .outie .innie {
+                ::this, ::scope .box, ::scope .post, ::scope, ::this "fling", ::scope .outie .innie, "virtual" {
                   width: == 10;
                 }
               """).commands)

@@ -34,7 +34,8 @@ vflHook = (name,terms,commands=[]) ->
       # prepend selector with ::scope unless
       if selector.indexOf("&") isnt 0
         if selector.indexOf("::") isnt 0
-          prefix += "::scope "
+          if selector.indexOf('"') isnt 0
+            prefix += "::scope "
           
       ruleSet += prefix + selector 
       if i isnt o.selectors.length - 1

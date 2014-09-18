@@ -56,6 +56,7 @@ vflHook = (name,terms,commands=[]) ->
       window.GSS.console.row('@' + name, o.statements.concat([ruleSet]), terms)
   
   return {commands:newCommands}
+  
 
 vglHook = (name,terms,commands=[]) ->
   newCommands = []

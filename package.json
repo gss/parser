@@ -12,6 +12,9 @@
       "url": "https://github.com/the-gss/ccss-compiler/blob/master/LICENSE-MIT"
     }
   ],
+  "dependencies": {
+    "error-reporter": "~0.1.0"
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-cafe-mocha": "~0.1.2",
@@ -23,8 +26,7 @@
     "grunt-component-build": "~0.5.0",
     "grunt-mocha-phantomjs": "~0.2.8",
     "grunt-contrib-uglify": "~0.2.1",
-    "grunt-contrib-coffee": "~0.7.0",
-    "error-reporter": "~0.1.0"
+    "grunt-contrib-coffee": "~0.7.0"
   },
   "keywords": [],
   "scripts": {

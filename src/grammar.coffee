@@ -335,7 +335,7 @@ class Grammar
 
       # Normalize window variable names
       #
-      if selector.toString().indexOf('$reserved,window') isnt -1
+      if selector.toString().indexOf('::window') isnt -1
         switch variableName
           when 'right'
             variableName = 'width'
@@ -406,15 +406,6 @@ class Grammar
         selectorName = Grammar._toString nameCharacters
 
         return ['$id', selectorName]
-
-
-      # Reserved pseudo selectors.
-      #
-      # @param selectorName [String]
-      # @return [Object]
-      #
-      reservedPseudoSelector: (selectorName) ->
-        return ['$reserved', selectorName]
 
 
       # Virtuals.

@@ -333,8 +333,13 @@ ClassSel
     {return g.splatifyIfNeeded('$class',name);}
 
 ReservedSel
-  = "::" name:ReservedPseudos {return ["$reserved",name];}
-  / "&" &[^&]                 {return ["$reserved","this"];}
+  = name:ReservedPseudos {return [name];}
+  / "&" &[^&]                 {return ["&"];}
+
+ReservedPseudos
+  = ("::document" / "::host" / "::scope" / "::parent")
+  / ("::window" / "::viewport") { return "::window"; }
+  / ("::this" / "::") { return "&"; }
 
 PseudoSel
   = ("::" / ":") name:SelectorName option:PseudoSelOption? {
@@ -356,10 +361,7 @@ SelectorName
 SelectorNameChars
   = [a-zA-Z0-9\-_$]
 
-ReservedPseudos
-  = ("document" / "host" / "scope" / "parent")
-  / ("window" / "viewport") { return "window"; }
-  / ("this" / "") { return "this"; }
+
 
 
 

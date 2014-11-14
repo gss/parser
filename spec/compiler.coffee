@@ -175,7 +175,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get',['$reserved','this'],'width'], ['get',['$reserved', 'parent'],'width']]
+              ['==', ['get',['&'],'width'], ['get',['::parent'],'width']]
             ]
           }
 
@@ -186,10 +186,10 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get',['$reserved','scope'],'width'],    ['get',['$reserved','this'],'width' ]]
-              ['==', ['get',['$reserved','this'],'width'],     ['get',['$reserved','document'],'width' ]]
-              ['==', ['get',['$reserved','document'],'width'], ['get',['$reserved','window'],'width' ]]
-              ['==', ['get',['$reserved','window'],'width'],   ['get',['$reserved','window'],'height']]
+              ['==', ['get',['::scope'],'width'],    ['get',['&'],'width' ]]
+              ['==', ['get',['&'],'width'],          ['get',['::document'],'width' ]]
+              ['==', ['get',['::document'],'width'], ['get',['::window'],'width' ]]
+              ['==', ['get',['::window'],'width'],   ['get',['::window'],'height']]
             ]
           }
 
@@ -197,8 +197,8 @@ describe 'CCSS-to-AST', ->
 
     target = {
         commands: [
-          ['==', ['get',['$reserved','this'],'width'],    ['get',['$reserved','this'],'x']]
-          ['==', ['get',['$reserved','this'],'x'],        ['get',['$reserved','this'],'y']]
+          ['==', ['get',['&'],'width'],    ['get',['&'],'x']]
+          ['==', ['get',['&'],'x'],        ['get',['&'],'y']]
         ]
       }
 
@@ -603,7 +603,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$class',['$reserved','this'],'featured'],'width'],
+                ['get',['$class',['&'],'featured'],'width'],
                 100
               ]
             ]
@@ -617,11 +617,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$virtual',['$reserved','this'],'column2'],'width'],
+                ['get',['$virtual',['&'],'column2'],'width'],
                 100
               ],
               ['==',
-                ['get',['$virtual',['$reserved','this'],'column2'],'width'],
+                ['get',['$virtual',['&'],'column2'],'width'],
                 100
               ]
             ]
@@ -635,11 +635,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$pseudo',['$reserved','this'],'next'],'x'],
+                ['get',['$pseudo',['&'],'next'],'x'],
                 666
               ],
               ['==',
-                ['get',['$pseudo',['$reserved','this'],'previous'],'x'],
+                ['get',['$pseudo',['&'],'previous'],'x'],
                 111
               ]
             ]
@@ -652,8 +652,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$class',['$pseudo',['$reserved','this'],'next'],    'selected'], 'width'],
-                ['get',['$class',['$pseudo',['$reserved','this'],'previous'],'selected'], 'width']
+                ['get',['$class',['$pseudo',['&'],'next'],    'selected'], 'width'],
+                ['get',['$class',['$pseudo',['&'],'previous'],'selected'], 'width']
               ]
             ]
           }
@@ -699,8 +699,7 @@ describe 'CCSS-to-AST', ->
                            [
                               "$attribute",
                               [
-                                 "$reserved",
-                                 "parent"
+                                 "::parent"
                               ],
                               "disabled"
                            ],
@@ -776,7 +775,7 @@ describe 'CCSS-to-AST', ->
                   'get',
                   [
                      ",",
-                     ["$virtual",["$reserved","this"],"grid"],
+                     ["$virtual",["&"],"grid"],
                      ["$virtual",["$class","that"],"grid"]
                      ["$class","box"]
                      ["$class","thing"]
@@ -802,7 +801,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',['get',['$reserved','this'],'x'],100]
+              ['==',['get',['&'],'x'],100]
             ]
           }
     parse """
@@ -828,13 +827,13 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['<=',
-                ['get',['$reserved','this'],'x']
-                ['get',['$reserved','this'],'y']
+                ['get',['&'],'x']
+                ['get',['&'],'y']
               ]
               ['set','y','100px']
               ['>=',
-                ['get',['$reserved','this'],'z']
-                ['get',['$reserved','this'],'y']
+                ['get',['&'],'z']
+                ['get',['&'],'y']
               ]
             ]
           }
@@ -859,7 +858,7 @@ describe 'CCSS-to-AST', ->
                 ['$class',['$id','box'],'class']
                 [
                   ['set','color','blue']
-                  ['==',['get',['$reserved','this'],'x'],100]
+                  ['==',['get',['&'],'x'],100]
                 ]
               ]
             ]
@@ -910,7 +909,7 @@ describe 'CCSS-to-AST', ->
                     ['$virtual',['$class','bg'],'face']
                     [
                       ['==',
-                        ['get',['$reserved','this'],'x']
+                        ['get',['&'],'x']
                         ['get','y']
                       ]
                     ]
@@ -957,16 +956,14 @@ describe 'CCSS-to-AST', ->
                 [
                   ",",
                   [
-                    "$reserved",
-                    "this"
+                    "&"
                   ],
                   [
                     "$class",
                     [
                       "$combinator",
                       [
-                        "$reserved",
-                        "scope"
+                        "::scope"
                       ],
                       " "
                     ],
@@ -977,24 +974,21 @@ describe 'CCSS-to-AST', ->
                     [
                       "$combinator",
                       [
-                        "$reserved",
-                        "this"
+                        "&"
                       ],
                       " "
                     ]
                     "post"
                   ],
                   [
-                    "$reserved",
-                    "scope"
+                    "::scope"
                   ],
                   [
                     "$virtual",
                     [
                       "$combinator",
                       [
-                        "$reserved",
-                        "this"
+                        "&"
                       ],
                       " "
                     ],
@@ -1731,7 +1725,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',['get','right'],['get',['$reserved','window'],'width']]
+              ['==',['get','right'],['get',['::window'],'width']]
             ]
           }
     parse """
@@ -1740,7 +1734,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get','left'], ['get',['$reserved','window'],'x']]
+              ['==', ['get','left'], ['get',['::window'],'x']]
             ]
           }
     parse """
@@ -1749,7 +1743,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get', 'top'], ['get',['$reserved','window'],'y']]
+              ['==', ['get', 'top'], ['get',['::window'],'y']]
             ]
           }
     parse """
@@ -1758,7 +1752,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get','bottom'], ['get',['$reserved','window'],'height']]
+              ['==', ['get','bottom'], ['get',['::window'],'height']]
             ]
           }
 
@@ -2214,7 +2208,7 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['==',
                 ['+',['get', ['$id', 'box1'], 'width'], ['get', ['$virtual', 'area'   ], 'width']],
-                ['+',['get', ['$id', 'box2'], 'width'], ['get', ['$reserved', 'window'], 'width']],
+                ['+',['get', ['$id', 'box2'], 'width'], ['get', ['::window'], 'width']],
               ]
             ]
           }
@@ -2228,11 +2222,11 @@ describe 'CCSS-to-AST', ->
     #        commands: [
     #          ['==',
     #            ['+',['get', 'width', ['$id', 'box1']], ['get', 'width', ['$virtual', 'area']]],
-    #            ['+',['get', 'width', ['$id', 'box2']], ['get', 'width', ['$reserved', 'window']]],
+    #            ['+',['get', 'width', ['$id', 'box2']], ['get', 'width', ['::window']]],
     #          ],
     #          ['==',
     #            ['+',['get', 'height', ['$id', 'box1']], ['get', 'height', ['$virtual', 'area']]],
-    #            ['+',['get', 'height', ['$id', 'box2']], ['get', 'height', ['$reserved', 'window']]],
+    #            ['+',['get', 'height', ['$id', 'box2']], ['get', 'height', ['::window']]],
     #          ]
     #        ]
     #      }
@@ -2286,14 +2280,14 @@ describe 'CCSS-to-AST', ->
                   ['$class'
                     ['$tag'
                       ['$combinator',
-                        ['$reserved','scope'],
+                        ['::scope'],
                       ' ']
                     'button']
                   'featured']
                   ,
                   ['$id',
                     ['$combinator',
-                      ['$reserved','scope'],
+                      ['::scope'],
                     ' ']
                   'b2']                  
                 ],
@@ -2317,7 +2311,7 @@ describe 'CCSS-to-AST', ->
                 parser.parse("@v |(.post)...| in(::window);").commands
               ).concat (
                 [['rule',
-                  ['$class',['$combinator',['$reserved','scope'],' '],'post'],
+                  ['$class',['$combinator',['::scope'],' '],'post'],
                   [].concat(
                     parser.parse("border-radius: == 4;").commands
                   ).concat(

@@ -328,16 +328,16 @@ SplatNameChar
   = !Range char:SelectorNameChars {return char}
 
 TagSel
-  = name:SelectorName         {return ["$tag",name];}
-  / "*"                       {return ["$tag", "*"];}
+  = name:SelectorName         {return ["tag",name];}
+  / "*"                       {return ["tag", "*"];}
 
 IdSel
   = "#" name:(SplattedName / SelectorName)
-    {return g.splatifyIfNeeded('$id',name);}
+    {return g.splatifyIfNeeded('#',name);}
 
 ClassSel
   = "." name:(SplattedName / SelectorName)
-    {return g.splatifyIfNeeded('$class',name);}
+    {return g.splatifyIfNeeded('.',name);}
 
 ReservedSel
   = name:ReservedPseudos  {return [name];}
@@ -352,9 +352,9 @@ ReservedPseudos
   / ("::this" / "::") { return "&"; }
 
 PseudoSel
-  = ("::" / ":") name:SelectorName option:PseudoSelOption? {
-    if (option) {return ["$pseudo",name,option];}
-    return ["$pseudo",name];
+  = colons:("::" / ":") name:SelectorName option:PseudoSelOption? {
+    if (option) {return [colons + name,option];}
+    return [colons + name];
   }
 
 PseudoSelOption

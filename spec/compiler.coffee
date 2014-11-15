@@ -262,8 +262,43 @@ describe 'CCSS-to-AST', ->
           }
     
    
-        
-      
+  
+  # New Pseudos
+  # ====================================================================
+
+  describe '/* Selectors as Selector call context */', ->
+
+    parse """
+            &(.box)[width] == ::parent(.thing)[width]
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',[['&'],['$class','box']],'width'], 
+                ['get',[['::parent'],['$class','thing']],'width']
+              ]
+            ]
+          }
+    
+    parse """
+            button.big(.text)[width] == 100
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',
+                  [
+                    ['$class',['$tag','button'],'big'],
+                    ['$class','text']
+                  ],
+                  'width'
+                ], 
+                100
+              ]
+            ]
+          }
 
 
 

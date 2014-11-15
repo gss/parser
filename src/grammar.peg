@@ -254,7 +254,8 @@ __
 // ===================================================
 
 GSSSelector
-  = SafeCSSSelector
+  = ctx:NoParanSelectorChain sel:SafeCSSSelector {return [ctx, sel] }
+  / SafeCSSSelector
   / left:SimpleSelectorChain _ {return left;}
 
 SafeCSSSelector 
@@ -271,8 +272,14 @@ ComplexSelectorChain
 SimpleSelectorChain
   = filters:SimpleSelector+  { return g.reverseFilterNest(filters);}
 
-SimpleSelector "SimpleSelector"
+NoParanSelectorChain
+  = filters:NoParanSelector+  { return g.reverseFilterNest(filters);}
+
+NoParanSelector "NoParanSelector"
   = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
+
+SimpleSelector "SimpleSelector"
+  = NoParanSelector
   / SafeCSSSelector
 
 Qualifier

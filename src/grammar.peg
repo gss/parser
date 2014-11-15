@@ -281,7 +281,7 @@ Qualifier
 
 ComplexSelector
   = Qualifier
-  / c:Combinator              {return ["$combinator",c]}
+  / c:Combinator              {return [c]}
 
 Combinator "Combinator"
   = _ c:[><+~!]+ _           {return c.join('');}

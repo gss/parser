@@ -164,13 +164,13 @@ describe 'CCSS-to-AST', ->
 
 
 
-  # Pseudos
+  # New Pseudos
   # ====================================================================
 
-  describe '/* Reserved Pseudos */', ->
+  describe '/* New Pseudos */', ->
 
     parse """
-            ::[width] == ::parent[width]
+            &[width] == ::parent[width]
           """
         ,
           {
@@ -194,24 +194,74 @@ describe 'CCSS-to-AST', ->
           }
 
     # normalize ::this selector
-
-    target = {
-        commands: [
-          ['==', ['get',['&'],'width'],    ['get',['&'],'x']]
-          ['==', ['get',['&'],'x'],        ['get',['&'],'y']]
-        ]
-      }
-
-    parse """
-            ::[width] == ::this[x] == &[y]
-          """
-        , target
-
-    parse """
-            /* parans ignored */
-            (::)[width] == (::this)[x] == (&)[y]
-          """
-        , target
+    parse [
+            """
+              ::[width] == ::this[x] == &[y]
+            """
+            """
+              /* parans ignored */
+              (::)[width] == (::this)[x] == (&)[y]
+            """
+          ]
+        , 
+          {
+            commands: [
+              ['==', ['get',['&'],'width'],    ['get',['&'],'x']]
+              ['==', ['get',['&'],'x'],        ['get',['&'],'y']]
+            ]
+          }
+    
+    # global scope selector
+    parse [
+            """
+              $[width] == ($)[y]
+            """
+          ]
+        , 
+          {
+            commands: [
+              ['==', ['get',['$'],'width'], ['get',['$'],'y']]
+            ]
+          }
+    
+    # parent scope selector
+    parse [
+            """
+              ^[width] == (^)[y]
+            """
+          ]
+        , 
+          {
+            commands: [
+              ['==', ['get',['^'],'width'], ['get',['^'],'y']]
+            ]
+          }
+    
+    parse [
+            """
+              ^^[margin-top] == ^[margin-top] - [margin-top]
+            """
+          ]
+        , 
+          {
+            commands: [
+              ['==', ['get',['^^'],'margin-top'], ['-',['get',['^'],'margin-top'],['get','margin-top']] ]
+            ]
+          }
+    
+    parse [
+            """
+              ^^^^^^^^[margin-top] == ^^^[margin-top]
+            """
+          ]
+        , 
+          {
+            commands: [
+              ['==', ['get',['^^^^^^^^'],'margin-top'], ['get',['^^^'],'margin-top'] ]
+            ]
+          }
+    
+   
         
       
 

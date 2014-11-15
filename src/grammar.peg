@@ -333,8 +333,11 @@ ClassSel
     {return g.splatifyIfNeeded('$class',name);}
 
 ReservedSel
-  = name:ReservedPseudos {return [name];}
-  / "&" &[^&]                 {return ["&"];}
+  = name:ReservedPseudos  {return [name];}
+  / "$"                   {return ["$"];}               // global scope selector
+  / "&" &[^&]             {return ["&"];}               // this scope selector
+  / ups:"^"+              {return [ups.join('')];}      // parent scope selector
+  
 
 ReservedPseudos
   = ("::document" / "::host" / "::scope" / "::parent")
@@ -359,7 +362,7 @@ SelectorName
   = name:SelectorNameChars+    {return name.join("")}
 
 SelectorNameChars
-  = [a-zA-Z0-9\-_$]
+  = [a-zA-Z0-9\-_]
 
 
 

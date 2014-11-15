@@ -361,8 +361,8 @@ PseudoSelOption
   = "(" option:[^)]* ")"       {return option.join(""); }
 
 AttrSel
-  = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["$attribute",op.join(""),left.join("").trim(),right.join("").trim()]; }
-  / "[" attr:[^\]]+ "]"        {return ["$attribute",attr.join("")]; }
+  = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["["+op.join("")+"]",left.join("").trim(),right.join("").trim()]; }
+  / "[" attr:[^\]]+ "]"        {return ["[]",attr.join("")]; }
 
 
 SelectorName

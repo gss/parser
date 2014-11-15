@@ -263,10 +263,10 @@ describe 'CCSS-to-AST', ->
     
    
   
-  # New Pseudos
+  # Selectors as selector call context
   # ====================================================================
 
-  describe '/* Selectors as Selector call context */', ->
+  describe '/* Selectors as selector call context */', ->
 
     parse """
             &(.box)[width] == ::parent(.thing)[width]
@@ -608,7 +608,7 @@ describe 'CCSS-to-AST', ->
                 [
                   'get',
                   [
-                     "$attribute",
+                     "[]",
                      [
                         "$class",
                         [
@@ -748,16 +748,16 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$attribute','~=','foo','"bar"'],'x']
-                ['get',['$attribute','!=','foo','"bar"'],'x']
+                ['get',['[~=]','foo','"bar"'],'x']
+                ['get',['[!=]','foo','"bar"'],'x']
               ]
               ['==',
-                ['get',['$attribute','$=','foo','"bar"'],'x']
-                ['get',['$attribute','*=','foo','"bar"'],'x']
+                ['get',['[$=]','foo','"bar"'],'x']
+                ['get',['[*=]','foo','"bar"'],'x']
               ]
               ['==',
-                ['get',['$attribute','^=','foo','"bar"'],'x']
-                ['get',['$attribute','=','foo','"bar"'],'x']
+                ['get',['[^=]','foo','"bar"'],'x']
+                ['get',['[=]','foo','"bar"'],'x']
               ]
             ]
           }
@@ -778,7 +778,7 @@ describe 'CCSS-to-AST', ->
                         [
                            "~",
                            [
-                              "$attribute",
+                              "[]",
                               [
                                  "::parent"
                               ],

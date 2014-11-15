@@ -491,20 +491,18 @@ describe 'CCSS-to-AST', ->
                   [
                      "$class",
                      [
-                        "$combinator",
+                        " ",
                         [
                            "$id",
                            [
-                              "$combinator",
+                              " ",
                               [
                                  "$tag",
                                  "html"
-                              ],
-                              " "
+                              ]
                            ],
                            "main"
-                        ],
-                        " "
+                        ]
                      ],
                      "boxes"
                   ],
@@ -529,25 +527,23 @@ describe 'CCSS-to-AST', ->
                      [
                         "$class",
                         [
-                           "$combinator",
+                           " ",
                            [
                               "$pseudo",
                               [
                                  "$id",
                                  [
-                                    "$combinator",
+                                    " ",
                                     [
                                        "$tag",
                                        "*"
-                                    ],
-                                    " "
+                                    ]
                                  ],
                                  "main"
                               ],
                               "not",
                               ".disabled"
-                           ],
-                           " "
+                           ]
                         ],
                         "boxes"
                      ],
@@ -573,20 +569,20 @@ describe 'CCSS-to-AST', ->
                   'get',
                   ['$pseudo',
                     ['$tag',
-                      ['$combinator',
+                      [' ',
                         ['$tag',
-                          ['$combinator',
+                          ['!',
                             ['$class',
                               ['$tag',
-                                ['$combinator',
+                                ['!>',
                                   ['$tag',
                                     'header']
-                                  '!>']
+                                ]
                                 'h2']
                               'gizoogle']
-                            '!']
+                          ]
                           'section']
-                        ' ']
+                      ]
                       'div']
                     'get', "'parentNode'"],
                   'target-size',
@@ -695,7 +691,7 @@ describe 'CCSS-to-AST', ->
                      [
                         "$tag",
                         [
-                           "$combinator",
+                           "~",
                            [
                               "$attribute",
                               [
@@ -703,7 +699,6 @@ describe 'CCSS-to-AST', ->
                               ],
                               "disabled"
                            ],
-                           "~"
                         ],
                         "li"
                      ],
@@ -902,7 +897,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]
+                ["$tag",[">",['$class',['$tag','article'],'featured']],"img"]
                 [
                   ['set','color','black']
                   ['rule',
@@ -929,7 +924,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["$tag",["$combinator",['$class',['$tag','article'],'featured'],">"],"img"]
+                ["$tag",[">",['$class',['$tag','article'],'featured']],"img"]
                 []
               ]
             ]
@@ -961,22 +956,20 @@ describe 'CCSS-to-AST', ->
                   [
                     "$class",
                     [
-                      "$combinator",
+                      " ",
                       [
                         "::scope"
-                      ],
-                      " "
+                      ]
                     ],
                     "box"
                   ],
                   [
                     "$class",
                     [
-                      "$combinator",
+                      " ",
                       [
                         "&"
-                      ],
-                      " "
+                      ]
                     ]
                     "post"
                   ],
@@ -986,11 +979,10 @@ describe 'CCSS-to-AST', ->
                   [
                     "$virtual",
                     [
-                      "$combinator",
+                      " ",
                       [
                         "&"
-                      ],
-                      " "
+                      ]
                     ],
                     "fling"
                   ]
@@ -2279,16 +2271,16 @@ describe 'CCSS-to-AST', ->
                 [',',
                   ['$class'
                     ['$tag'
-                      ['$combinator',
-                        ['::scope'],
-                      ' ']
+                      [' ',
+                        ['::scope']
+                      ]
                     'button']
                   'featured']
                   ,
                   ['$id',
-                    ['$combinator',
-                      ['::scope'],
-                    ' ']
+                    [' ',
+                      ['::scope']
+                    ]
                   'b2']                  
                 ],
                 parser.parse("width: == 100; height: == &:next[height];").commands
@@ -2311,7 +2303,7 @@ describe 'CCSS-to-AST', ->
                 parser.parse("@v |(.post)...| in(::window);").commands
               ).concat (
                 [['rule',
-                  ['$class',['$combinator',['::scope'],' '],'post'],
+                  ['$class',[' ',['::scope']],'post'],
                   [].concat(
                     parser.parse("border-radius: == 4;").commands
                   ).concat(

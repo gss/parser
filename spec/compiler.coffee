@@ -2354,16 +2354,10 @@ describe 'CCSS-to-AST', ->
                 [',',
                   ['.'
                     ['tag'
-                      [' ',
-                        ['::scope']
-                      ]
                     'button']
                   'featured']
                   ,
                   ['#',
-                    [' ',
-                      ['::scope']
-                    ]
                   'b2']                  
                 ],
                 parser.parse("width: == 100; height: == &:next[height];").commands
@@ -2386,7 +2380,7 @@ describe 'CCSS-to-AST', ->
                 parser.parse("@v |(.post)...| in(::window);").commands
               ).concat (
                 [['rule',
-                  ['.',[' ',['::scope']],'post'],
+                  ['.','post'],
                   [].concat(
                     parser.parse("border-radius: == 4;").commands
                   ).concat(
@@ -2399,7 +2393,7 @@ describe 'CCSS-to-AST', ->
 
           }
     
-    parse """ // special case how ::scope is prepended to rule selectors
+    parse """ // DO NOT special case how ::scope is prepended to rule selectors
     
             @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual") {
                 &[width] == 10;
@@ -2410,7 +2404,7 @@ describe 'CCSS-to-AST', ->
             commands: [].concat(
                 parser.parse('@h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual");').commands
               ).concat(parser.parse("""
-                ::this, ::scope .box, ::scope .post, ::scope, ::this "fling", ::scope .outie .innie, "virtual" {
+                ::this, ::scope .box, .post, ::scope, ::this "fling", .outie .innie, "virtual" {
                   width: == 10;
                 }
               """).commands)

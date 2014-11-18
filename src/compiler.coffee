@@ -26,18 +26,26 @@ vflHook = (name,terms,commands=[]) ->
   if commands.length > 0 and o.selectors.length > 0
     ruleSet = ""
     for selector, i in o.selectors
+      
+      
+      ### to prepend ::scope inside parans
       prefix = ''
-      # to prepend ::scope inside parans
       if selector[0] is "("
         prefix = "("
         selector = selector.substr(1,selector.length-1)
+      
       # prepend selector with ::scope unless
       if selector.indexOf("&") isnt 0
         if selector.indexOf("::") isnt 0
           if selector.indexOf('"') isnt 0
             prefix += "::scope "
-          
-      ruleSet += prefix + selector 
+      
+      ruleSet += prefix + selector
+      
+      ###
+      
+      ruleSet += selector    
+      
       if i isnt o.selectors.length - 1
         ruleSet += ", "
       

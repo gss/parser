@@ -6,7 +6,6 @@ else
 
 {expect, assert} = chai
 
-
 parse = (sources, expectation, pending) ->
   itFn = if pending then xit else it
 
@@ -72,6 +71,16 @@ describe 'CCSS-to-AST', ->
   describe "/* Basics */", ->
 
     parse """
+            foo == var;
+          """
+        ,
+          {
+            commands: [
+              ['==',  ['get','foo'] , ['get','var']]
+            ]
+          }
+    
+    parse """
             10 <= 2 == 3 < 4 == 5 // chainning numbers, maybe should throw error?
           """
         ,
@@ -84,9 +93,14 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    parse """
-            [md-width] == ([width] * 2 - [gap] * 2) / 4 + 10 !require; // order of operations
-          """
+    parse [
+            """
+              [md-width] == ([width] * 2 - [gap] * 2) / 4 + 10 !require; // order of operations
+            """
+            """
+              md-width   == ( width * 2 - gap * 2 ) / 4 + 10 !require; // order of operations
+            """
+          ]
         ,
           {
             commands: [
@@ -107,9 +121,18 @@ describe 'CCSS-to-AST', ->
           }
 
 
-    parse """
-            [grid-height] * #box2[width] <= 2 == 3 < 4 == 5 // w/ multiple statements containing variables and getters
-          """
+    parse [
+            """
+              [grid-height] * #box2[width] <= 2 == 3 < 4 == 5 // w/ multiple statements containing variables and getters
+            """
+            """
+              grid-height * #box2[width] 
+                <= 2 
+                == 3 
+                < 4 
+                == 5;
+            """
+          ]
         ,
           {
             commands: [
@@ -169,9 +192,14 @@ describe 'CCSS-to-AST', ->
 
   describe '/* New Pseudos */', ->
 
-    parse """
-            &[width] == ::parent[width]
-          """
+    parse [
+            """
+              &[width] == ::parent[width]
+            """
+            """
+              &width == ::parent[width]
+            """
+          ]
         ,
           {
             commands: [
@@ -196,6 +224,9 @@ describe 'CCSS-to-AST', ->
     # normalize ::this selector
     parse [
             """
+              &width == &x == &y
+            """
+            """
               ::[width] == ::this[x] == &[y]
             """
             """
@@ -214,6 +245,9 @@ describe 'CCSS-to-AST', ->
     # global scope selector
     parse [
             """
+              $width == $y
+            """
+            """
               $[width] == ($)[y]
             """
           ]
@@ -227,6 +261,9 @@ describe 'CCSS-to-AST', ->
     # parent scope selector
     parse [
             """
+              ^width == ^y
+            """
+            """
               ^[width] == (^)[y]
             """
           ]
@@ -239,25 +276,34 @@ describe 'CCSS-to-AST', ->
     
     parse [
             """
-              ^^[margin-top] == ^[margin-top] - [margin-top]
+              ^^margin-top == ^margin-top - margin-top
+            """
+            """
+              ^^[margin-top] == ^[margin-top] - margin-top
+            """
+            """
+              ( ^^ )[margin-top] == ( ^ )[margin-top] - [margin-top]
             """
           ]
         , 
           {
             commands: [
-              ['==', ['get',['^^'],'margin-top'], ['-',['get',['^'],'margin-top'],['get','margin-top']] ]
+              ['==', ['get',['^', 2],'margin-top'], ['-',['get',['^'],'margin-top'],['get','margin-top']] ]
             ]
           }
     
     parse [
             """
-              ^^^^^^^^[margin-top] == ^^^[margin-top]
+              ^^^^^^^^--my-margin-top == ^^^--my-margin-top
+            """
+            """
+              ^^^^^^^^[--my-margin-top] == ^^^[--my-margin-top]
             """
           ]
         , 
           {
             commands: [
-              ['==', ['get',['^^^^^^^^'],'margin-top'], ['get',['^^^'],'margin-top'] ]
+              ['==', ['get',['^',8],'--my-margin-top'], ['get',['^',3],'--my-margin-top'] ]
             ]
           }
     
@@ -1158,12 +1204,6 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-
-    expectError """
-        @if x >= 100 {
-          font-family: awesome;
-        }
-      """
 
     parse [
             """

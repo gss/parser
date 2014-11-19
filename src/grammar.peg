@@ -29,10 +29,10 @@ Statement
   = __ s:StatementTypes EOS __ { return s; }
 
 StatementTypes
-  = ConstraintStatement
+  = Ruleset
   / InlineConstraintStatement
   / InlineSet
-  / Ruleset
+  / ConstraintStatement    
   / Virtual
   / IfElseStatement
   / Stay
@@ -46,7 +46,6 @@ IfElseStatement "IfElseStatement"
     {return {commands:[i.concat(es)]};}
   / i:If
     {return {commands:[i]};}
-
 
 ElseChain
   = __ e:Else {return e;}
@@ -70,12 +69,12 @@ ConstraintStatement "ConstraintStatement"
     }
 
 InlineConstraintStatement "InlineConstraintStatement"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ &";" {
+  = __ prop:[^:&$^)(\]\[@ ]+ _ ":" _ op:ConstraintOperator rest:[^;]+ &";" {
       return g.inlineConstraint(prop,op,rest);
     }
 
 InlineSet "Inline Set"
-  = __ prop:[^:)(\]\[@ ]+ _ ":" rest:[^;]+ &";" {
+  = __ prop:[^:&$^)(\]\[@ ]+ _ ":" rest:[^;]+ &";" {
       return g.inlineSet(prop,rest);
     }
 
@@ -170,18 +169,27 @@ PrimaryExpression
   / "(" __ expression:Expression __ ")" { return expression; }
 
 Var "variable"
-  = negative:'-'? selector:GSSSelector? "[" variableNameCharacters:NameChars+ "]" {
-      return g.variable(negative, selector, variableNameCharacters);
+  = negative:'-'? selector:GSSSelector? "[" varChars:BracketedVarChars+ "]" {
+      return g.variable(negative, selector, varChars);
+    }
+  / selector:SpecialSelector? varChars:UnBracketedVarChars  {
+      return g.variable(false, selector, varChars);
     }
 
 String
   = ["'] string:([^"'])* ["'] {return string.join('');}   //"
 
-NameChars
+BracketedVarChars
   = [a-zA-Z0-9#.\-_$]
+  
+UnBracketedVarChars
+  // starts w/ alphabetical char
+  = first:[a-zA-Z]   rest:[a-zA-Z0-9\-_]*  { return first + rest.join('');}
+  // starts w/ dash
+  / dashes:[-]+ first:[a-zA-Z] rest:[a-zA-Z0-9\-_]+ { return dashes.join('') + first + rest.join('');}
 
 NameCharsWithSpace
-  = NameChars / " "
+  = BracketedVarChars / " "
 
 Literal
   = val:Numeric u:Unit { return [u, val]; }
@@ -276,7 +284,7 @@ NoParanSelectorChain
   = filters:NoParanSelector+  { return g.reverseFilterNest(filters);}
 
 NoParanSelector "NoParanSelector"
-  = VirtualSel / TagSel / IdSel / ClassSel / ReservedSel / PseudoSel
+  = SpecialSelector / VirtualSel / TagSel / IdSel / ClassSel / ReservedPseudoSel / PseudoSel
 
 SimpleSelector "SimpleSelector"
   = NoParanSelector
@@ -339,11 +347,20 @@ ClassSel
   = "." name:(SplattedName / SelectorName)
     {return g.splatifyIfNeeded('.',name);}
 
-ReservedSel
+ReservedPseudoSel
   = name:ReservedPseudos  {return [name];}
-  / "$"                   {return ["$"];}               // global scope selector
-  / "&" &[^&]             {return ["&"];}               // this scope selector
-  / ups:"^"+              {return [ups.join('')];}      // parent scope selector
+  
+SpecialSelector
+  = "$"                   {return ["$"];}            // global scope selector
+  / "&" &[^&]             {return ["&"];}            // this scope selector
+  / ups:"^"+                                         // parent scope selector
+  {  
+    var upCount = ups.length; 
+    if (upCount > 1) {
+      return ['^', upCount];
+    }
+    return ['^'];
+  }     
   
 
 ReservedPseudos

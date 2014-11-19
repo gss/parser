@@ -311,7 +311,7 @@ class Grammar
   # @return [Array]
   #
   variable: (negative, selector, variableNameCharacters) ->
-    variableName = variableNameCharacters.join ''
+    variableName = Grammar._toString variableNameCharacters
     
     # If bound to DOM query
     #

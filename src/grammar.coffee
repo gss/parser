@@ -98,11 +98,11 @@ class Grammar
       if outie[0] is '$pseudo' and innie[0] is ',' 
         
         # unwrap ("virual", ...):first
-        if outie[1] is 'first' and innie[1][0] is '$virtual'
+        if outie[1] is 'first' and innie[1][0] is 'virtual'
           commands[i] = innie[1]
         
         # unwrap (..., "virual"):last
-        else if outie[1] is 'last' and innie[innie.length-1][0] is '$virtual'
+        else if outie[1] is 'last' and innie[innie.length-1][0] is 'virtual'
           commands[i] = innie[innie.length-1]
       
       
@@ -416,7 +416,7 @@ class Grammar
       virtual: (nameCharacters) ->
         name = Grammar._toString nameCharacters
 
-        return ['$virtual', name]
+        return ['virtual', name]
 
 
       # Classes.

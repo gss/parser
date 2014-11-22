@@ -370,7 +370,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get',['$virtual','Zone'],'width'],100]
+              ['==', ['get',['virtual','Zone'],'width'],100]
             ]
           }
 
@@ -380,14 +380,14 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get',['$virtual','A'],'x'],['get',['$virtual','1'],'y']]
+              ['==', ['get',['virtual','A'],'x'],['get',['virtual','1'],'y']]
             ]
           }
 
     parse '"box"[right] == "box2"[left];',
           {
             commands: [
-              ['==', ['get',['$virtual','box'],'right'],['get',['$virtual','box2'],'x']]
+              ['==', ['get',['virtual','box'],'right'],['get',['virtual','box2'],'x']]
             ]
           }
     
@@ -411,11 +411,11 @@ describe 'CCSS-to-AST', ->
               ['==', 
                 ['get',
                   [',',
-                    ['$virtual','col1']
-                    ['$virtual','col2']
-                    ['$virtual','col3']
-                    ['$virtual','col4']
-                    ['$virtual','col5']
+                    ['virtual','col1']
+                    ['virtual','col2']
+                    ['virtual','col3']
+                    ['virtual','col4']
+                    ['virtual','col5']
                   ],
                   'x'
                 ],
@@ -453,9 +453,9 @@ describe 'CCSS-to-AST', ->
           ['==', 
             ['get',
               [',',
-                ['$virtual','zone-1-1']
-                ['$virtual','zone-1-2']
-                ['$virtual','zone-1-3']
+                ['virtual','zone-1-1']
+                ['virtual','zone-1-2']
+                ['virtual','zone-1-3']
               ],
               'x'
             ],
@@ -470,15 +470,15 @@ describe 'CCSS-to-AST', ->
           ['==', 
             ['get',
               [',',
-                ['$virtual','zone-1-1']
-                ['$virtual','zone-1-2']
-                ['$virtual','zone-1-3']
-                ['$virtual','zone-2-1']
-                ['$virtual','zone-2-2']
-                ['$virtual','zone-2-3']
-                ['$virtual','zone-3-1']
-                ['$virtual','zone-3-2']
-                ['$virtual','zone-3-3']
+                ['virtual','zone-1-1']
+                ['virtual','zone-1-2']
+                ['virtual','zone-1-3']
+                ['virtual','zone-2-1']
+                ['virtual','zone-2-2']
+                ['virtual','zone-2-3']
+                ['virtual','zone-3-1']
+                ['virtual','zone-3-2']
+                ['virtual','zone-3-3']
               ],
               'x'
             ],
@@ -493,9 +493,9 @@ describe 'CCSS-to-AST', ->
           ['==', 
             ['get',
               [',',
-                ['$virtual','zone-1-2']
-                ['$virtual','zone-2-2']
-                ['$virtual','zone-3-2']
+                ['virtual','zone-1-2']
+                ['virtual','zone-2-2']
+                ['virtual','zone-3-2']
               ],
               'x'
             ],
@@ -579,7 +579,7 @@ describe 'CCSS-to-AST', ->
         commands: [
           ['==', 
             ['get',
-              ['$virtual','col1']
+              ['virtual','col1']
             'x'],
             0
           ]
@@ -594,7 +594,7 @@ describe 'CCSS-to-AST', ->
         commands: [
           ['==', 
             ['get',
-              ['$virtual','col3']
+              ['virtual','col3']
             'x'],
             0
           ]
@@ -743,11 +743,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['$virtual',['&'],'column2'],'width'],
+                ['get',['virtual',['&'],'column2'],'width'],
                 100
               ],
               ['==',
-                ['get',['$virtual',['&'],'column2'],'width'],
+                ['get',['virtual',['&'],'column2'],'width'],
                 100
               ]
             ]
@@ -899,8 +899,8 @@ describe 'CCSS-to-AST', ->
                   'get',
                   [
                      ",",
-                     ["$virtual",["&"],"grid"],
-                     ["$virtual",[".","that"],"grid"]
+                     ["virtual",["&"],"grid"],
+                     ["virtual",[".","that"],"grid"]
                      [".","box"]
                      [".","thing"]
                   ],
@@ -1030,7 +1030,7 @@ describe 'CCSS-to-AST', ->
                 [
                   ['set','color','black']
                   ['rule',
-                    ['$virtual',['.','bg'],'face']
+                    ['virtual',['.','bg'],'face']
                     [
                       ['==',
                         ['get',['&'],'x']
@@ -1106,7 +1106,7 @@ describe 'CCSS-to-AST', ->
                     "::scope"
                   ],
                   [
-                    "$virtual",
+                    "virtual",
                     [
                       " ",
                       [
@@ -2322,7 +2322,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['+',['get', ['#', 'box1'], 'width'], ['get', ['$virtual', 'area'   ], 'width']],
+                ['+',['get', ['#', 'box1'], 'width'], ['get', ['virtual', 'area'   ], 'width']],
                 ['+',['get', ['#', 'box2'], 'width'], ['get', ['::window'], 'width']],
               ]
             ]
@@ -2336,11 +2336,11 @@ describe 'CCSS-to-AST', ->
     #      {
     #        commands: [
     #          ['==',
-    #            ['+',['get', 'width', ['#', 'box1']], ['get', 'width', ['$virtual', 'area']]],
+    #            ['+',['get', 'width', ['#', 'box1']], ['get', 'width', ['virtual', 'area']]],
     #            ['+',['get', 'width', ['#', 'box2']], ['get', 'width', ['::window']]],
     #          ],
     #          ['==',
-    #            ['+',['get', 'height', ['#', 'box1']], ['get', 'height', ['$virtual', 'area']]],
+    #            ['+',['get', 'height', ['#', 'box1']], ['get', 'height', ['virtual', 'area']]],
     #            ['+',['get', 'height', ['#', 'box2']], ['get', 'height', ['::window']]],
     #          ]
     #        ]

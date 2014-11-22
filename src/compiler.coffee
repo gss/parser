@@ -18,7 +18,7 @@ parse = (source) ->
     {message, line:lineNumber, column:columnNumber} = error
     errorReporter.reportError message, lineNumber, columnNumber
 
-  return results
+  return scoper results
 
 vflHook = (name,terms,commands=[]) ->
   newCommands = []

@@ -7,10 +7,26 @@ else
 scope = parser.scope
 
 {expect, assert} = chai
+
+equivalent = () -> # ( "title", source0, source1, source2...)
+  sources = [arguments...]
+  title = sources.splice(0,1)[0]
+  results = []
+  describe title + " ok", ->        
+    it "sources ok ✓", ->
+      for source, i in sources
+        results.push parser.parse source        
+        assert results[results.length-1].commands?, "source #{i} is ok"
+  describe title, ->    
+    for source, i in sources
+      if i isnt 0
+        it "source #{i} == source #{i - 1}  ✓", ->
+          expect(results[1]).to.eql results.splice(0,1)[0]
+
   
 describe "Scoper", ->
   
-  describe "var hoisting", ->
+  describe "var hoisting raw commands", ->
     
     it 'hoist 1 level root before', ->
     
@@ -231,6 +247,68 @@ describe "Scoper", ->
             ]
           ]
         ]
+  
+  
+  describe "manual & auto hoisting source equivalence", ->
+    
+    equivalent "1 level basic",
+      """
+        foo == bar;
+        .box {
+          foo == bar;
+        }
+      """,
+      """
+        foo == bar;
+        .box {
+          ^foo == ^bar;
+        }
+      """
+    
+    equivalent "3 level moderate",
+      """
+        
+        @if foo > 20 {
+        
+        .outer {
+                
+          .box {
+            20 * foo + 100 == bye - bar / 10;
+            .inner {
+              bye: == 50;
+              20 * foo + 100 == bye - bar / 10;
+            }
+          }
+        
+          20 * foo + 100 == hey - bar / 10;
+        
+        }
+        
+        }
+        
+      """,
+      """
+      
+        @if foo > 20 {
+        
+        .outer {
+        
+          .box {
+            20 * ^^foo + 100 == bye - ^bar / 10;
+            .inner {
+              &bye == 50;
+              20 * ^^^foo + 100 == ^bye - ^^bar / 10;
+            }
+          }
+        
+          20 * ^foo + 100 == hey - bar / 10;
+        
+        }
+        
+        }
+        
+      """
+      
       
       
     

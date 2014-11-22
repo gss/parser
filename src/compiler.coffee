@@ -1,7 +1,9 @@
 if window?
   parser      = require './parser'
+  scoper      = require './scoper'
 else
   parser      = require '../lib/parser'
+  scoper      = require '../lib/scoper'
 vfl           = require 'vfl-compiler'
 vgl           = require 'vgl-compiler'
 ErrorReporter = require 'error-reporter'
@@ -101,3 +103,10 @@ module.exports =
   # @return [Array] The AST which represents `source`.
   #
   parse: parse
+  
+  # Hoist unscoped var & virtuals AST to highest used scope
+  #
+  # @param [Array] The AST which represents `source`
+  # @return [Array] The transformed AST
+  #
+  scope: scoper

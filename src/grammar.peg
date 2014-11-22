@@ -79,8 +79,11 @@ InlineSet "Inline Set"
     }
 
 Ruleset
-  = q:CSSSelector __ "{" __ s:Statements __ "}"
+  = q:RulesetStart __ s:Statements __ "}"
     {return {commands:[['rule',q,s.commands]]}}
+
+RulesetStart
+  = q:CSSSelector __ "{" { return q; }
 
 Directive "Directive"
   = "@" name:[^ {}]+ terms:[^{};]+ "{" __ s:Statements __ "}"
@@ -355,7 +358,7 @@ SpecialSelector
   / "&" &[^&]             {return ["&"];}            // this scope selector
   / ups:"^"+                                         // parent scope selector
   {  
-    var upCount = ups.length; 
+    var upCount = ups.length;     
     if (upCount > 1) {
       return ['^', upCount];
     }

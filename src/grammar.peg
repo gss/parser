@@ -309,10 +309,10 @@ Combinator "Combinator"
 VirtualSel
   = ["] o:SplattedName ["]
     {
-      return g.splatExpander('$virtual',o);
+      return g.splatExpander('virtual',o);
     }
   / ["] id:[^"]+ ["]
-    {return ["$virtual",id.join("")];}
+    {return ["virtual",id.join("")];}
 
 SplattedName
   = splats:Splat+ postfix:SplatNameChar* 

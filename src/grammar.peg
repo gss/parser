@@ -19,7 +19,7 @@
   })();
 }
 
-start 
+start
   = __ s:Statements __ { return s; }
 
 Statements
@@ -32,11 +32,10 @@ StatementTypes
   = Ruleset
   / InlineConstraintStatement
   / InlineSet
-  / ConstraintStatement    
+  / ConstraintStatement
   / Virtual
   / IfElseStatement
   / Stay
-  / Chain
   / ForEach
   / Directive
 
@@ -184,7 +183,7 @@ String
 
 BracketedVarChars
   = [a-zA-Z0-9#.\-_$]
-  
+
 UnBracketedVarChars
   // starts w/ alphabetical char
   = first:[a-zA-Z]   rest:[a-zA-Z0-9\-_]*  { return first + rest.join('');}
@@ -269,7 +268,7 @@ GSSSelector
   / SafeCSSSelector
   / left:SimpleSelectorChain _ {return left;}
 
-SafeCSSSelector 
+SafeCSSSelector
   = "(" __ sel:CSSSelector __ ")" {return sel;}
 
 CSSSelector
@@ -315,20 +314,20 @@ VirtualSel
     {return ["virtual",id.join("")];}
 
 SplattedName
-  = splats:Splat+ postfix:SplatNameChar* 
+  = splats:Splat+ postfix:SplatNameChar*
     {
       return {splats:splats,postfix:postfix.join("")};
     }
 
 Splat "Splat"
-  = prefix:SplatNameChar+ o:Range 
+  = prefix:SplatNameChar+ o:Range
     {
-       o.prefix = prefix.join("");       
+       o.prefix = prefix.join("");
        return o;
      }
 
 Range "Range"
-  = from:[0-9]+ "..." to:[0-9]+ 
+  = from:[0-9]+ "..." to:[0-9]+
     {
       from = Number(from.join(''));
       to   = Number(to.join(''));
@@ -352,19 +351,19 @@ ClassSel
 
 ReservedPseudoSel
   = name:ReservedPseudos  {return [name];}
-  
+
 SpecialSelector
   = "$"                   {return ["$"];}            // global scope selector
   / "&" &[^&]             {return ["&"];}            // this scope selector
   / ups:"^"+                                         // parent scope selector
-  {  
-    var upCount = ups.length;     
+  {
+    var upCount = ups.length;
     if (upCount > 1) {
       return ['^', upCount];
     }
     return ['^'];
-  }     
-  
+  }
+
 
 ReservedPseudos
   = ("::document" / "::host" / "::scope" / "::parent")
@@ -464,56 +463,3 @@ JavaScript
 ForLooperType
   = ("@-gss-for-each" / "@for-each") { return g.forLoopType().forEach(); }
   / ("@-gss-for-all" / "@for-all") { return g.forLoopType().forAll(); }
-
-
-
-// Chains
-// ===================================================
-
-Chain
-  = "@" "-gss-"? "chain" __ selector:GSSSelector __ chainers:Chainer+ __ { //sw:StrengthAndWeight?
-    return g.chain(selector, chainers);
-  }
-
-Chainer
-  = headCharacters:[a-zA-Z\-_0-9]+ "(" _
-    headExpression:HeadExp? _
-    headOperator:ChainEq _
-    bridgeValue:BridgeValue? _
-    tailOperator:ChainEq? _
-    strengthAndWeight:StrengthAndWeight? _ ")"
-    tailCharacters:[a-zA-Z\-_0-9]* __ {
-      return g.chainer({
-        headCharacters: headCharacters,
-        headExpression: headExpression,
-        headOperator: headOperator,
-        bridgeValue: bridgeValue,
-        tailOperator: tailOperator,
-        strengthAndWeight: strengthAndWeight,
-        tailCharacters: tailCharacters
-      });
-    }
-
-HeadExp
-  = operator:ChainMath expression:AdditiveExpression {
-    return g.headExpression(operator, expression);
-  }
-
-TailExp
-  = expression:AdditiveExpression operator:ChainMath {
-    return g.tailExpression(expression, operator);
-  }
-
-ChainMath
-  = "+" { return g.chainMathOperator().plus(); }
-  / "-" { return g.chainMathOperator().minus(); }
-  / "*" { return g.chainMathOperator().multiply(); }
-  / "/" { return g.chainMathOperator().divide(); }
-
-ChainEq
-  = operator:ConstraintOperator? {
-    return g.chainConstraintOperator(operator);
-  }
-
-BridgeValue
-  = (AdditiveExpression)

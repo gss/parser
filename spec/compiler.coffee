@@ -29,17 +29,17 @@ equivalent = () -> # ( "title", source0, source1, source2...)
   sources = [arguments...]
   title = sources.splice(0,1)[0]
   results = []
-  describe title + " ok", ->        
+  describe title + " ok", ->
     it "sources ok ✓", ->
       for source, i in sources
-        results.push parser.parse source        
+        results.push parser.parse source
         assert results[results.length-1].commands?, "source #{i} is ok"
-  describe title, ->    
+  describe title, ->
     for source, i in sources
       if i isnt 0
         it "source #{i} == source #{i - 1}  ✓", ->
           expect(results[1]).to.eql results.splice(0,1)[0]
-  
+
 
 # Helper function for expecting errors to be thrown when parsing.
 #
@@ -79,7 +79,7 @@ describe 'CCSS-to-AST', ->
               ['==',  ['get','foo'] , ['get','var']]
             ]
           }
-    
+
     parse """
             10 <= 2 == 3 < 4 == 5 // chainning numbers, maybe should throw error?
           """
@@ -126,10 +126,10 @@ describe 'CCSS-to-AST', ->
               [grid-height] * #box2[width] <= 2 == 3 < 4 == 5 // w/ multiple statements containing variables and getters
             """
             """
-              grid-height * #box2[width] 
-                <= 2 
-                == 3 
-                < 4 
+              grid-height * #box2[width]
+                <= 2
+                == 3
+                < 4
                 == 5;
             """
           ]
@@ -234,14 +234,14 @@ describe 'CCSS-to-AST', ->
               (::)[width] == (::this)[x] == (&)[y]
             """
           ]
-        , 
+        ,
           {
             commands: [
               ['==', ['get',['&'],'width'],    ['get',['&'],'x']]
               ['==', ['get',['&'],'x'],        ['get',['&'],'y']]
             ]
           }
-    
+
     # global scope selector
     parse [
             """
@@ -251,13 +251,13 @@ describe 'CCSS-to-AST', ->
               $[width] == ($)[y]
             """
           ]
-        , 
+        ,
           {
             commands: [
               ['==', ['get',['$'],'width'], ['get',['$'],'y']]
             ]
           }
-    
+
     # parent scope selector
     parse [
             """
@@ -267,13 +267,13 @@ describe 'CCSS-to-AST', ->
               ^[width] == (^)[y]
             """
           ]
-        , 
+        ,
           {
             commands: [
               ['==', ['get',['^'],'width'], ['get',['^'],'y']]
             ]
           }
-    
+
     parse [
             """
               ^^margin-top == ^margin-top - margin-top
@@ -285,13 +285,13 @@ describe 'CCSS-to-AST', ->
               ( ^^ )[margin-top] == ( ^ )[margin-top] - [margin-top]
             """
           ]
-        , 
+        ,
           {
             commands: [
               ['==', ['get',['^', 2],'margin-top'], ['-',['get',['^'],'margin-top'],['get','margin-top']] ]
             ]
           }
-    
+
     parse [
             """
               ^^^^^^^^--my-margin-top == ^^^--my-margin-top
@@ -300,15 +300,15 @@ describe 'CCSS-to-AST', ->
               ^^^^^^^^[--my-margin-top] == ^^^[--my-margin-top]
             """
           ]
-        , 
+        ,
           {
             commands: [
               ['==', ['get',['^',8],'--my-margin-top'], ['get',['^',3],'--my-margin-top'] ]
             ]
           }
-    
-   
-  
+
+
+
   # Selectors as selector call context
   # ====================================================================
 
@@ -320,27 +320,27 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
-                ['get',[['&'],['.','box']],'width'], 
+              ['==',
+                ['get',[['&'],['.','box']],'width'],
                 ['get',[['::parent'],['.','thing']],'width']
               ]
             ]
           }
-    
+
     parse """
             button.big(.text)[width] == 100
           """
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 ['get',
                   [
                     ['.',['tag','button'],'big'],
                     ['.','text']
                   ],
                   'width'
-                ], 
+                ],
                 100
               ]
             ]
@@ -390,13 +390,13 @@ describe 'CCSS-to-AST', ->
               ['==', ['get',['virtual','box'],'right'],['get',['virtual','box2'],'x']]
             ]
           }
-    
-    
+
+
   # Selector Splats
   # ====================================================================
-  
+
   describe '/* Selector Splats */', ->
-  
+
     parse [
             """
               "col1...5"[x] == 0; // virtual splats
@@ -408,7 +408,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 ['get',
                   [',',
                     ['virtual','col1']
@@ -423,14 +423,14 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
-    equivalent "/* Virtual Splats Constraints */", 
+
+    equivalent "/* Virtual Splats Constraints */",
       '"col-1...4"[x] == 0;',
       '("col-1","col-2","col-3","col-4")[x] == 0;',
       '("col-1","col-2...3","col-4")[x] == 0;',
       '("col-1...2","col-3...3","col-4...4")[x] == 0;'
-      
-    
+
+
     equivalent "/* Virtual Splats Rulesets */", """
         "col1...5" { x: == 0; }
       """,
@@ -445,12 +445,12 @@ describe 'CCSS-to-AST', ->
       """,
       """
         "col1...3","col4...5" { &[x] == 0; }
-      """ 
-    
+      """
+
     parse '"zone-1-1...3"[x] == 0',
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               [',',
                 ['virtual','zone-1-1']
@@ -463,11 +463,11 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse '"zone-1...3-1...3"[x] == 0',
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               [',',
                 ['virtual','zone-1-1']
@@ -486,11 +486,11 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse '"zone-1...3-2"[x] == 0',
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               [',',
                 ['virtual','zone-1-2']
@@ -503,11 +503,11 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse "#box-2...6[x] == 0",
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               [',',
                 ['#','box-2']
@@ -522,11 +522,11 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse "#cell-x1...2-y1...2-z1...2[z] == 0",
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               [',',
                 ['#','cell-x1-y1-z1']
@@ -544,7 +544,7 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse [
         ".btn0...2.featured[x]                <= 0"
         "((.btn0, .btn1, .btn2).featured)[x]  <= 0"
@@ -552,9 +552,9 @@ describe 'CCSS-to-AST', ->
       ]
       {
         commands: [
-          ['<=', 
+          ['<=',
             ['get',
-              ['.', 
+              ['.',
                 [',',
                   ['.','btn0']
                   ['.','btn1']
@@ -566,18 +566,18 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
-  
-  
+
+
+
   describe '/* Special Cased Optimizations */', ->
 
     parse [
         '"col1...3":first[x] == 0'
-        '(("col1", "col2", "col3"):first)[x] == 0',
+        '(("col1", "col2", "col3"):first)[x] == 0'
       ]
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               ['virtual','col1']
             'x'],
@@ -585,14 +585,14 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
     parse [
         '"col1...3":last[x] == 0'
         '(("col1", "col2", "col3"):last)[x] == 0',
       ]
       {
         commands: [
-          ['==', 
+          ['==',
             ['get',
               ['virtual','col3']
             'x'],
@@ -600,8 +600,8 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
- 
+
+
 
 
 
@@ -841,7 +841,7 @@ describe 'CCSS-to-AST', ->
           }
 
     # comma seperated
-    
+
     parse """
         ((#a, #b).c, (#x, #y).z)[a-z] == 0;
       """,
@@ -877,7 +877,7 @@ describe 'CCSS-to-AST', ->
           ]
         ]
       }
-    
+
 
 
     parse [ """
@@ -1058,7 +1058,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
     parse [ """
               ::this, ::scope .box, ::this .post, ::scope, ::this "fling" {
               }
@@ -1120,7 +1120,7 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
-    
+
 
 
   # Directives
@@ -1645,169 +1645,6 @@ describe 'CCSS-to-AST', ->
           }
 
 
-  # Chains... WIP
-  # ====================================================================
-
-  describe '/ @chain /', ->
-
-    parse """
-            @chain .box bottom(==)top;
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','bottom','top']
-              ]
-            ]
-          }
-
-
-    parse """
-            @chain .box width();
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','width','width']
-              ]
-            ]
-          }
-
-    parse """
-            @chain .box width() height(>=10>=) bottom(<=)top;
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','width','width'],
-                ['gte-chain','height',10],
-                ['gte-chain',10,'height'],
-                ['lte-chain','bottom','top']
-              ]
-            ]
-          }
-
-    parse """
-            @chain .box width([hgap]*2);
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','width',['*',['get','hgap'],2]]
-                ['eq-chain',['*',['get','hgap'],2],'width']
-              ]
-            ]
-          }
-
-    parse """
-            @chain .box width(+[hgap]*2);
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain',['plus-chain','width',['*',['get','hgap'],2]],'width']
-              ]
-            ]
-          }
-
-    parse """
-            @chain .box right(+10==)left;
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain',['plus-chain','right',10],'left']
-              ]
-            ]
-          }
-
-    parse """
-            @chain .box bottom(==!require)top;
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','bottom','top','require']
-              ]
-            ]
-          }
-
-
-    parse """
-            @chain .box bottom(==!require)top width() height(!weak);
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','bottom','top',   'require']
-                ['eq-chain','width', 'width']
-                ['eq-chain','height','height',  'weak']
-              ]
-            ]
-          }
-
-
-
-    ### Not valid in parser at this stage
-    parse """
-            @chain .box height(==2+)center-x;
-          """
-        ,
-          {
-            commands: [
-              [
-                'chain',
-                ['.', 'box'],
-                ['eq-chain','height',['multiply-chain',2,'center-x']]
-              ]
-            ]
-          }
-    ###
-
-
-    ###
-    parse """
-            @chain .box width() {
-              :first[width] == :last[width];
-              :3rd[height] >= 2*:4th[height];
-            };
-          """
-        ,
-          {
-            commands: [
-              ['chain', ['.', 'box'], ['eq-chain','width','width']]
-              ['var', '.box:first[width]', 'width', ['$contextual',':first',['.', 'box']]]
-              ['==',['get','.box:first[width]'],['get','.box:last[width]']]
-              ['var', '.box:first[width]', 'width', ['$contextual',':first',['.', 'box']]]
-            ]
-          }
-    ###
-
-
   # Prop Normalization
   # ====================================================================
 
@@ -2224,7 +2061,7 @@ describe 'CCSS-to-AST', ->
                 ['==', ['get', 'left'], 0.4]
               ]
             }
-      
+
       parse """
               -[x] == -[y]; // unary minus
             """
@@ -2234,34 +2071,34 @@ describe 'CCSS-to-AST', ->
                   ['==', ['-',0,['get', 'x']], ['-',0,['get','y']]]
                 ]
               }
-      
+
       parse """
               -1 - -[x] == -[y] - -1; // minus unary minus
             """
             ,
               {
                 commands: [
-                  ['==', 
+                  ['==',
                     ['-', -1, ['-',0,['get', 'x']]],
                     ['-', ['-',0,['get','y']], -1]
                   ]
                 ]
               }
-      
+
       parse """
               -1 + -[x] == -[y] - -[x]; // unary minus - unary minus
             """
             ,
               {
                 commands: [
-                  ['==', 
+                  ['==',
                     ['+', -1, ['-',0,['get', 'x']]],
                     ['-', ['-',0,['get','y']], ['-',0,['get', 'x']]]
                   ]
                 ]
               }
-      
-      
+
+
 
 
 
@@ -2398,7 +2235,7 @@ describe 'CCSS-to-AST', ->
                   'featured']
                   ,
                   ['#',
-                  'b2']                  
+                  'b2']
                 ],
                 parser.parse("width: == 100; height: == &:next[height];").commands
               ]
@@ -2432,13 +2269,13 @@ describe 'CCSS-to-AST', ->
               )
 
           }
-    
+
     parse """ // DO NOT special case how ::scope is prepended to rule selectors
-    
+
             @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual") {
                 &[width] == 10;
               }
-    
+
           """,
           {
             commands: [].concat(
@@ -2455,16 +2292,16 @@ describe 'CCSS-to-AST', ->
                   -10-
                   (#cover)
                 in(#profile-card);
-    
+
               #follow[center-x] == #profile-card[center-x];
-    
+
               @h |-10-(#message)
                 in(#profile-card) {
                   &[top] == &:next[top];
                 }
-    
+
               #follow[center-y] == #profile-card[center-y];
-    
+
           """,
           {
             commands: [].concat(
@@ -2479,7 +2316,7 @@ describe 'CCSS-to-AST', ->
               ).concat (
                 parser.parse("#follow[center-y] == #profile-card[center-y];").commands
               )
-    
+
           }
 
 
@@ -2600,7 +2437,7 @@ describe 'CCSS-to-AST', ->
 
 
           """
-      
+
     parse """
           x == 100;
           .root {
@@ -2613,7 +2450,6 @@ describe 'CCSS-to-AST', ->
             }
           }
           $x == 100;
-          
-    
+
+
           """
-      

@@ -19,7 +19,8 @@ module.exports = (ast) ->
     ]
     analyze ast, buffer
     mutate buffer
-    JSON.parse JSON.stringify ast
+    #JSON.parse JSON.stringify ast
+    ast
 
 analyze = (ast, buffer) ->
   if ast.commands?

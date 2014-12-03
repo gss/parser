@@ -22,7 +22,9 @@ parse = (sources, expectation, pending) ->
 
       if expectation
         itFn 'commands ✓', ->
-          expect(result.commands).to.eql expectation.commands or []
+          cleanResults = JSON.parse JSON.stringify result.commands
+          cleanExpectation = JSON.parse JSON.stringify expectation.commands
+          expect(cleanResults).to.eql cleanExpectation or []
 
 
 equivalent = () -> # ( "title", source0, source1, source2...)
@@ -32,13 +34,14 @@ equivalent = () -> # ( "title", source0, source1, source2...)
   describe title + " ok", ->
     it "sources ok ✓", ->
       for source, i in sources
-        results.push parser.parse source
+        results.push JSON.parse JSON.stringify parser.parse source
         assert results[results.length-1].commands?, "source #{i} is ok"
   describe title, ->
     for source, i in sources
       if i isnt 0
         it "source #{i} == source #{i - 1}  ✓", ->
-          expect(results[1]).to.eql results.splice(0,1)[0]
+          cleanResults = results[1]
+          expect(cleanResults).to.eql results.splice(0,1)[0]
 
 
 # Helper function for expecting errors to be thrown when parsing.

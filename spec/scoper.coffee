@@ -8,6 +8,16 @@ scope = parser.scope
 
 {expect, assert} = chai
 
+eql = (thing1, thing2) ->
+  expect(JSON.parse(JSON.stringify(thing1))).to.eql JSON.parse(JSON.stringify(thing2))
+
+hoistTest = (name, input, output) ->
+  describe name, ->
+    it '// hoists', ->
+      eql scope(input), output
+    it '// ignores', ->
+      eql scope(output), output
+
 equivalent = () -> # ( "title", source0, source1, source2...)
   sources = [arguments...]
   title = sources.splice(0,1)[0]
@@ -15,7 +25,7 @@ equivalent = () -> # ( "title", source0, source1, source2...)
   describe title + " ok", ->
     it "sources ok ✓", ->
       for source, i in sources
-        results.push parser.parse source
+        results.push JSON.parse JSON.stringify parser.parse source
         assert results[results.length-1].commands?, "source #{i} is ok"
   describe title, ->
     for source, i in sources
@@ -34,8 +44,7 @@ describe "Scoper", ->
 
   describe "var hoisting raw commands", ->
 
-    it 'hoist 1 level root before', ->
-      ast =
+    hoistTest 'hoist 1 level root before',
         commands:
           [
             ['==',['get','foo'],100]
@@ -45,19 +54,19 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['==',['get','foo'],100]
-          ['rule',['.','box'],
-            [
-              ['==',['get',['^'],'foo'],100]
+      ,
+        commands:
+          [
+            ['==',['get','foo'],100]
+            ['rule',['.','box'],
+              [
+                ['==',['get',['^'],'foo'],100]
+              ]
             ]
           ]
-        ]
 
 
-    it 'hoist 1 level root after', ->
-      ast =
+    hoistTest 'hoist 1 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -67,18 +76,18 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],100]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['rule',['.','box'],
-            [
-              ['==',['get',['^'],'foo'],100]
+      ,
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['==',['get',['^'],'foo'],100]
+              ]
             ]
+            ['==',['get','foo'],100]
           ]
-          ['==',['get','foo'],100]
-        ]
 
-    it 'hoist 2 level before', ->
-      ast =
+    hoistTest 'hoist 2 level before',
         commands:
           [
             ['==',['get','foo'],0]
@@ -93,24 +102,24 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['==',['get','foo'],0]
-          ['rule',['.','box'],
-            [
-              ['==',['get',['^'],'foo'],1]
-              ['rule',['.','box'],
-                [
-                  ['==',['get',['^',2],'foo'],2]
+      ,
+        commands:
+          [
+            ['==',['get','foo'],0]
+            ['rule',['.','box'],
+              [
+                ['==',['get',['^'],'foo'],1]
+                ['rule',['.','box'],
+                  [
+                    ['==',['get',['^',2],'foo'],2]
+                  ]
                 ]
               ]
             ]
           ]
-        ]
 
 
-    it 'hoist 2 level root after', ->
-      ast =
+    hoistTest 'hoist 2 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -125,24 +134,24 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['rule',['.','box'],
-            [
-              ['rule',['.','box'],
-                [
-                  ['==',['get',['^',2],'foo'],2]
+      ,
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['rule',['.','box'],
+                  [
+                    ['==',['get',['^',2],'foo'],2]
+                  ]
                 ]
+                ['==',['get',['^'],'foo'],1]
               ]
-              ['==',['get',['^'],'foo'],1]
             ]
+            ['==',['get','foo'],0]
           ]
-          ['==',['get','foo'],0]
-        ]
 
 
-    it 'DONT already hoisted 2 level root after', ->
-      ast =
+    hoistTest 'DONT already hoisted 2 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -157,24 +166,24 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['rule',['.','box'],
-            [
-              ['rule',['.','box'],
-                [
-                  ['==',['get',['^'],'foo'],2]
+      ,
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['rule',['.','box'],
+                  [
+                    ['==',['get',['^'],'foo'],2]
+                  ]
                 ]
+                ['==',['get',['^',1000],'foo'],1]
               ]
-              ['==',['get',['^',1000],'foo'],1]
             ]
+            ['==',['get','foo'],0]
           ]
-          ['==',['get','foo'],0]
-        ]
 
 
-    it 'conditionals', ->
-      input =
+    hoistTest 'conditionals',
         commands:
           [
             ['==',['get','foo'],0]
@@ -208,7 +217,7 @@ describe "Scoper", ->
               ]
             ]
           ]
-      output =
+      ,
         commands:
           [
             ['==',['get','foo'],0]
@@ -242,8 +251,6 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(input)).to.eql output
-      expect(scope(output)).to.eql JSON.parse JSON.stringify output
 
 
   # virtual hoisting raw commands
@@ -251,8 +258,7 @@ describe "Scoper", ->
 
   describe "virtual hoisting raw commands", ->
 
-    it 'hoist 1 level root before', ->
-      input =
+    hoistTest 'hoist 1 level root before',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -262,7 +268,7 @@ describe "Scoper", ->
               ]
             ]
           ]
-      output =
+      ,
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -272,11 +278,8 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(input)).to.eql output
-      expect(scope(output)).to.eql JSON.parse JSON.stringify output
 
-    it 'hoist 1 level root after', ->
-      ast =
+    hoistTest 'hoist 1 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -286,30 +289,30 @@ describe "Scoper", ->
             ]
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['rule',['.','box'],
-            [
-              ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+      ,
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+              ]
             ]
+            ['==',['get',['virtual','zone'],'foo'],100]
           ]
-          ['==',['get',['virtual','zone'],'foo'],100]
-        ]
 
 
-    it 'Dont hoist root', ->
-      ast =
+    hoistTest 'Dont hoist root',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['==',['get',['virtual','zone'],'foo'],100]
-        ]
+      ,
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+          ]
 
-    it 'Dont consider ruleset selector child scope', ->
-      ast =
+    hoistTest 'Dont consider ruleset selector child scope',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -319,18 +322,18 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['==',['get',['virtual','zone'],'foo'],100]
-          ['rule', ['virtual','zone']
-            [
+      ,
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+            ['rule', ['virtual','zone']
+              [
 
+              ]
             ]
           ]
-        ]
 
-    it '4 level', ->
-      input =
+    hoistTest '4 level',
         commands:
           [
             ['rule', ['.','ready']
@@ -354,7 +357,7 @@ describe "Scoper", ->
               ]
             ]
           ]
-      output =
+      ,
         commands:
           [
             ['rule', ['.','ready']
@@ -378,8 +381,6 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(input)).to.eql output
-      expect(scope(output)).to.eql JSON.parse JSON.stringify output
 
 
 

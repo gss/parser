@@ -26,10 +26,13 @@ equivalent = () -> # ( "title", source0, source1, source2...)
   
 describe "Scoper", ->
   
+  
+  # var hoisting raw commands
+  # ====================================================================
+  
   describe "var hoisting raw commands", ->
     
-    it 'hoist 1 level root before', ->
-    
+    it 'hoist 1 level root before', ->  
       ast =
         commands:
           [
@@ -39,8 +42,7 @@ describe "Scoper", ->
                 ['==',['get','foo'],100]
               ]
             ]
-          ]
-    
+          ]    
       expect(scope(ast)).to.eql commands: 
         [
           ['==',['get','foo'],100]
@@ -52,8 +54,7 @@ describe "Scoper", ->
         ]
   
   
-    it 'hoist 1 level root after', ->
-    
+    it 'hoist 1 level root after', ->    
       ast =
         commands:
           [          
@@ -64,7 +65,6 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],100]
           ]
-    
       expect(scope(ast)).to.eql commands: 
         [        
           ['rule',['.','box'],
@@ -76,7 +76,6 @@ describe "Scoper", ->
         ]
   
     it 'hoist 2 level before', ->
-    
       ast =
         commands:
           [
@@ -92,7 +91,6 @@ describe "Scoper", ->
               ]
             ]          
           ]
-    
       expect(scope(ast)).to.eql commands: 
         [
           ['==',['get','foo'],0]
@@ -110,7 +108,6 @@ describe "Scoper", ->
       
   
     it 'hoist 2 level root after', ->
-    
       ast =
         commands:
           [          
@@ -126,7 +123,6 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-    
       expect(scope(ast)).to.eql commands: 
         [        
           ['rule',['.','box'],
@@ -144,7 +140,6 @@ describe "Scoper", ->
   
   
     it 'DONT already hoisted 2 level root after', ->
-    
       ast =
         commands:
           [        
@@ -160,7 +155,6 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-    
       expect(scope(ast)).to.eql commands: 
         [        
           ['rule',['.','box'],
@@ -178,7 +172,6 @@ describe "Scoper", ->
     
     
     it 'conditionals', ->    
-    
       ast =
         commands:
           [
@@ -213,7 +206,6 @@ describe "Scoper", ->
               ]
             ]
           ]
-  
       expect(scope(ast)).to.eql commands: 
         [
           ['==',['get','foo'],0]
@@ -248,6 +240,68 @@ describe "Scoper", ->
           ]
         ]
   
+  
+  # virtual hoisting raw commands
+  # ====================================================================
+  
+  describe "virtual hoisting raw commands", ->
+    
+    it 'hoist 1 level root before', ->
+      ast =
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+            ['rule',['.','box'],
+              [
+                ['==',['get',['virtual','zone'],'foo'],100]
+              ]
+            ]
+          ]
+      expect(scope(ast)).to.eql commands: 
+        [
+          ['==',['get',['virtual','zone'],'foo'],100]
+          ['rule',['.','box'],
+            [
+              ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+            ]
+          ]
+        ]
+    
+    it 'Dont hoist root', ->
+      ast =
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+          ]
+      expect(scope(ast)).to.eql commands: 
+        [
+          ['==',['get',['virtual','zone'],'foo'],100]
+        ]
+    
+    it 'Dont consider ruleset selector child scope', ->
+      ast =
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+            ['rule', ['virtual','zone']
+              [
+                
+              ]
+            ]
+          ]
+      expect(scope(ast)).to.eql commands: 
+        [
+          ['==',['get',['virtual','zone'],'foo'],100]
+          ['rule', ['virtual','zone']
+            [
+              
+            ]
+          ]
+        ]
+  
+  
+  # manual & auto hoisting source equivalence
+  # ====================================================================
   
   describe "manual & auto hoisting source equivalence", ->
     

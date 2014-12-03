@@ -40,7 +40,7 @@ _analyze = (node, buffer) =>
     scope._unscopedVars = []
     buffer.push scope
   
-  else if name is 'get' 
+  else if name is 'get' or name is 'virtual'
     currScope = buffer[buffer.length - 1]
     if currScope
       if node.length is 2

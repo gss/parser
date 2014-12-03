@@ -1,7 +1,7 @@
 # Scoper
 # =====================================================
-# 
-# Effectively hoists vars & virtuals to 
+#
+# Effectively hoists vars & virtuals to
 # highest parent scope used.
 #
 # Consistent with vars in CoffeeScript.
@@ -23,13 +23,13 @@ module.exports = (ast) ->
 
 analyze = (ast, buffer) ->
   if ast.commands?
-    for node in ast.commands 
+    for node in ast.commands
       _analyze node, buffer
 
-_analyze = (node, buffer) =>
+_analyze = (node, buffer, bufferLengthMinus = 1) =>
   isScope = false
   name = node[0]
-  
+
   if name is 'rule'
     node._isScope = true
     scope = node
@@ -39,20 +39,23 @@ _analyze = (node, buffer) =>
     scope._childScopes = []
     scope._unscopedVars = []
     buffer.push scope
-  
+
   else if name is 'get' or name is 'virtual'
-    currScope = buffer[buffer.length - 1]
+    currScope = buffer[buffer.length - bufferLengthMinus]
     if currScope
       if node.length is 2
         node._varKey = node.toString()
         currScope._unscopedVars.push node
-  
+
   for sub, i in node[0..node.length]
     if sub instanceof Array # then recurse
-      _analyze sub, buffer
-  
+      if name is 'rule' and i is 1
+        _analyze sub, buffer, 2
+      else
+        _analyze sub, buffer, bufferLengthMinus
+
   if node._isScope
-    buffer.pop()   
+    buffer.pop()
 
 
 mutate = (buffer) ->
@@ -62,19 +65,19 @@ mutate = (buffer) ->
 _mutate = (node) =>
   for child in node._childScopes
     _mutate child
-    
+
   if node._unscopedVars?.length > 0
-    for unscoped in node._unscopedVars        
+    for unscoped in node._unscopedVars
       level = 0
-      hoistLevel = 0        
-      parent = node._parentScope        
+      hoistLevel = 0
+      parent = node._parentScope
       while parent
         level++
-        for upper_unscoped in parent._unscopedVars            
+        for upper_unscoped in parent._unscopedVars
           if upper_unscoped._varKey is unscoped._varKey
             hoistLevel = level
         parent = parent._parentScope
-      
+
       # Hoist unscoped get commands by injecting parent scope operators, `^`
       if hoistLevel is 1
         unscoped.splice 1, 0, ['^']

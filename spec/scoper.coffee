@@ -26,6 +26,8 @@ equivalent = () -> # ( "title", source0, source1, source2...)
 
 describe "Scoper", ->
 
+  it 'existential', ->
+    expect(scope).to.exist
 
   # var hoisting raw commands
   # ====================================================================
@@ -172,7 +174,7 @@ describe "Scoper", ->
 
 
     it 'conditionals', ->
-      ast =
+      input =
         commands:
           [
             ['==',['get','foo'],0]
@@ -206,31 +208,33 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['==',['get','foo'],0]
-          ['rule',['.','box'],
-            [
-              ['if',
-                ['get','x']
-                [
-                  ['set', 'font-family', 'awesome']
-                  ['==',['get',['^'],'foo'],1]
-                ]
-                [
-                  ['get','y']
+      output =
+        commands:
+          [
+            ['==',['get','foo'],0]
+            ['rule',['.','box'],
+              [
+                ['if',
+                  ['get','x']
+                  [
+                    ['set', 'font-family', 'awesome']
+                    ['==',['get',['^'],'foo'],1]
+                  ]
+                  [
+                    ['get','y']
+                    [
+                      ['==',['get',['^'],'foo'],1]
+                      ['set', 'font-family', 'awesomer']
+                    ]
+                  ]
                   [
                     ['==',['get',['^'],'foo'],1]
-                    ['set', 'font-family', 'awesomer']
-                  ]
-                ]
-                [
-                  ['==',['get',['^'],'foo'],1]
-                  [
-                    ['set', 'font-family', 'awesomest']
-                    ['rule',['.','box'],
-                      [
-                        ['==',['get',['^',2],'foo'],2]
+                    [
+                      ['set', 'font-family', 'awesomest']
+                      ['rule',['.','box'],
+                        [
+                          ['==',['get',['^',2],'foo'],2]
+                        ]
                       ]
                     ]
                   ]
@@ -238,7 +242,8 @@ describe "Scoper", ->
               ]
             ]
           ]
-        ]
+      expect(scope(input)).to.eql output
+      expect(scope(output)).to.eql JSON.parse JSON.stringify output
 
 
   # virtual hoisting raw commands
@@ -325,7 +330,7 @@ describe "Scoper", ->
         ]
 
     it '4 level', ->
-      ast =
+      input =
         commands:
           [
             ['rule', ['.','ready']
@@ -349,20 +354,22 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands:
-        [
-          ['rule', ['.','ready']
-            [
-              ['==',['get',['virtual','zone'],'foo'],100]
-              ['rule', ['virtual','zone']
-                [
-                  ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                  ['rule', ['virtual',['^'],'zone']
-                    [
-                      ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                      ['rule', ['virtual',['^',2],'zone']
-                        [
-                          ['==',['get',['virtual',['^',3],'zone'],'foo'],100]
+      output =
+        commands:
+          [
+            ['rule', ['.','ready']
+              [
+                ['==',['get',['virtual','zone'],'foo'],100]
+                ['rule', ['virtual','zone']
+                  [
+                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                    ['rule', ['virtual',['^'],'zone']
+                      [
+                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                        ['rule', ['virtual',['^',2],'zone']
+                          [
+                            ['==',['get',['virtual',['^',3],'zone'],'foo'],100]
+                          ]
                         ]
                       ]
                     ]
@@ -371,7 +378,8 @@ describe "Scoper", ->
               ]
             ]
           ]
-        ]
+      expect(scope(input)).to.eql output
+      expect(scope(output)).to.eql JSON.parse JSON.stringify output
 
 
 

@@ -49,6 +49,7 @@ _analyze = (node, buffer, bufferLengthMinus = 1) =>
 
   for sub, i in node[0..node.length]
     if sub instanceof Array # then recurse
+      # ruleset context is not child of rulset
       if name is 'rule' and i is 1
         _analyze sub, buffer, 2
       else

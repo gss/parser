@@ -3,7 +3,7 @@ if window?
 else
   chai = require 'chai' unless chai
   parser = require '../lib/compiler'
-  
+
 scope = parser.scope
 
 {expect, assert} = chai
@@ -12,27 +12,27 @@ equivalent = () -> # ( "title", source0, source1, source2...)
   sources = [arguments...]
   title = sources.splice(0,1)[0]
   results = []
-  describe title + " ok", ->        
+  describe title + " ok", ->
     it "sources ok ✓", ->
       for source, i in sources
-        results.push parser.parse source        
+        results.push parser.parse source
         assert results[results.length-1].commands?, "source #{i} is ok"
-  describe title, ->    
+  describe title, ->
     for source, i in sources
       if i isnt 0
         it "source #{i} == source #{i - 1}  ✓", ->
           expect(results[1]).to.eql results.splice(0,1)[0]
 
-  
+
 describe "Scoper", ->
-  
-  
+
+
   # var hoisting raw commands
   # ====================================================================
-  
+
   describe "var hoisting raw commands", ->
-    
-    it 'hoist 1 level root before', ->  
+
+    it 'hoist 1 level root before', ->
       ast =
         commands:
           [
@@ -42,8 +42,8 @@ describe "Scoper", ->
                 ['==',['get','foo'],100]
               ]
             ]
-          ]    
-      expect(scope(ast)).to.eql commands: 
+          ]
+      expect(scope(ast)).to.eql commands:
         [
           ['==',['get','foo'],100]
           ['rule',['.','box'],
@@ -52,12 +52,12 @@ describe "Scoper", ->
             ]
           ]
         ]
-  
-  
-    it 'hoist 1 level root after', ->    
+
+
+    it 'hoist 1 level root after', ->
       ast =
         commands:
-          [          
+          [
             ['rule',['.','box'],
               [
                 ['==',['get','foo'],100]
@@ -65,8 +65,8 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],100]
           ]
-      expect(scope(ast)).to.eql commands: 
-        [        
+      expect(scope(ast)).to.eql commands:
+        [
           ['rule',['.','box'],
             [
               ['==',['get',['^'],'foo'],100]
@@ -74,7 +74,7 @@ describe "Scoper", ->
           ]
           ['==',['get','foo'],100]
         ]
-  
+
     it 'hoist 2 level before', ->
       ast =
         commands:
@@ -89,9 +89,9 @@ describe "Scoper", ->
                   ]
                 ]
               ]
-            ]          
+            ]
           ]
-      expect(scope(ast)).to.eql commands: 
+      expect(scope(ast)).to.eql commands:
         [
           ['==',['get','foo'],0]
           ['rule',['.','box'],
@@ -103,14 +103,14 @@ describe "Scoper", ->
                 ]
               ]
             ]
-          ]          
+          ]
         ]
-      
-  
+
+
     it 'hoist 2 level root after', ->
       ast =
         commands:
-          [          
+          [
             ['rule',['.','box'],
               [
                 ['rule',['.','box'],
@@ -123,8 +123,8 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-      expect(scope(ast)).to.eql commands: 
-        [        
+      expect(scope(ast)).to.eql commands:
+        [
           ['rule',['.','box'],
             [
               ['rule',['.','box'],
@@ -137,12 +137,12 @@ describe "Scoper", ->
           ]
           ['==',['get','foo'],0]
         ]
-  
-  
+
+
     it 'DONT already hoisted 2 level root after', ->
       ast =
         commands:
-          [        
+          [
             ['rule',['.','box'],
               [
                 ['rule',['.','box'],
@@ -155,8 +155,8 @@ describe "Scoper", ->
             ]
             ['==',['get','foo'],0]
           ]
-      expect(scope(ast)).to.eql commands: 
-        [        
+      expect(scope(ast)).to.eql commands:
+        [
           ['rule',['.','box'],
             [
               ['rule',['.','box'],
@@ -169,9 +169,9 @@ describe "Scoper", ->
           ]
           ['==',['get','foo'],0]
         ]
-    
-    
-    it 'conditionals', ->    
+
+
+    it 'conditionals', ->
       ast =
         commands:
           [
@@ -202,11 +202,11 @@ describe "Scoper", ->
                       ]
                     ]
                   ]
-                ]                                
+                ]
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands: 
+      expect(scope(ast)).to.eql commands:
         [
           ['==',['get','foo'],0]
           ['rule',['.','box'],
@@ -235,19 +235,19 @@ describe "Scoper", ->
                     ]
                   ]
                 ]
-              ]                                
+              ]
             ]
           ]
         ]
-  
-  
+
+
   # virtual hoisting raw commands
   # ====================================================================
-  
+
   describe "virtual hoisting raw commands", ->
-    
+
     it 'hoist 1 level root before', ->
-      ast =
+      input =
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -257,27 +257,52 @@ describe "Scoper", ->
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands: 
+      output =
+        commands:
+          [
+            ['==',['get',['virtual','zone'],'foo'],100]
+            ['rule',['.','box'],
+              [
+                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+              ]
+            ]
+          ]
+      expect(scope(input)).to.eql output
+      expect(scope(output)).to.eql JSON.parse JSON.stringify output
+
+    it 'hoist 1 level root after', ->
+      ast =
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['==',['get',['virtual','zone'],'foo'],100]
+              ]
+            ]
+            ['==',['get',['virtual','zone'],'foo'],100]
+          ]
+      expect(scope(ast)).to.eql commands:
         [
-          ['==',['get',['virtual','zone'],'foo'],100]
           ['rule',['.','box'],
             [
               ['==',['get',['virtual',['^'],'zone'],'foo'],100]
             ]
           ]
+          ['==',['get',['virtual','zone'],'foo'],100]
         ]
-    
+
+
     it 'Dont hoist root', ->
       ast =
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
-      expect(scope(ast)).to.eql commands: 
+      expect(scope(ast)).to.eql commands:
         [
           ['==',['get',['virtual','zone'],'foo'],100]
         ]
-    
+
     it 'Dont consider ruleset selector child scope', ->
       ast =
         commands:
@@ -285,26 +310,76 @@ describe "Scoper", ->
             ['==',['get',['virtual','zone'],'foo'],100]
             ['rule', ['virtual','zone']
               [
-                
+
               ]
             ]
           ]
-      expect(scope(ast)).to.eql commands: 
+      expect(scope(ast)).to.eql commands:
         [
           ['==',['get',['virtual','zone'],'foo'],100]
           ['rule', ['virtual','zone']
             [
-              
+
             ]
           ]
         ]
-  
-  
+
+    it '4 level', ->
+      ast =
+        commands:
+          [
+            ['rule', ['.','ready']
+              [
+                ['==',['get',['virtual','zone'],'foo'],100]
+                ['rule', ['virtual','zone']
+                  [
+                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                    ['rule', ['virtual','zone']
+                      [
+                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                        ['rule', ['virtual','zone']
+                          [
+                            ['==',['get',['virtual','zone'],'foo'],100]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+      expect(scope(ast)).to.eql commands:
+        [
+          ['rule', ['.','ready']
+            [
+              ['==',['get',['virtual','zone'],'foo'],100]
+              ['rule', ['virtual','zone']
+                [
+                  ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                  ['rule', ['virtual',['^'],'zone']
+                    [
+                      ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                      ['rule', ['virtual',['^',2],'zone']
+                        [
+                          ['==',['get',['virtual',['^',3],'zone'],'foo'],100]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+
+
+
   # manual & auto hoisting source equivalence
   # ====================================================================
-  
+
   describe "manual & auto hoisting source equivalence", ->
-    
+
     equivalent "1 level basic",
       """
         foo == bar;
@@ -318,14 +393,14 @@ describe "Scoper", ->
           ^foo == ^bar;
         }
       """
-    
+
     equivalent "3 level moderate",
       """
-        
+
         @if foo > 20 {
-        
+
         .outer {
-                
+
           .box {
             20 * foo + 100 == bye - bar / 10;
             .inner {
@@ -333,20 +408,20 @@ describe "Scoper", ->
               20 * foo + 100 == bye - bar / 10;
             }
           }
-        
+
           20 * foo + 100 == hey - bar / 10;
-        
+
         }
-        
+
         }
-        
+
       """,
       """
-      
+
         @if foo > 20 {
-        
+
         .outer {
-        
+
           .box {
             20 * ^^foo + 100 == bye - ^bar / 10;
             .inner {
@@ -354,15 +429,14 @@ describe "Scoper", ->
               20 * ^^^foo + 100 == ^bye - ^^bar / 10;
             }
           }
-        
+
           20 * ^foo + 100 == hey - bar / 10;
-        
+
         }
-        
+
         }
-        
+
       """
-      
-      
-      
-    
+
+
+

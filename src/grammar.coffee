@@ -87,32 +87,32 @@ class Grammar
 
 
   ### Public ###
-  
+
   reverseFilterNest: (commands) ->
     len = commands.length
     i=len-1
     while i > 0
       outie = commands[i]
       innie = commands[i-1]
-      
-      if outie[0] is '$pseudo' and innie[0] is ',' 
-        
+
+      if outie[0] is '$pseudo' and innie[0] is ','
+
         # unwrap ("virual", ...):first
         if outie[1] is 'first' and innie[1][0] is 'virtual'
           commands[i] = innie[1]
-        
+
         # unwrap (..., "virual"):last
         else if outie[1] is 'last' and innie[innie.length-1][0] is 'virtual'
           commands[i] = innie[innie.length-1]
-      
-      
+
+
       # just wrap that innie
       else
         outie.splice 1, 0, innie
       i--
     return commands[len-1]
-    
-  
+
+
   # Create an AST from the head and tail of an expression.
   # @private
   #
@@ -129,10 +129,10 @@ class Grammar
       ]
 
     return result
-    
+
   createSelectorCommaCommand: (head, tail) ->
     # *: Direct parent-sibling commas commands are merged
-    
+
     # *
     if head[0] is ','
       result = head
@@ -141,47 +141,47 @@ class Grammar
 
     for item, index in tail
       subSel = tail[index][3]
-      
+
       # *
       if subSel[0] is ','
         subSel.splice(0,1)
         result = result.concat subSel
-        
+
       else
         result.push subSel
 
     return result
-  
+
   mergeCommands: (objs) ->
     commands = []
     for o in objs
       commands = commands.concat o.commands
     return {commands:commands}
 
-  
+
   splatifyIfNeeded: (commandBase, o) ->
     if o.splats
       return @splatExpander commandBase, o
     else
       return [commandBase, o]
-  
+
   splatExpander: (commandBase, o) ->
-    
+
     {splats, postfix} = o
-    
+
     names = null
-    
+
     for splat in splats
-      
+
       {prefix, from, to} = splat
-      
+
       currentNames = []
-      
+
       i = from
       while i <= to
         currentNames.push prefix + i
         i++
-      
+
       if !names
         names = currentNames
       else
@@ -190,13 +190,13 @@ class Grammar
           for cur in currentNames
             newNames.push name + cur
         names = newNames
-    
+
     # build command
-    command = [',']    
+    command = [',']
     for name in names
       if postfix then name += postfix
       command.push [commandBase, name]
-    
+
     return command
 
   # Construct a new Grammar.
@@ -208,12 +208,12 @@ class Grammar
   #
   constructor: (parser, lineNumber, columnNumber, errorType) ->
     @parser = parser
-    
+
     @_lineNumber = lineNumber
     @_columnNumber = columnNumber
     @_Error = errorType()
 
-    
+
   # constraints.
   #
   # @param head [Array]
@@ -222,9 +222,9 @@ class Grammar
   # @return [String]
   #
   constraint: (head, tail, strengthAndWeight) ->
-    
+
     commands = []
-    
+
     firstExpression = head
 
     if not strengthAndWeight? or strengthAndWeight.length is 0
@@ -265,22 +265,22 @@ class Grammar
       firstExpression = secondExpression
 
     return {commands:commands} # FIXME
-  
-  
+
+
   # constraints.
   #
   # x: == 100;
   #
   inlineConstraint: (prop,op,rest) ->
     prop = prop.join('').trim()
-    rest = rest.join('').trim()     
-    
+    rest = rest.join('').trim()
+
     result = @parser.parse("&[#{prop}] #{op} #{rest}")
-    
-    
+
+
     return result
-  
-  
+
+
   # constraints.
   #
   # x: == 100;
@@ -288,12 +288,12 @@ class Grammar
   inlineSet: (prop,rest) ->
     prop = prop.join('').trim()
     rest = rest.join('').trim()
-    
+
     commands = [['set',prop,rest]]
-    
+
     return {commands:commands}
-  
-  
+
+
   # Directives
   #
   directive: (name,terms,commands) ->
@@ -312,7 +312,7 @@ class Grammar
   #
   variable: (negative, selector, variableNameCharacters) ->
     variableName = Grammar._toString variableNameCharacters
-    
+
     # If bound to DOM query
     #
     if selector? and selector.length isnt 0
@@ -348,7 +348,7 @@ class Grammar
       command = ['get', selector, variableName]
     else
       command = ['get', variableName]
-    
+
     if negative
       return ['-', 0, command]
     else
@@ -589,119 +589,6 @@ class Grammar
     }
 
 
-
-
-  ### Chains ###
-
-  # Chains.
-  #
-  # @param selector [Object]
-  # @param chainers [Array]
-  #
-  chain: (selector, chainers) ->
-
-    ast = ['chain', selector]
-    ast = ast.concat chainer for chainer in chainers
-    return {commands:[ast]}
-
-
-  # Chainers.
-  #
-  # @param [Object] options
-  # @option options headCharacters [Array<String>]
-  # @option options headExpression [Array]
-  # @option options headOperator [String]
-  # @option options bridgeValue [Array]
-  # @option options tailOperator [String]
-  # @option options strengthAndWeight [Array]
-  # @option options tailCharacters [Array<String>]
-  # @return [Array]
-  #
-  chainer: (options) =>
-    {
-      headCharacters
-      headExpression
-      headOperator
-      bridgeValue
-      tailOperator
-      strengthAndWeight
-      tailCharacters
-    } = options
-
-    asts = []
-    head = Grammar._toString headCharacters
-    tail = Grammar._toString tailCharacters
-
-    createChainAST = (operator, firstExpression, secondExpression) =>
-      ast = [operator, firstExpression, secondExpression]
-      ast = ast.concat strengthAndWeight if strengthAndWeight?
-      return ast
-
-    tail = head if tail.length is 0
-
-    if headExpression?
-      headExpression.splice 1, 1, head
-      head = headExpression
-
-    if bridgeValue?
-      asts.push createChainAST(headOperator, head, bridgeValue)
-
-      if tailOperator?
-        asts.push createChainAST(tailOperator, bridgeValue, tail)
-      else
-        throw new @_Error 'Invalid Chain Statement', null, null, null, @_lineNumber(), @_columnNumber()
-    else
-      asts.push createChainAST(headOperator, head, tail)
-
-    return asts
-
-
-  # Head expressions.
-  #
-  # @param operator [String]
-  # @param expression [Array]
-  # @return [Array]
-  #
-  headExpression: (operator, expression) ->
-    return [operator, '_REPLACE_ME_', expression]
-
-
-  # Tail expressions.
-  #
-  # @param expression [Array]
-  # @param operator [String]
-  # @return [Array]
-  #
-  tailExpression: (expression, operator) ->
-    return [operator, expression, '_REPLACE_ME_']
-
-
-  # Chain math operators.
-  #
-  # @return [Object]
-  chainMathOperator: ->
-    return {
-      plus: -> 'plus-chain'
-      minus: -> 'minus-chain'
-      multiply: -> 'multiply-chain'
-      divide: -> 'divide-chain'
-    }
-
-
-  # Chain linear constraint operators.
-  #
-  # @param operator [String]
-  # @return [String]
-  #
-  chainConstraintOperator: (op = '==') ->
-    opMap = 
-      "==": "eq"   
-      "<=": "lte"  
-      ">=": "gte"  
-      "<" : "lt"   
-      ">" : "gt"   
-    operator = "#{opMap[op]}-chain"
-    return operator
 
 
 module.exports = Grammar

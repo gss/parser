@@ -1590,61 +1590,6 @@ describe 'CCSS-to-AST', ->
           }
 
 
-
-
-  # JS Shit... WIP
-  # ====================================================================
-
-  describe '/ js layout hooks /', ->
-
-    parse """
-            [left-col] == [col-left];
-            @for-each .box ```
-            function (el,exp,engine) {
-              var asts =[];
-              asts.push();
-            }
-            ```;
-          """
-        ,
-          {
-            commands: [
-
-              ['==', ['get', 'left-col'], ['get', 'col-left']]
-              [
-                'for-each',
-                ['.', 'box'],
-                ['js',"""function (el,exp,engine) {
-                    var asts =[];
-                    asts.push();
-                  }""" ]
-              ]
-            ]
-          }
-
-    parse """
-            @for-all .box ```
-            function (query,engine) {
-              var asts =[];
-              asts.push();
-            }
-            ```;
-          """
-        ,
-          {
-            commands: [
-              [
-                'for-all',
-                ['.', 'box'],
-                ['js',"""function (query,engine) {
-                    var asts =[];
-                    asts.push();
-                  }""" ]
-              ]
-            ]
-          }
-
-
   # Prop Normalization
   # ====================================================================
 

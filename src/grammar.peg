@@ -36,7 +36,6 @@ StatementTypes
   / Virtual
   / IfElseStatement
   / Stay
-  / ForEach
   / Directive
 
 
@@ -445,21 +444,3 @@ StayVars
 
 StayStart
   = ("@-gss-stay" / "@stay")
-
-
-
-
-// JS hooks
-// ===================================================
-
-ForEach
-  = type:ForLooperType __ selector:GSSSelector __ javaScript:JavaScript {
-    return g.forEach(type, selector, javaScript)
-  }
-
-JavaScript
-  = "```" characters:[^`]* "```" { return g.javaScript(characters); }
-
-ForLooperType
-  = ("@-gss-for-each" / "@for-each") { return g.forLoopType().forEach(); }
-  / ("@-gss-for-all" / "@for-all") { return g.forLoopType().forAll(); }

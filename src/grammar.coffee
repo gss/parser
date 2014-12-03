@@ -554,41 +554,5 @@ class Grammar
 
 
 
-  ### JavaScript hooks ###
-
-  # For each statements.
-  #
-  # @param type [String]
-  # @param selector [Object]
-  # @param javaScript [Array<String>]
-  #
-  forEach: (type, selector, javaScript) ->
-    return {commands:[[type, selector, javaScript]]}
-
-
-  # JavaScript statements.
-  #
-  # @param characters [Array<String>]
-  # @return [Array<String>]
-  #
-  javaScript: (characters) ->
-    return [
-      'js'
-      characters.join('').trim()
-    ]
-
-
-  # For loop types.
-  #
-  # @return [Object];
-  #
-  forLoopType: ->
-    return {
-      forEach: -> 'for-each'
-      forAll: -> 'for-all'
-    }
-
-
-
 
 module.exports = Grammar

@@ -1,5 +1,15 @@
 # A CoffeeScript representation of the PEG grammar.
 #
+
+cloneCommand = (command) ->
+  clone = []
+  for part in command
+    if typeof part isnt 'object'
+      clone.push part
+    else if part instanceof Array
+      clone.push cloneCommand part
+  clone
+
 class Grammar
 
   ### Private ###
@@ -100,7 +110,7 @@ class Grammar
       if outie[0] is ','
         results = [',']
         for outieCommand in outie[1...outie.length]
-          innieClone = JSON.parse JSON.stringify innie
+          innieClone = cloneCommand innie
           results.push @reverseFilterNest [innieClone, outieCommand]
         commands[i] = results
 

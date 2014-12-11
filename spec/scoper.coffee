@@ -300,6 +300,43 @@ describe "Scoper", ->
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
 
+    hoistTest 'virtual defined in ruleset selector',
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['rule',['virtual','zone'],
+                  [
+                    ['==',['get',['virtual','zone'],'foo'],100]
+                  ]
+                ]
+                ['rule',['.','big'],
+                  [
+                    ['==',['get',['virtual','zone'],'foo'],100]
+                  ]
+                ]
+              ]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule',['.','box'],
+              [
+                ['rule',['virtual','zone'],
+                  [
+                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                  ]
+                ]
+                ['rule',['.','big'],
+                  [
+                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                  ]
+                ]
+              ]
+            ]
+          ]
+
 
     hoistTest 'Dont hoist root',
         commands:

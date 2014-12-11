@@ -95,7 +95,16 @@ class Grammar
       outie = commands[i]
       innie = commands[i-1]
 
-      if outie[0] is '$pseudo' and innie[0] is ','
+      # common when splats are scoped, ie $"cel1...3"
+      # or, [['$'],[','...]]
+      if outie[0] is ','
+        results = [',']
+        for outieCommand in outie[1...outie.length]
+          innieClone = JSON.parse JSON.stringify innie
+          results.push @reverseFilterNest [innieClone, outieCommand]
+        commands[i] = results
+
+      else if outie[0] is '$pseudo' and innie[0] is ','
 
         # unwrap ("virual", ...):first
         if outie[1] is 'first' and innie[1][0] is 'virtual'

@@ -16,7 +16,6 @@ parse = (sources, expectation, pending) ->
       result = null
 
       itFn 'ok ✓', ->
-        console.log source
         result = parser.parse source
         expect(result).to.be.an 'object'
 
@@ -24,6 +23,7 @@ parse = (sources, expectation, pending) ->
         itFn 'commands ✓', ->
           cleanResults = JSON.parse JSON.stringify result.commands
           cleanExpectation = JSON.parse JSON.stringify expectation.commands
+          #console.log JSON.stringify cleanResults
           expect(cleanResults).to.eql cleanExpectation or []
 
 
@@ -551,7 +551,6 @@ describe 'CCSS-to-AST', ->
     parse [
         ".btn0...2.featured[x]                <= 0"
         "((.btn0, .btn1, .btn2).featured)[x]  <= 0"
-        #"(.btn0, .btn1, .btn2).featured[x]    <= 0"
       ]
       {
         commands: [
@@ -570,7 +569,59 @@ describe 'CCSS-to-AST', ->
         ]
       }
 
+  describe '/* scoped splats */', ->
 
+    parse ".parent.btn0...2.featured[x] <= 0",
+      {
+        commands: [
+          ['<=',
+            ['get',
+              ['.',
+                [',',
+                  ['.',['.','parent'],'btn0']
+                  ['.',['.','parent'],'btn1']
+                  ['.',['.','parent'],'btn2']
+                ]
+              'featured']
+            'x'],
+            0
+          ]
+        ]
+      }
+
+    parse "$.btn0...2[x] <= 0",
+
+      {
+        commands: [
+          ['<=',
+            ['get',
+              [',',
+                ['.',['$'],'btn0']
+                ['.',['$'],'btn1']
+                ['.',['$'],'btn2']
+              ]
+            'x'],
+            0
+          ]
+        ]
+      }
+
+    parse '$"zone-1...3-2"[x] == 0',
+      {
+        commands: [
+          ['==',
+            ['get',
+              [',',
+                ['virtual',['$'],'zone-1-2']
+                ['virtual',['$'],'zone-2-2']
+                ['virtual',['$'],'zone-3-2']
+              ],
+              'x'
+            ],
+            0
+          ]
+        ]
+      }
 
   describe '/* Special Cased Optimizations */', ->
 

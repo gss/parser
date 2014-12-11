@@ -304,14 +304,6 @@ Combinator "Combinator"
   // TODO: &[^... used for rulesets & other stuff...
   / " "+ &[^{,)]                     {return " "}
 
-VirtualSel
-  = ["] o:SplattedName ["]
-    {
-      return g.splatExpander('virtual',o);
-    }
-  / ["] id:[^"]+ ["]
-    {return ["virtual",id.join("")];}
-
 SplattedName
   = splats:Splat+ postfix:SplatNameChar*
     {
@@ -335,6 +327,14 @@ Range "Range"
 
 SplatNameChar
   = !Range char:SelectorNameChars {return char}
+
+
+VirtualSel
+  = ["] name:(SplattedName / VirtualSelName) ["]
+    {return g.splatifyIfNeeded('virtual',name);}
+
+VirtualSelName
+  = name:[^"]+ {return name.join("");}
 
 TagSel
   = name:SelectorName         {return ["tag",name];}

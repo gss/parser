@@ -81,7 +81,8 @@ _mutate = (node) =>
         parent = parent._parentScope
 
       # Hoist unscoped get commands by injecting parent scope operators, `^`
-      if hoistLevel is 1
-        unscoped.splice 1, 0, ['^']
-      else if hoistLevel > 1
-        unscoped.splice 1, 0, ['^', hoistLevel]
+      if hoistLevel > 0
+        if unscoped[1][0] isnt '^' # not already hoisted
+          hoister = ['^']
+          hoister.push(hoistLevel) if hoistLevel > 1
+          unscoped.splice 1, 0, hoister

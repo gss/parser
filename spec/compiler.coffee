@@ -2460,3 +2460,24 @@ describe 'CCSS-to-AST', ->
 
 
           """
+
+  #describe 'PRINT', ->
+  #  it 'PRINT', ->
+  #    console.log(JSON.stringify(parser.parse("""
+  #         .wrap {
+  #           my-size == 100;
+  #           "target" {
+  #             width: == &height == my-size;
+  #             center-y: == ::window[center-y];
+  #             center-x: ==        ^[center-x];
+  #           }
+  #           .thing {
+  #             width: == &height == my-size;
+  #             center: == "target"[center];
+  #             .other {
+  #               width: == &height == my-size / 2;
+  #               center: == "target"[center];
+  #             }
+  #           }
+  #         }
+  #      """),1,1))

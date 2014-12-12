@@ -440,6 +440,46 @@ describe "Scoper", ->
         }
       """
 
+    equivalent "3 level with virtuals",
+      """
+        .wrap {
+          my-size == 100;
+          width: == &height == my-size;
+          "target" {
+            width: == &height == my-size;
+            center-y: == ::window[center-y];
+            center-x: ==        ^[center-x];
+          }
+          .thing {
+            width: == &height == my-size;
+            center: == "target"[center];
+            .other {
+              width: == &height == my-size / 2;
+              center: == "target"[center];
+            }
+          }
+        }
+      """,
+      """
+        .wrap {
+          my-size == 100;
+          width: == &height == my-size;
+          "target" {
+            width: == &height == ^my-size;
+            center-y: == ::window[center-y];
+            center-x: ==        ^[center-x];
+          }
+          .thing {
+            width: == &height == ^my-size;
+            center: == ^"target"[center];
+            .other {
+              width: == &height == ^^my-size / 2;
+              center: == ^^"target"[center];
+            }
+          }
+        }
+      """
+
     equivalent "3 level moderate",
       """
 

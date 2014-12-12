@@ -310,6 +310,14 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
+    parse "^[left] + [base] == &[left]",
+          {
+            commands: [
+              ['==', ['+',['get',['^'],'x'],['get','base']] , ['get',['&'],'x'] ]
+            ]
+          }
+
+
 
 
   # Selectors as selector call context

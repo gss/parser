@@ -13,7 +13,7 @@
     "lib/parser.js"
   ],
   "dependencies": {
-    "the-gss/error-reporter": "*"
+    "gss/error-reporter": "~0.1.0"
   },
   "main": "lib/compiler.js",
   "license": "MIT"

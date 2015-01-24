@@ -23,8 +23,8 @@ class Grammar
   # method.
   #
   @_toString: (input) ->
-    return input if toString.call(input) is '[object String]'
-    return input.join('') if toString.call(input) is '[object Array]'
+    return input if Object.prototype.toString.call(input) is '[object String]'
+    return input.join('') if Object.prototype.toString.call(input) is '[object Array]'
     return ''
 
 

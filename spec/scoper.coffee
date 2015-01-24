@@ -512,7 +512,7 @@ describe "Scoper", ->
             20 * ^^foo + 100 == bye - ^bar / 10;
             .inner {
               &bye == 50;
-              20 * ^^^foo + 100 == ^bye - ^^bar / 10;
+              20 * ^^^foo + 100 == &bye - ^^bar / 10;
             }
           }
 
@@ -524,5 +524,27 @@ describe "Scoper", ->
 
       """
 
+  # overriding hoisted variables
+  # ====================================================================
 
+  describe "manual & auto hoisting source equivalence", ->
 
+    equivalent "1 level basic",
+      """
+        foo == bar;
+        .box {
+          &foo == bar;
+          .subbox {
+            foo == bar;
+          }
+        }
+      """,
+      """
+        foo == bar;
+        .box {
+          &foo == ^bar;
+        }
+        .subbox {
+          ^foo == ^^bar;
+        }
+      """

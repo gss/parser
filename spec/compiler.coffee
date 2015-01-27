@@ -1751,6 +1751,17 @@ describe 'CCSS-to-AST', ->
               ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'height']]
             ]
           }
+    
+    parse """
+            "box1"[size] == "box2"[size];
+          """
+        ,
+          {
+            commands: [
+              ['==', ['get', ['virtual', 'box1'], 'width' ], ['get', ['virtual', 'box2'], 'width' ]]
+              ['==', ['get', ['virtual', 'box1'], 'height'], ['get', ['virtual', 'box2'], 'height']]
+            ]
+          }
 
     parse """
             #box1[position] == #box2[position];
@@ -1919,6 +1930,28 @@ describe 'CCSS-to-AST', ->
               ['==', ['get', ['#', 'box'], '$square-size'], 100]
               ['==', ['get', ['#', 'box'], 'width'       ], ['get', ['#', 'box'], '$square-size']]
               ['==', ['get', ['#', 'box'], 'height'      ], ['get', ['#', 'box'], '$square-size']]
+            ]
+          }
+    
+    parse """
+            "box1"[top-right] + 2 == "box2"[center] / 4;
+          """
+        ,
+          {
+            commands: [
+              ['==', ['+', ['get', ['virtual', 'box1'], 'right'], 2], ['/', ['get', ['virtual', 'box2'], 'center-x'], 4]]
+              ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], 2], ['/', ['get', ['virtual', 'box2'], 'center-y'], 4]]
+            ]
+          }
+          
+    parse """
+            "box1"[top-right] + "box2"[center] ==  4;
+          """
+        ,
+          {
+            commands: [
+              ['==', ['+', ['get', ['virtual', 'box1'], 'right'], ['get', ['virtual', 'box2'], 'center-x'] ], 4]
+              ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], ['get', ['virtual', 'box2'], 'center-y'] ], 4]
             ]
           }
 

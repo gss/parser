@@ -11,7 +11,8 @@
     "lib/compiler.js",
     "lib/grammar.js",
     "lib/parser.js",
-    "lib/scoper.js"
+    "lib/scoper.js",
+    "lib/twodunpacker.js"
   ],
   "dependencies": {
     "gss/error-reporter": "~0.1.0",

@@ -28,41 +28,6 @@ class Grammar
     return ''
 
 
-  # Unpack a 2D expression.
-  # @private
-  #
-  # @param expression [Array] An AST representing a 2D expression.
-  # @return [Array] An AST representing the unpacked expression.
-  #
-  @_unpack2DExpression: (expression) ->
-    # mapping =
-    #   'bottom-left'   : ['left', 'bottom']
-    #   'bottom-right'  : ['right', 'bottom']
-    #   center          : ['center-x', 'center-y']
-    #   'intrinsic-size': ['intrinsic-width', 'intrinsic-height']
-    #   position        : ['x', 'y']
-    #   size            : ['width', 'height']
-    #   'top-left'      : ['left', 'top']
-    #   'top-right'     : ['right', 'top']
-    #
-    # expressions = [expression]
-    # property = expression[2]
-    # properties = mapping[property]
-    #
-    # if properties?
-    #   expressions = []
-    #
-    #   for item in properties
-    #     expression = expression.slice()
-    #     expression[2] = item
-    #     expressions.push expression
-
-
-
-    expressions = [expression]
-    return expressions
-
-
   # The type of error thrown by the PEG parser.
   # @note Assigned in constructor.
   # @private

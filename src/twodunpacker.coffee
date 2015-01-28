@@ -50,26 +50,27 @@ _unpackRuleset2dConstraints = (node, tailNode, commands, buffer) =>
     if subCommand instanceof Array # then recurse
       _analyze subCommand, commands, false, buffer
 
-      if subCommand._has2dProperty? and subCommand._has2dProperty
+      if subCommand._has2dProperty
         _addConstraintForUnpack tailNode, subCommand, buffer
 
 _unpackStay2dConstraint = (node, commands, buffer, firstLevelCmd) =>
-  _analyze node[1], commands, false, buffer
-  if node[1]._has2dProperty?
-    node._has2dProperty = node[1]._has2dProperty
-    node._2DPropertyName = node[1]._2DPropertyName
-    node._has2dHeadNode = node[1]._has2dProperty
-    node._head2dPropertyName = node[1]._2DPropertyName
+
+  stayConstraint = node[1]
+  _analyze stayConstraint, commands, false, buffer
+  if stayConstraint._has2dProperty?
+    #Stays don't have tail node.
+    node._has2dProperty = stayConstraint._has2dProperty
+    node._2DPropertyName = stayConstraint._2DPropertyName
+    node._has2dHeadNode = stayConstraint._has2dProperty
 
   if firstLevelCmd and node._has2dProperty
     _addConstraintForUnpack commands, node, buffer
 
-
 # Ultimately the 2D property will always be in the tail of an AST node.
 _traverseTailAstFor2DProperty = (parentNode, node, commands, buffer) =>
   if node not instanceof Array
-    parentNode._has2dProperty = propertyMapping[node]?
     if propertyMapping[node]?
+      parentNode._has2dProperty = true
       parentNode._2DPropertyName = node
   else
     _analyseContraint parentNode, node, commands, buffer
@@ -78,12 +79,8 @@ _analyseContraint = (parentNode, node, commands, buffer, isHeadConstraint) =>
   if node instanceof Array
     _analyze node, commands, false, buffer
     if node._has2dProperty?
-      if isHeadConstraint
-        parentNode._has2dHeadNode = node._has2dProperty
-        parentNode._head2dPropertyName = node._2DPropertyName
-      else
-        parentNode._has2dTailNode = node._has2dProperty
-        parentNode._tail2dPropertyName = node._2DPropertyName
+      parentNode._has2dHeadNode = node._has2dProperty if isHeadConstraint
+      parentNode._has2dTailNode = node._has2dProperty if not isHeadConstraint
 
 _addConstraintForUnpack = (commands, node, buffer) =>
       buffer.push
@@ -107,19 +104,14 @@ expand2dProperties = (buffer) ->
 
     expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
 
-    node = expandNode.toExpand.twodnode
+    _routeTraversalFor2DExpansion expandNode.toExpand.twodnode, 0
+    _routeTraversalFor2DExpansion clonedConstraint, 1
 
-    if node._has2dHeadNode? and node._has2dHeadNode
-      _changePropertyName node[1], 0
-    if node._has2dTailNode? and node._has2dTailNode
-      _changePropertyName node[2], 0
-
-    node = clonedConstraint
-
-    if node._has2dHeadNode? and node._has2dHeadNode
-      _changePropertyName node[1], 1
-    if node._has2dTailNode? and node._has2dTailNode
-      _changePropertyName node[2], 1
+_routeTraversalFor2DExpansion = (node, index1DPropertyName) ->
+  if node._has2dHeadNode? and node._has2dHeadNode
+    _changePropertyName node[1], index1DPropertyName
+  if node._has2dTailNode? and node._has2dTailNode
+    _changePropertyName node[2], index1DPropertyName
 
 
 _changePropertyName = (node, onedPropIndex) =>

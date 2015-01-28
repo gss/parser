@@ -33,8 +33,8 @@ _analyze = (node, commands, firstLevelCmd, buffer) =>
       _traverseAstFor2DProperties node, headNode, commands, buffer, true
       _analyzeTailAstFor2DProperty node, tailNode, commands, buffer
 
-      if !node._has2dProperty
-        node._has2dProperty = headNode._has2dProperty or tailNode._has2dProperty
+      if !node._has2dProperty && (headNode._has2dProperty or tailNode._has2dProperty)
+        node._has2dProperty = true
 
       if firstLevelCmd and node._has2dProperty
         _addConstraintForUnpacking commands, node, buffer
@@ -95,10 +95,12 @@ expand2dProperties = (buffer) ->
     _routeTraversalFor2DExpansion clonedConstraint, 1
 
 _routeTraversalFor2DExpansion = (node, index1DPropertyName) ->
-  if node._has2dHeadNode? and node._has2dHeadNode
+  if node._has2dHeadNode
     _changePropertyName node[1], index1DPropertyName
-  if node._has2dTailNode? and node._has2dTailNode
+  if node._has2dTailNode
     _changePropertyName node[2], index1DPropertyName
+
+  _removeTempState node
 
 _changePropertyName = (node, onedPropIndex) =>
   if node instanceof Array and node.length == 3
@@ -113,6 +115,12 @@ _clone = (obj) ->
   for key of obj
     temp[key] = _clone(obj[key])
   temp
+
+_removeTempState = (node) ->
+  delete node._has2dHeadNode
+  delete node._has2dTailNode
+  delete node._2DPropertyName
+  delete node._has2dProperty
 
 propertyMapping =
   'bottom-left'   : ['left', 'bottom']

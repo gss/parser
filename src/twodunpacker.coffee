@@ -10,27 +10,9 @@
 # and injects parent scope operators, `^`.
 
 module.exports = (ast) ->
-    buffer = [
-      {
-        _parentScope: undefined
-        _childScopes: []
-        _unscopedVars:[]
-      }
-    ]
-
-    mapping =
-      'bottom-left'   : ['left', 'bottom']
-      'bottom-right'  : ['right', 'bottom']
-      center          : ['center-x', 'center-y']
-      'intrinsic-size': ['intrinsic-width', 'intrinsic-height']
-      position        : ['x', 'y']
-      size            : ['width', 'height']
-      'top-left'      : ['left', 'top']
-      'top-right'     : ['right', 'top']
-
-
-    analyze ast, mapping
-    #mutate buffer
+    expandsObjs = []
+    analyze ast, expandsObjs
+    expand2dProperties expandsObjs
     #JSON.parse JSON.stringify ast
     ast
 
@@ -50,15 +32,14 @@ contraintOperator = [
   '=='
 ]
 
-analyze = (ast, mapping) ->
+analyze = (ast, expandsObjs) ->
   if ast.commands?
     for node in ast.commands
-      _analyze node, ast.commands, true
+      _analyze node, ast.commands, true, expandsObjs
 
-_analyze = (node, commands, firstLevelCmd) =>
+_analyze = (node, commands, firstLevelCmd, expandObjs) =>
 
   if node.length == 3
-
     #Is it a parent node?
     commandName = node[0]
     headNode = node[1]
@@ -66,30 +47,45 @@ _analyze = (node, commands, firstLevelCmd) =>
     clonedNode = null
 
     if commandName == 'rule'
-      node.isParentNode = true
-      headNode._parentNode = node
-      tailnode._parentNode = node
+      #for each tailNode (list of constraints of the ruleset),
+      #check wether they are a 2d.
+      for sub, i in tailNode[0..node.length]
+        if sub instanceof Array # then recurse
+          _analyze sub, commands, false, expandObjs
 
-    if headNode instanceof Array && headNode.length == 3
-      headNode = _analyze headNode, commands, false
+          if sub.has2dProperty?
+            expandObjs.push
+              toExpand:
+                parent: tailNode
+                twodnode: sub
 
-    if tailNode instanceof Array && tailNode.length == 3
-      tailNode = _analyze tailNode, commands, false
+    else
+      #analyze the left side of the constraint
+      if headNode instanceof Array && headNode.length == 3
+        _analyze headNode, commands, false, expandObjs
+        if headNode.has2dProperty?
+          node.has2dHeadNode = headNode.has2dProperty
+          node.head2dPropertyName = headNode.twodPropertyName
 
-    else if tailNode instanceof Array isnt true
-      properties = propertyMapping[tailNode]
+      #analyze the right side of the constraint
+      if tailNode not instanceof Array
+        node.has2dProperty = propertyMapping[tailNode]?
+        if node.has2dProperty then node.twodPropertyName = tailNode
 
-      if properties?
-        node.is2dProperty = true
+      else
+        _analyze tailNode, commands, false, expandObjs
+        if tailNode.has2dProperty?
+          node.has2dTailNode = tailNode.has2dProperty
+          node.tail2dPropertyName = tailNode.twodPropertyName
 
-    if tailNode.is2dProperty? || headNode.is2dProperty?
-      if node.isParentNode?
-        #do some shit
-      else if firstLevelCmd?
-        clonedNode = _clone node
-        commands.push clonedNode
-        
-    node
+      if node.has2dProperty? == false || !node.has2dProperty
+        node.has2dProperty = headNode.has2dProperty? == true || tailNode.has2dProperty? == true
+
+      if firstLevelCmd && node.has2dProperty
+          expandObjs.push
+            toExpand:
+              parent: commands
+              twodnode: node
 
 _clone = (obj) ->
   return obj  if obj is null or typeof (obj) isnt "object"
@@ -97,3 +93,41 @@ _clone = (obj) ->
   for key of obj
     temp[key] = _clone(obj[key])
   temp
+
+
+expand2dProperties = (expandObjs) ->
+  #expand the properties correctly considering the order of the .
+  for expandNode in expandObjs
+    insertionIndex = (expandNode.toExpand.parent.indexOf expandNode.toExpand.twodnode) + 1
+    clonedConstraint = _clone expandNode.toExpand.twodnode
+
+    if expandNode.toExpand.parent.length == 1
+      expandNode.toExpand.parent.push clonedConstraint
+    else
+      expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
+
+    node = expandNode.toExpand.twodnode
+
+    if node.has2dHeadNode? && node.has2dHeadNode
+      _changePropertyName node[1], 0
+    if node.has2dTailNode? && node.has2dTailNode
+      _changePropertyName node[2], 0
+
+    node = clonedConstraint
+
+    if node.has2dHeadNode? && node.has2dHeadNode
+      _changePropertyName node[1], 1
+    if node.has2dTailNode? && node.has2dTailNode
+      _changePropertyName node[2], 1
+
+
+_changePropertyName = (node, onedPropIndex) ->
+
+  if node instanceof Array && node.length == 3
+    if node[2] == node.twodPropertyName
+      node[2] = propertyMapping[node.twodPropertyName][onedPropIndex]
+    else
+      if node.has2dHeadNode? && node.has2dHeadNode
+        _changePropertyName node[1], onedPropIndex
+      if node.has2dTailNode? && node.has2dTailNode
+        _changePropertyName node[2], onedPropIndex

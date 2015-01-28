@@ -44,6 +44,10 @@ describe "twodunpacker", ->
 
   describe "2D properties are well unpacked", ->
 
+
+    # Inline 2D constraints
+    # ====================================================================
+
     twoDimensionsMappingTest 'when having a single inline constraint with 2d on the left',
         commands:
           [
@@ -119,6 +123,10 @@ describe "twodunpacker", ->
             ['==', ['get', ['tag', 'div'], 'height'], ['get', ['tag', 'li'], 'height']]
           ]
 
+
+    # With arithmetics operations
+    # ====================================================================
+
     twoDimensionsMappingTest 'when having a single inline constraint with arithmetic operation',
         commands:
           [
@@ -143,6 +151,9 @@ describe "twodunpacker", ->
             ['==', ['/', ['get', ['tag', 'div'], 'height'], 2], ['/', ['get', ['tag', 'li'], 'height'], 2]]
           ]
 
+
+    # Rulesets
+    # ====================================================================
 
     twoDimensionsMappingTest 'when having a 2D constraint within a ruleset',
         commands:
@@ -226,6 +237,10 @@ describe "twodunpacker", ->
                 ]
               ]
 
+
+        # Virtuals
+        # ====================================================================
+
         twoDimensionsMappingTest 'when having 2d constraints in a virtual',
             commands:
               [
@@ -246,6 +261,7 @@ describe "twodunpacker", ->
                 ]
               ]
 
+
         twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints',
             commands:
               [
@@ -262,6 +278,41 @@ describe "twodunpacker", ->
                 	[
                 		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']]]
                     ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']]]
+                	]
+                ]
+              ]
+
+        # Strenghts
+        # ====================================================================
+
+        twoDimensionsMappingTest 'when having a 2D property with strenght',
+            commands:
+              [
+                  ['==', ['get', ['#', 'div'], 'size'], 100, 'strong']
+              ]
+          ,
+            commands:
+              [
+                ['==', ['get', ['#', 'div'], 'width'], 100, 'strong']
+                ['==', ['get', ['#', 'div'], 'height'], 100, 'strong']
+              ]
+
+        twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints with strenghts',
+            commands:
+              [
+                ['rule', ['virtual', 'area'],
+                	[
+                		['==', ['get', ['&'], 'size'], ['+', ['/', ['get', ['.', 'className'], 'size'], 2], ['get', ['#', 'div'], 'size']], 'strong']
+                	]
+                ]
+              ]
+          ,
+            commands:
+              [
+                ['rule', ['virtual', 'area'],
+                	[
+                		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']], 'strong']
+                    ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']], 'strong']
                 	]
                 ]
               ]

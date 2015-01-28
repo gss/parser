@@ -167,6 +167,16 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
+    parse """
+            div[width] == 100 !strong
+          """
+        ,
+          {
+            commands: [
+              ['==', ['get', ['tag', 'div'], 'width'], 100, 'strong']
+            ]
+          }
+
     # custom strengths accepted & lower cased
     parse """
             4 == 5 == 6 !my-custom-strength99;
@@ -1751,7 +1761,7 @@ describe 'CCSS-to-AST', ->
               ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'height']]
             ]
           }
-    
+
     parse """
             "box1"[size] == "box2"[size];
           """
@@ -1932,7 +1942,7 @@ describe 'CCSS-to-AST', ->
               ['==', ['get', ['#', 'box'], 'height'      ], ['get', ['#', 'box'], '$square-size']]
             ]
           }
-    
+
     parse """
             "box1"[top-right] + 2 == "box2"[center] / 4;
           """
@@ -1943,7 +1953,7 @@ describe 'CCSS-to-AST', ->
               ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], 2], ['/', ['get', ['virtual', 'box2'], 'center-y'], 4]]
             ]
           }
-          
+
     parse """
             "box1"[top-right] + "box2"[center] ==  4;
           """

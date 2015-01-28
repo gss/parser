@@ -39,7 +39,7 @@ analyze = (ast, expandsObjs) ->
 
 _analyze = (node, commands, firstLevelCmd, expandObjs) =>
 
-  if node.length == 3
+  if node.length >= 3
     #Is it a parent node?
     commandName = node[0]
     headNode = node[1]

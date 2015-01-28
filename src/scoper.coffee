@@ -27,7 +27,7 @@ analyze = (ast, buffer) ->
     for node in ast.commands
       _analyze node, buffer
 
-_analyze = (node, buffer, bufferLengthMinus = 1) =>
+_analyze = (node, buffer, bufferLengthMinus = 1) ->
   isScope = false
   name = node[0]
 

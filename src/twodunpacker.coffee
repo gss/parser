@@ -82,16 +82,16 @@ _addConstraintForUnpacking = (commands, node, buffer) =>
       buffer.push
         toExpand:
           parent: commands
-          twodnode: node
+          nodeWith2DProp: node
 
 expand2dProperties = (buffer) ->
   for expandNode in buffer
-    clonedConstraint = _clone expandNode.toExpand.twodnode
+    clonedConstraint = _clone expandNode.toExpand.nodeWith2DProp
     #insert in the commands by respecting the order of the constraints
-    insertionIndex = (expandNode.toExpand.parent.indexOf expandNode.toExpand.twodnode) + 1
+    insertionIndex = (expandNode.toExpand.parent.indexOf expandNode.toExpand.nodeWith2DProp) + 1
     expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
 
-    _routeTraversalFor2DExpansion expandNode.toExpand.twodnode, 0
+    _routeTraversalFor2DExpansion expandNode.toExpand.nodeWith2DProp, 0
     _routeTraversalFor2DExpansion clonedConstraint, 1
 
 _routeTraversalFor2DExpansion = (node, index1DPropertyName) ->

@@ -175,144 +175,246 @@ describe "twodunpacker", ->
             ]
           ]
 
-      twoDimensionsMappingTest 'when 2D properties contained in nesting rulesets',
-          commands:
-            [
-              ['rule', ['.', 'className'],
-              	[
-              		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
-                  ['rule', ['.', 'className'],
-                  	[
-                  		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
-                  	]
-                  ]
-              	]
-              ]
-            ]
-        ,
-          commands:
-            [
-              ['rule', ['.', 'className'],
-              	[
-              		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
-                  ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
-                  ['rule', ['.', 'className'],
-                  	[
-                  		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
-                      ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
-                  	]
-                  ]
-              	]
-              ]
-            ]
-
-        twoDimensionsMappingTest 'when having 2d constraints in nested rulesets',
-            commands:
-              [
+    twoDimensionsMappingTest 'when 2D properties contained in nesting rulesets',
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
                 ['rule', ['.', 'className'],
                 	[
                 		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
-                    ['rule', ['.', 'className'],
-                    	[
-                    		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
-                    	]
-                    ]
                 	]
                 ]
-              ]
-          ,
-            commands:
-              [
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
                 ['rule', ['.', 'className'],
                 	[
                 		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
                     ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
-                    ['rule', ['.', 'className'],
-                    	[
-                    		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
-                        ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
-                    	]
-                    ]
                 	]
                 ]
-              ]
+            	]
+            ]
+          ]
 
-
-        # Virtuals
-        # ====================================================================
-
-        twoDimensionsMappingTest 'when having 2d constraints in a virtual',
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
+    twoDimensionsMappingTest 'when having 2d constraints in nested rulesets',
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
+                ['rule', ['.', 'className'],
                 	[
-                		['==', ['get', ['&'], 'size'], ['get', ['.', 'className'], 'size']]
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
                 	]
                 ]
-              ]
-          ,
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
+                ['rule', ['.', 'className'],
                 	[
-                		['==', ['get', ['&'], 'width'], ['get', ['.', 'className'], 'width']]
-                    ['==', ['get', ['&'], 'height'], ['get', ['.', 'className'], 'height']]
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
                 	]
                 ]
-              ]
+            	]
+            ]
+          ]
 
 
-        twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints',
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
-                	[
-                		['==', ['get', ['&'], 'size'], ['+', ['/', ['get', ['.', 'className'], 'size'], 2], ['get', ['#', 'div'], 'size']]]
-                	]
-                ]
-              ]
-          ,
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
-                	[
-                		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']]]
-                    ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']]]
-                	]
-                ]
-              ]
+    # Virtuals
+    # ====================================================================
 
-        # Strenghts
-        # ====================================================================
+    twoDimensionsMappingTest 'when having 2d constraints in a virtual',
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'size'], ['get', ['.', 'className'], 'size']]
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['.', 'className'], 'width']]
+                ['==', ['get', ['&'], 'height'], ['get', ['.', 'className'], 'height']]
+            	]
+            ]
+          ]
 
-        twoDimensionsMappingTest 'when having a 2D property with strenght',
-            commands:
-              [
-                  ['==', ['get', ['#', 'div'], 'size'], 100, 'strong']
-              ]
-          ,
-            commands:
-              [
-                ['==', ['get', ['#', 'div'], 'width'], 100, 'strong']
-                ['==', ['get', ['#', 'div'], 'height'], 100, 'strong']
-              ]
 
-        twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints with strenghts',
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
-                	[
-                		['==', ['get', ['&'], 'size'], ['+', ['/', ['get', ['.', 'className'], 'size'], 2], ['get', ['#', 'div'], 'size']], 'strong']
-                	]
+    twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints',
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'size'], ['+', ['/', ['get', ['.', 'className'], 'size'], 2], ['get', ['#', 'div'], 'size']]]
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']]]
+                ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']]]
+            	]
+            ]
+          ]
+
+    # Strenghts
+    # ====================================================================
+
+    twoDimensionsMappingTest 'when having a 2D property with strenght',
+        commands:
+          [
+              ['==', ['get', ['#', 'div'], 'size'], 100, 'strong']
+          ]
+      ,
+        commands:
+          [
+            ['==', ['get', ['#', 'div'], 'width'], 100, 'strong']
+            ['==', ['get', ['#', 'div'], 'height'], 100, 'strong']
+          ]
+
+    twoDimensionsMappingTest 'when having in a virtual a constraint which is the sum of the division of two 2D constraints with strenghts',
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'size'], ['+', ['/', ['get', ['.', 'className'], 'size'], 2], ['get', ['#', 'div'], 'size']], 'strong']
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['virtual', 'area'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']], 'strong']
+                ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']], 'strong']
+            	]
+            ]
+          ]
+
+    # Inline 2D constraints
+    # ====================================================================
+    twoDimensionsMappingTest 'when having a single inline constraint with top-left on the left',
+        commands:
+          [
+            ['==', ['get', ['#', 'div'], 'top-left'], 100]
+          ]
+      ,
+        commands:
+          [
+            ['==', ['get', ['#', 'div'], 'left'], 100]
+            ['==', ['get', ['#', 'div'], 'top'], 100]
+          ]
+
+
+    # Stays
+    # ====================================================================
+    twoDimensionsMappingTest 'when declaring a stay on a 2d constraint',
+        commands:
+            [
+              ['stay', ['get', ['#','box'], 'size']]
+            ]
+      ,
+        commands:
+            [
+              ['stay', ['get', ['#','box'], 'width']]
+              ['stay', ['get', ['#','box'], 'height']]
+            ]
+
+  # Non regression tests
+  # ====================================================================
+  describe "2D unpacking doesn't have any effect", ->
+
+    twoDimensionsMappingTest 'when no 2d property in inline constraint',
+        commands:
+          [
+            ['==', ['get', ['#', 'div'], 'width'], 100]
+          ]
+      ,
+        commands:
+          [
+            ['==', ['get', ['#', 'div'], 'width'], 100]
+          ]
+
+    twoDimensionsMappingTest 'when no 2d property in arithmetic operation',
+        commands:
+          [
+            ['==',
+              ['get', 'md-width'],
+              ['+'
+                [ '/',
+                  ['-',
+                    ['*', ['get','width'], 2],
+                    ['*',['get','gap'],2]
+                  ],
+                  4
+                ],
+                10
+              ],
+              "require"]
+          ]
+      ,
+        commands:
+          [
+            ['==',
+              ['get', 'md-width'],
+              ['+'
+                [ '/',
+                  ['-',
+                    ['*', ['get','width'], 2],
+                    ['*',['get','gap'],2]
+                  ],
+                  4
+                ],
+                10
+              ],
+              "require"]
+          ]
+
+    twoDimensionsMappingTest 'when no 2d property in mixed css and gss constraint',
+        commands:
+            [
+              ['rule',
+                ['.',['#','box'],'class']
+                [
+                  ['set','color','blue']
+                  ['==',['get',['&'],'x'], 100]
                 ]
               ]
-          ,
-            commands:
-              [
-                ['rule', ['virtual', 'area'],
-                	[
-                		['==', ['get', ['&'], 'width'], ['+', ['/', ['get', ['.', 'className'], 'width'], 2], ['get', ['#', 'div'], 'width']], 'strong']
-                    ['==', ['get', ['&'], 'height'], ['+', ['/', ['get', ['.', 'className'], 'height'], 2], ['get', ['#', 'div'], 'height']], 'strong']
-                	]
+            ]
+      ,
+        commands:
+            [
+              ['rule',
+                ['.',['#','box'],'class']
+                [
+                  ['set','color','blue']
+                  ['==',['get',['&'],'x'], 100]
                 ]
               ]
+            ]

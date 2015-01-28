@@ -26,12 +26,6 @@ propertyMapping =
   'top-left'      : ['left', 'top']
   'top-right'     : ['right', 'top']
 
-contraintOperator = [
-  '>='
-  '<='
-  '=='
-]
-
 analyze = (ast, expandsObjs) ->
   if ast.commands?
     for node in ast.commands
@@ -53,7 +47,7 @@ _analyze = (node, commands, firstLevelCmd, expandObjs) =>
         if sub instanceof Array # then recurse
           _analyze sub, commands, false, expandObjs
 
-          if sub.has2dProperty?
+          if sub.has2dProperty? && sub.has2dProperty
             expandObjs.push
               toExpand:
                 parent: tailNode
@@ -79,13 +73,28 @@ _analyze = (node, commands, firstLevelCmd, expandObjs) =>
           node.tail2dPropertyName = tailNode.twodPropertyName
 
       if node.has2dProperty? == false || !node.has2dProperty
-        node.has2dProperty = headNode.has2dProperty? == true || tailNode.has2dProperty? == true
+        node.has2dProperty = (headNode.has2dProperty? && headNode.has2dProperty == true) || (tailNode.has2dProperty? && tailNode.has2dProperty == true)
 
       if firstLevelCmd && node.has2dProperty
           expandObjs.push
             toExpand:
               parent: commands
               twodnode: node
+
+  if node.length == 2 && node[0] == 'stay'
+    _analyze node[1], commands, false, expandObjs
+    if node[1].has2dProperty?
+      node.has2dProperty = node[1].has2dProperty
+      node.twodPropertyName = node[1].twodPropertyName
+      node.has2dHeadNode = node[1].has2dProperty
+      node.head2dPropertyName = node[1].twodPropertyName
+
+    if firstLevelCmd && node.has2dProperty
+        expandObjs.push
+          toExpand:
+            parent: commands
+            twodnode: node
+
 
 _clone = (obj) ->
   return obj  if obj is null or typeof (obj) isnt "object"
@@ -122,7 +131,6 @@ expand2dProperties = (expandObjs) ->
 
 
 _changePropertyName = (node, onedPropIndex) ->
-
   if node instanceof Array && node.length == 3
     if node[2] == node.twodPropertyName
       node[2] = propertyMapping[node.twodPropertyName][onedPropIndex]

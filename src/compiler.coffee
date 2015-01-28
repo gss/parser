@@ -20,7 +20,7 @@ parse = (source) ->
     {message, line:lineNumber, column:columnNumber} = error
     errorReporter.reportError message, lineNumber, columnNumber
 
-  return scoper results
+  return scoper twoDimensionUnpacker results
 
 vflHook = (name,terms,commands=[]) ->
   newCommands = []

@@ -100,10 +100,7 @@ expand2dProperties = (expandObjs) ->
     insertionIndex = (expandNode.toExpand.parent.indexOf expandNode.toExpand.twodnode) + 1
     clonedConstraint = _clone expandNode.toExpand.twodnode
 
-    if expandNode.toExpand.parent.length == 1
-      expandNode.toExpand.parent.push clonedConstraint
-    else
-      expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
+    expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
 
     node = expandNode.toExpand.twodnode
 

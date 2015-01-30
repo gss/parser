@@ -12,7 +12,6 @@ module.exports = (ast) ->
     buffer = []
     analyze ast, buffer
     expand2dProperties buffer
-    #JSON.parse JSON.stringify ast
     ast
 
 analyze = (ast, buffer) ->
@@ -21,26 +20,26 @@ analyze = (ast, buffer) ->
       _analyze node, ast.commands, true, buffer
 
 _analyze = (node, commands, firstLevelCmd, buffer) =>
-  if node.length >= 3
-    #Is it a parent node?
+
+  if node.length >= 2
     commandName = node[0]
     headNode = node[1]
-    tailNode = node[2]
+    tailNode = node[2] if node.length >= 3
 
     if commandName == 'rule'
       _unpackRuleset2dConstraints node, tailNode, commands, buffer
+
     else
       _traverseAstFor2DProperties node, headNode, commands, buffer, true
-      _analyzeTailAstFor2DProperty node, tailNode, commands, buffer
 
-      if !node._has2dProperty && (headNode._has2dProperty or tailNode._has2dProperty)
+      if tailNode?
+        _traverseAstFor2DProperties node, tailNode, commands, buffer
+
+      if !node._has2dProperty && (headNode._has2dProperty or (tailNode? and tailNode._has2dProperty))
         node._has2dProperty = true
 
       if firstLevelCmd and node._has2dProperty
         _addConstraintForUnpacking commands, node, buffer
-
-  if node.length == 2 and node[0] == 'stay'
-    _unpackStay2dConstraint node, commands, buffer, firstLevelCmd
 
 _unpackRuleset2dConstraints = (node, tailNode, commands, buffer) =>
   for subCommand, i in tailNode[0..node.length]
@@ -50,30 +49,15 @@ _unpackRuleset2dConstraints = (node, tailNode, commands, buffer) =>
       if subCommand._has2dProperty
         _addConstraintForUnpacking tailNode, subCommand, buffer
 
-_unpackStay2dConstraint = (node, commands, buffer, firstLevelCmd) =>
-  stayConstraint = node[1]
-  _analyze stayConstraint, commands, false, buffer
-  if stayConstraint._has2dProperty?
-    #Stays don't have tail node.
-    node._has2dProperty = stayConstraint._has2dProperty
-    node._2DPropertyName = stayConstraint._2DPropertyName
-    node._has2dHeadNode = stayConstraint._has2dProperty
-
-  if firstLevelCmd and node._has2dProperty
-    _addConstraintForUnpacking commands, node, buffer
-
-# Ultimately the 2D property will always be in the tail of an AST node.
-_analyzeTailAstFor2DProperty = (parentNode, node, commands, buffer) =>
-  if node not instanceof Array
-    if propertyMapping[node]?
-      parentNode._has2dProperty = true
-      parentNode._2DPropertyName = node
-  else
-    _traverseAstFor2DProperties parentNode, node, commands, buffer
-
 _traverseAstFor2DProperties = (parentNode, node, commands, buffer, isHeadConstraint) =>
-  if node instanceof Array
-    _analyze node, commands, false, buffer
+  if node instanceof Array and node.length > 0
+    nodeLastItem = node[node.length - 1]
+    if nodeLastItem not instanceof Array and propertyMapping[nodeLastItem]?
+      node._has2dProperty = true
+      node._2DPropertyName = nodeLastItem
+    else
+      _analyze node, commands, false, buffer
+
     if node._has2dProperty?
       parentNode._has2dHeadNode = node._has2dProperty if isHeadConstraint
       parentNode._has2dTailNode = node._has2dProperty if not isHeadConstraint
@@ -103,9 +87,9 @@ _routeTraversalFor2DExpansion = (node, index1DPropertyName) ->
   _removeTempState node
 
 _changePropertyName = (node, onedPropIndex) =>
-  if node instanceof Array and node.length == 3
-    if node[2] == node._2DPropertyName
-      node[2] = propertyMapping[node._2DPropertyName][onedPropIndex]
+  if node instanceof Array
+    if node[node.length - 1] == node._2DPropertyName
+      node[node.length - 1] = propertyMapping[node._2DPropertyName][onedPropIndex]
     else
       _routeTraversalFor2DExpansion node, onedPropIndex
 

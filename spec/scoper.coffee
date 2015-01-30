@@ -523,6 +523,3 @@ describe "Scoper", ->
         }
 
       """
-
-
-

@@ -418,3 +418,39 @@ describe "twodunpacker", ->
                 ]
               ]
             ]
+
+  it 'existential', ->
+
+  describe "Unpacking 2D variables", ->
+
+    twoDimensionsMappingTest 'expands to 1D variables',
+        commands:
+          [
+            ["==", ["get","size"], 100]
+          ]
+      ,
+        commands:
+          [
+            ["==", ["get","width"], 100]
+            ["==", ["get","height"], 100]
+          ]
+
+    twoDimensionsMappingTest 'expand to 1D variable name when within a ruleset',
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		  ["==", ["get","size"], 100]
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		["==", ["get","width"], 100]
+                ["==", ["get","height"], 100]
+            	]
+            ]
+          ]

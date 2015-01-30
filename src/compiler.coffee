@@ -1,9 +1,11 @@
 if window?
   parser      = require './parser'
   scoper      = require './scoper'
+  twoDimensionUnpacker = require './twodunpacker'
 else
   parser      = require '../lib/parser'
   scoper      = require '../lib/scoper'
+  twoDimensionUnpacker  = require '../lib/twodunpacker'
 vfl           = require 'vfl-compiler'
 vgl           = require 'vgl-compiler'
 ErrorReporter = require 'error-reporter'
@@ -18,7 +20,7 @@ parse = (source) ->
     {message, line:lineNumber, column:columnNumber} = error
     errorReporter.reportError message, lineNumber, columnNumber
 
-  return scoper results
+  return scoper twoDimensionUnpacker results
 
 vflHook = (name,terms,commands=[]) ->
   newCommands = []
@@ -28,45 +30,45 @@ vflHook = (name,terms,commands=[]) ->
   if commands.length > 0 and o.selectors.length > 0
     ruleSet = ""
     for selector, i in o.selectors
-      
-      
+
+
       ### to prepend ::scope inside parans
       prefix = ''
       if selector[0] is "("
         prefix = "("
         selector = selector.substr(1,selector.length-1)
-      
+
       # prepend selector with ::scope unless
       if selector.indexOf("&") isnt 0
         if selector.indexOf("::") isnt 0
           if selector.indexOf('"') isnt 0
             prefix += "::scope "
-      
+
       ruleSet += prefix + selector
-      
+
       ###
-      
-      ruleSet += selector    
-      
+
+      ruleSet += selector
+
       if i isnt o.selectors.length - 1
         ruleSet += ", "
-      
+
     ruleSet += " {}"
-    
+
     #console.log '========================'
     #console.log ruleSet
     #console.log '//////////////////////'
-    
-    nestedCommand = parse(ruleSet).commands[0] 
+
+    nestedCommand = parse(ruleSet).commands[0]
     #nestedCommand = parse(o.selectors.join(", ") + " {}").commands[0]
     nestedCommand[2] = commands
     newCommands.push nestedCommand
-    
+
     if window?.GSS?.console
       window.GSS.console.row('@' + name, o.statements.concat([ruleSet]), terms)
-  
+
   return {commands:newCommands}
-  
+
 
 vglHook = (name,terms,commands=[]) ->
   newCommands = []
@@ -103,10 +105,17 @@ module.exports =
   # @return [Array] The AST which represents `source`.
   #
   parse: parse
-  
+
   # Hoist unscoped var & virtuals AST to highest used scope
   #
   # @param [Array] The AST which represents `source`
   # @return [Array] The transformed AST
   #
   scope: scoper
+
+  # Unpack 2D properties from the AST
+  #
+  # @param [Array] The AST which represents `source`
+  # @return [Array] The transformed AST
+  #
+  twoDimensionUnpack: twoDimensionUnpacker

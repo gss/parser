@@ -28,38 +28,6 @@ class Grammar
     return ''
 
 
-  # Unpack a 2D expression.
-  # @private
-  #
-  # @param expression [Array] An AST representing a 2D expression.
-  # @return [Array] An AST representing the unpacked expression.
-  #
-  @_unpack2DExpression: (expression) ->
-    mapping =
-      'bottom-left'   : ['left', 'bottom']
-      'bottom-right'  : ['right', 'bottom']
-      center          : ['center-x', 'center-y']
-      'intrinsic-size': ['intrinsic-width', 'intrinsic-height']
-      position        : ['x', 'y']
-      size            : ['width', 'height']
-      'top-left'      : ['left', 'top']
-      'top-right'     : ['right', 'top']
-
-    expressions = [expression]
-    property = expression[2]
-    properties = mapping[property]
-
-    if properties?
-      expressions = []
-
-      for item in properties
-        expression = expression.slice()
-        expression[2] = item
-        expressions.push expression
-
-    return expressions
-
-
   # The type of error thrown by the PEG parser.
   # @note Assigned in constructor.
   # @private
@@ -241,9 +209,7 @@ class Grammar
   # @return [String]
   #
   constraint: (head, tail, strengthAndWeight) ->
-
     commands = []
-
     firstExpression = head
 
     if not strengthAndWeight? or strengthAndWeight.length is 0
@@ -252,34 +218,15 @@ class Grammar
     for item, index in tail
       operator = tail[index][1]
       secondExpression = tail[index][3]
-      headExpressions = Grammar._unpack2DExpression firstExpression
-      tailExpressions = Grammar._unpack2DExpression secondExpression
 
-      # Correctly handle expressions with a mix of 1D and 2D properties.
-      #
-      # e.g.
-      # #box1[size] == #box2[width];
-      #
-      # becomes
-      # #box1[width] == #box2[width];
-      # #box1[height] == #box2[width];
-      #
-      if headExpressions.length > tailExpressions.length
-        tailExpressions.push tailExpressions[0]
-      else if headExpressions.length < tailExpressions.length
-        headExpressions.push headExpressions[0]
+      if firstExpression? and secondExpression?
+        command = [
+          operator
+          firstExpression
+          secondExpression
+        ].concat strengthAndWeight
 
-      for tailExpression, index in tailExpressions
-        headExpression = headExpressions[index]
-
-        if headExpression? and tailExpression?
-          command = [
-            operator
-            headExpression
-            tailExpression
-          ].concat strengthAndWeight
-
-          commands.push command
+        commands.push command
 
       firstExpression = secondExpression
 
@@ -541,7 +488,7 @@ class Grammar
   #
   stay: (variables) ->
     stay = ['stay'].concat variables
-    expressions = Grammar._unpack2DExpression stay[1]
+    expressions = [stay[1]] #todo
     commands = []
     for expression, index in expressions
       command = stay.slice()

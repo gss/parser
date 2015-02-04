@@ -1,4 +1,4 @@
-GSS Parser [![Build Status](https://travis-ci.org/gss/gss-parser.png?branch=master)](https://travis-ci.org/gss/gss-parser)
+GSS Parser [![Build Status](https://travis-ci.org/gss/parser.png?branch=master)](https://travis-ci.org/gss/parser)
 =============
 
 This library parse GSS-flavored [CCSS](http://www.cs.washington.edu/research/constraints/web/ccss-uwtr.pdf) rules into an AST (Abstract Syntax Tree) to be consumed by the [GSS engine](https://github.com/gss/engine).

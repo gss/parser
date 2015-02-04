@@ -342,8 +342,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',[['&'],['.','box']],'width'],
-                ['get',[['::parent'],['.','thing']],'width']
+                ['get',[['&'],[['.','box']]],'width'],
+                ['get',[['::parent'],[['.','thing']]],'width']
               ]
             ]
           }
@@ -357,7 +357,7 @@ describe 'CCSS-to-AST', ->
               ['==',
                 ['get',
                   [
-                    ['.',['tag','button'],'big'],
+                    [['tag','button'],['.','big']],
                     ['.','text']
                   ],
                   'width'
@@ -574,13 +574,14 @@ describe 'CCSS-to-AST', ->
         commands: [
           ['<=',
             ['get',
-              ['.',
+              [
                 [',',
                   ['.','btn0']
                   ['.','btn1']
                   ['.','btn2']
-                ]
-              'featured']
+                ],
+                ['.', 'featured']
+              ],
             'x'],
             0
           ]
@@ -592,19 +593,21 @@ describe 'CCSS-to-AST', ->
     parse ".parent.btn0...2.featured[x] <= 0",
       {
         commands: [
-          ['<=',
-            ['get',
-              ['.',
-                [',',
-                  ['.',['.','parent'],'btn0']
-                  ['.',['.','parent'],'btn1']
-                  ['.',['.','parent'],'btn2']
-                ]
-              'featured']
-            'x'],
+            ['<=',
+              ['get',
+                [
+                  ['.', 'parent']
+                  [',',
+                      ['.', 'btn0']
+                      ['.', 'btn1']
+                      ['.', 'btn1']
+                  ]
+                  ['.', 'featured']
+                ],
+              'x'],
             0
+            ]
           ]
-        ]
       }
 
     parse "$.btn0...2[x] <= 0",
@@ -613,26 +616,33 @@ describe 'CCSS-to-AST', ->
         commands: [
           ['<=',
             ['get',
-              [',',
-                ['.',['$'],'btn0']
-                ['.',['$'],'btn1']
-                ['.',['$'],'btn2']
-              ]
+              [
+                ['$'],
+                [',',
+                    ['.','btn0']
+                    ['.','btn1']
+                    ['.','btn2']
+                ]
+              ],
             'x'],
             0
           ]
         ]
       }
 
+
     parse '$"zone-1...3-2"[x] == 0',
       {
         commands: [
           ['==',
             ['get',
-              [',',
-                ['virtual',['$'],'zone-1-2']
-                ['virtual',['$'],'zone-2-2']
-                ['virtual',['$'],'zone-3-2']
+              [
+                ['$'],
+                [',',
+                  ['virtual','zone-1-2']
+                  ['virtual','zone-2-2']
+                  ['virtual','zone-3-2']
+                ],
               ],
               'x'
             ],
@@ -688,31 +698,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
-                  [
-                     ".",
-                     [
-                        " ",
-                        [
-                           "#",
-                           [
-                              " ",
-                              [
-                                 "tag",
-                                 "html"
-                              ]
-                           ],
-                           "main"
-                        ]
-                     ],
-                     "boxes"
-                  ],
-                  'width',
-                ],
-                100
-              ]
+              ['==', ['get', [["tag", "html"], [" "], ["#","main"], [" "], [".","boxes"]],'width',], 100]
             ]
           }
 
@@ -722,39 +708,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
-                  [
-                     "[]",
-                     [
-                        ".",
-                        [
-                           " ",
-                           [
-                              ":not",
-                              [
-                                 "#",
-                                 [
-                                    " ",
-                                    [
-                                       "tag",
-                                       "*"
-                                    ]
-                                 ],
-                                 "main"
-                              ],
-                              ".disabled"
-                           ]
-                        ],
-                        "boxes"
-                     ],
-                     "data-target",
-                  ],
-                  'width',
-                ],
-                100
-              ]
+              ['==', ['get', [['*'], [' '], ['#', 'main'], [':not', ['.', 'disabled']], [' '], ['.', 'boxes'], ['[]', 'data-target']], 'width'], 100]
             ]
           }
 
@@ -765,32 +719,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              [
-                '==',
-                [
-                  'get',
-                  [':get',
-                    ['tag',
-                      [' ',
-                        ['tag',
-                          ['!',
-                            ['.',
-                              ['tag',
-                                ['!>',
-                                  ['tag',
-                                    'header']
-                                ]
-                                'h2']
-                              'gizoogle']
-                          ]
-                          'section']
-                      ]
-                      'div']
-                    "'parentNode'"],
-                  'target-size',
-                ],
-                100
-              ]
+              ['==', ['get', [['tag', 'header'], ['!>'], ['tag', 'h2'], ['.', 'gizoogle'], ['!'], ['tag', 'section'], [' '], ['tag', 'div'], [':get', "'parentNode'"]], 'target-size'], 100]
             ]
           }
 
@@ -800,10 +729,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                ['get',['.',['&'],'featured'],'width'],
-                100
-              ]
+              ['==', ['get', [['&'], ['.','featured']], 'width'], 100]
             ]
           }
 
@@ -815,11 +741,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['virtual',['&'],'column2'],'width'],
+                ['get',[['&'], ['virtual','column2']],'width'],
                 100
               ],
               ['==',
-                ['get',['virtual',['&'],'column2'],'width'],
+                ['get',[['&'], ['virtual','column2']],'width'],
                 100
               ]
             ]
@@ -833,11 +759,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',[':next',['&']],'x'],
+                ['get',[['&'], [':next']],'x'],
                 666
               ],
               ['==',
-                ['get',[':previous',['&']],'x'],
+                ['get',[['&'], [':previous']],'x'],
                 111
               ]
             ]
@@ -850,8 +776,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['.',[':next',['&']],    'selected'], 'width'],
-                ['get',['.',[':previous',['&']],'selected'], 'width']
+                ['get',[['&'], [':next'], ['.', 'selected']], 'width'],
+                ['get',[['&'], [':previous'], ['.', 'selected']], 'width']
               ]
             ]
           }
@@ -885,30 +811,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
-                  [
-                     ":first",
-                     [
-                        "tag",
-                        [
-                           "~",
-                           [
-                              "[]",
-                              [
-                                 "::parent"
-                              ],
-                              "disabled"
-                           ],
-                        ],
-                        "li"
-                     ]
-                    ],
-                  'width',
-                ],
-                100
-              ]
+              ['==', ['get', [['::parent'], ['[]', 'disabled'], ['~'], ['tag', 'li'], [':first']], 'width'], 100]
             ]
           }
 
@@ -920,30 +823,22 @@ describe 'CCSS-to-AST', ->
       {
         commands: [
           ['==',
-            [
-              'get',
-              [
-                ','
+            ['get',
+              [',',
                 [
-                  '.'
-                  [
-                     ",",
-                     ["#","a"]
-                     ["#","b"]
+                  [',',
+                    ['#', 'a'], ['#', 'b']
                   ],
-                  'c'
-                ]
+                  ['.', 'c']
+                ],
                 [
-                  '.'
-                  [
-                     ",",
-                     ["#","x"]
-                     ["#","y"]
+                  [',',
+                    ['#', 'x'], ['#', 'y']
                   ],
-                  'z'
+                  ['.', 'z']
                 ]
-              ]
-              'a-z',
+              ],
+              'a-z'
             ],
             0
           ]
@@ -971,8 +866,8 @@ describe 'CCSS-to-AST', ->
                   'get',
                   [
                      ",",
-                     ["virtual",["&"],"grid"],
-                     ["virtual",[".","that"],"grid"]
+                     [["&"], ["virtual","grid"]],
+                     [[".","that"], ["virtual","grid"]]
                      [".","box"]
                      [".","thing"]
                   ],
@@ -1051,7 +946,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ['.',['#','box'],'class']
+                [['#','box'], ['.', 'class']]
                 [
                   ['set','color','blue']
                   ['==',['get',['&'],'x'],100]
@@ -1070,8 +965,8 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['rule',
                 [',',
-                  ['.',['.','class'],'foo'],
-                  ['.',['.','class'],'bar']
+                  [['.','class'], ['.','foo']]
+                  [['.','class'], ['.','bar']]
                 ]
                 [
                   ['set','color','blue']
@@ -1098,11 +993,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["tag",[">",['.',['tag','article'],'featured']],"img"]
+                [['tag', 'article'], ['.', 'featured'], ['>'], ['tag', 'img']]
                 [
                   ['set','color','black']
                   ['rule',
-                    ['virtual',['.','bg'],'face']
+                    [['.','bg'],['virtual','face']]
                     [
                       ['==',
                         ['get',['&'],'x']
@@ -1125,7 +1020,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["tag",[">",['.',['tag','article'],'featured']],"img"]
+                [['tag', 'article'], ['.', 'featured'], ['>'], ['tag', 'img']]
                 []
               ]
             ]
@@ -1151,42 +1046,11 @@ describe 'CCSS-to-AST', ->
                 "rule",
                 [
                   ",",
-                  [
-                    "&"
-                  ],
-                  [
-                    ".",
-                    [
-                      " ",
-                      [
-                        "::scope"
-                      ]
-                    ],
-                    "box"
-                  ],
-                  [
-                    ".",
-                    [
-                      " ",
-                      [
-                        "&"
-                      ]
-                    ]
-                    "post"
-                  ],
-                  [
-                    "::scope"
-                  ],
-                  [
-                    "virtual",
-                    [
-                      " ",
-                      [
-                        "&"
-                      ]
-                    ],
-                    "fling"
-                  ]
+                  ["&"],
+                  [["::scope"], [" "], [".", "box"]],
+                  [["&"], [".", "post"]],
+                  ["::scope"],
+                  [["&"], [" "], ["virtual", "fling"]]
                 ],
                 []
               ]
@@ -2209,7 +2073,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['+',['get', ['#', 'box1'], 'width'], ['get', ['virtual', 'area'   ], 'width']],
+                ['+',['get', ['#', 'box1'], 'width'], ['get', ['virtual', 'area'], 'width']],
                 ['+',['get', ['#', 'box2'], 'width'], ['get', ['::window'], 'width']],
               ]
             ]
@@ -2274,18 +2138,13 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['+', ['get',['.',['tag','button'],'featured'],'right'], 10],
+                ['+', ['get',[['tag','button'], ['.','featured']],'right'], 10],
                 ['get',['#','b2'],'x']
               ]
               ['rule',
                 [',',
-                  ['.'
-                    ['tag'
-                    'button']
-                  'featured']
-                  ,
-                  ['#',
-                  'b2']
+                  [['tag','button'], ['.','featured']]
+                  ['#','b2']
                 ],
                 parser.parse("width: == 100; height: == &:next[height];").commands
               ]
@@ -2487,40 +2346,3 @@ describe 'CCSS-to-AST', ->
 
 
           """
-
-    parse """
-          x == 100;
-          .root {
-            ^x == 100;
-            .branch {
-              ^^x == 100;
-              .leaf {
-                ^^^x == 100;
-              }
-            }
-          }
-          $x == 100;
-
-
-          """
-
-  #describe 'PRINT', ->
-  #  it 'PRINT', ->
-  #    console.log(JSON.stringify(parser.parse("""
-  #         .wrap {
-  #           my-size == 100;
-  #           "target" {
-  #             width: == &height == my-size;
-  #             center-y: == ::window[center-y];
-  #             center-x: ==        ^[center-x];
-  #           }
-  #           .thing {
-  #             width: == &height == my-size;
-  #             center: == "target"[center];
-  #             .other {
-  #               width: == &height == my-size / 2;
-  #               center: == "target"[center];
-  #             }
-  #           }
-  #         }
-  #      """),1,1))

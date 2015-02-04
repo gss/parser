@@ -2,7 +2,7 @@ if window?
   parser = require 'gss-parser'
 else
   chai = require 'chai' unless chai
-  parser = require '../lib/compiler'
+  parser = require '../lib/parser'
 
 scope = parser.scope
 
@@ -274,7 +274,7 @@ describe "Scoper", ->
             ['==',['get',['virtual','zone'],'foo'],100]
             ['rule',['.','box'],
               [
-                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                ['==',['get',[['^'], ['virtual','zone']],'foo'],100]
               ]
             ]
           ]
@@ -294,7 +294,7 @@ describe "Scoper", ->
           [
             ['rule',['.','box'],
               [
-                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                ['==',['get',[['^'],['virtual','zone']],'foo'],100]
               ]
             ]
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -325,12 +325,12 @@ describe "Scoper", ->
               [
                 ['rule',['virtual','zone'],
                   [
-                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                    ['==',['get',[['^'],['virtual','zone']],'foo'],100]
                   ]
                 ]
                 ['rule',['.','big'],
                   [
-                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                    ['==',['get',[['^'],['virtual','zone']],'foo'],100]
                   ]
                 ]
               ]
@@ -378,10 +378,10 @@ describe "Scoper", ->
                 ['==',['get',['virtual','zone'],'foo'],100]
                 ['rule', ['virtual','zone']
                   [
-                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                    ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
                     ['rule', ['virtual','zone']
                       [
-                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                        ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
                         ['rule', ['virtual','zone']
                           [
                             ['==',['get',['virtual','zone'],'foo'],100]
@@ -402,13 +402,13 @@ describe "Scoper", ->
                 ['==',['get',['virtual','zone'],'foo'],100]
                 ['rule', ['virtual','zone']
                   [
-                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                    ['rule', ['virtual',['^'],'zone']
+                    ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
+                    ['rule', [['^'],['virtual','zone']]
                       [
-                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                        ['rule', ['virtual',['^',2],'zone']
+                        ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
+                        ['rule', [['^',2],['virtual','zone']]
                           [
-                            ['==',['get',['virtual',['^',3],'zone'],'foo'],100]
+                            ['==',['get',[['^',3],['virtual','zone']],'foo'],100]
                           ]
                         ]
                       ]

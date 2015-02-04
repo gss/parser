@@ -2,7 +2,7 @@ if window?
   parser = require 'gss-parser'
 else
   chai = require 'chai' unless chai
-  parser = require '../lib/compiler'
+  parser = require '../lib/parser'
 
 scope = parser.scope
 

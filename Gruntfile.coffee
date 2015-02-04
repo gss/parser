@@ -11,9 +11,9 @@ module.exports = ->
 
     # Build the browser Component
     componentbuild:
-      'parser':
+      'gss-parser':
         options:
-          name: 'parser'
+          name: 'gss-parser'
         src: '.'
         dest: 'browser'
         scripts: true
@@ -23,7 +23,7 @@ module.exports = ->
     uglify:
       options:
         report: 'min'
-      ccssCompiler:
+      gssparser:
         files:
           './browser/gss-parser.min.js': ['./browser/gss-parser.js']
 

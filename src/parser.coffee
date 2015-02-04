@@ -1,5 +1,5 @@
 if window?
-  pegparser      = require './peg-parser'
+  pegparser   = require './peg-parser'
   scoper      = require './scoper'
   twoDimensionUnpacker = require './twodunpacker'
 else

@@ -7,7 +7,7 @@ module.exports = ->
     peg:
       parser:
         src: 'src/grammar.peg'
-        dest: 'lib/parser.js'
+        dest: 'lib/peg-parser.js'
 
     # Build the browser Component
     componentbuild:
@@ -25,7 +25,7 @@ module.exports = ->
         report: 'min'
       ccssCompiler:
         files:
-          './browser/parser.min.js': ['./browser/parser.js']
+          './browser/gss-parser.min.js': ['./browser/gss-parser.js']
 
     # Automated recompilation and testing when developing
     watch:

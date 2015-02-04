@@ -1,8 +1,8 @@
 if window?
-  parser = require 'ccss-compiler'
+  parser = require 'gss-parser'
 else
   chai = require 'chai' unless chai
-  parser = require '../lib/compiler'
+  parser = require '../lib/parser'
 
 {expect, assert} = chai
 

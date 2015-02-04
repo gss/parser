@@ -1,9 +1,9 @@
 if window?
-  parser      = require './parser'
+  pegparser      = require './peg-parser'
   scoper      = require './scoper'
   twoDimensionUnpacker = require './twodunpacker'
 else
-  parser      = require '../lib/parser'
+  pegparser      = require '../lib/peg-parser'
   scoper      = require '../lib/scoper'
   twoDimensionUnpacker  = require '../lib/twodunpacker'
 vfl           = require 'vfl-compiler'
@@ -14,7 +14,7 @@ parse = (source) ->
   results = null
 
   try
-    results = parser.parse source
+    results = pegparser.parse source
   catch error
     errorReporter = new ErrorReporter source
     {message, line:lineNumber, column:columnNumber} = error
@@ -77,7 +77,7 @@ vglHook = (name,terms,commands=[]) ->
     newCommands = newCommands.concat(parse(s).commands)
   return {commands:commands.concat(newCommands)}
 
-parser.hooks =
+pegparser.hooks =
 
   directives:
 

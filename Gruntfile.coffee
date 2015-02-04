@@ -13,7 +13,7 @@ module.exports = ->
     componentbuild:
       'ccss-compiler':
         options:
-          name: 'ccss-compiler'
+          name: 'gss-parser'
         src: '.'
         dest: 'browser'
         scripts: true
@@ -25,7 +25,7 @@ module.exports = ->
         report: 'min'
       ccssCompiler:
         files:
-          './browser/ccss-compiler.min.js': ['./browser/ccss-compiler.js']
+          './browser/gss-parser.min.js': ['./browser/gss-parser.js']
 
     # Automated recompilation and testing when developing
     watch:

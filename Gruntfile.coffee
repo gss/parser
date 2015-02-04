@@ -11,7 +11,7 @@ module.exports = ->
 
     # Build the browser Component
     componentbuild:
-      'gssparser':
+      'gss-parser':
         options:
           name: 'gss-parser'
         src: '.'

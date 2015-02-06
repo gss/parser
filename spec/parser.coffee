@@ -2055,54 +2055,147 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
 
   describe '/* Units */', ->
-
-    parse """
-            10px == 0.4px;
-            -.01px == .01px;
-          """
-          ,
-            {
-              commands: [
-                ['==', ['px', 10], ['px', 0.4]]
-                ['==', ['px', -0.01], ['px', 0.01]]
-              ]
-            }
-
-    parse """
-            10em == 0.4em;
-            -.01em == .01em;
-          """
-          ,
-            {
-              commands: [
-                ['==', ['em', 10], ['em', 0.4]]
-                ['==', ['em', -0.01], ['em', 0.01]]
-              ]
-            }
-
-    parse """
-            10% == 0.4%;
-            -.01% == .01%;
-          """
-          ,
-            {
-              commands: [
-                ['==', ['%', 10], ['%', 0.4]]
-                ['==', ['%', -0.01], ['%', 0.01]]
-              ]
-            }
     
-    parse """/* custom units */
-            10my-md == 0.4my-md;
-            -.01my-md == .01my-md;
-          """
-          ,
-            {
-              commands: [
-                ['==', ['my-md', 10], ['my-md', 0.4]]
-                ['==', ['my-md', -0.01], ['my-md', 0.01]]
+    describe "/* Units with numbers */", ->
+
+      parse """
+              10px == 0.4px;
+              -.01px == .01px;
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['px', 10], ['px', 0.4]]
+                  ['==', ['px', -0.01], ['px', 0.01]]
+                ]
+              }
+
+      parse """
+              10em == 0.4em;
+              -.01em == .01em;
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['em', 10], ['em', 0.4]]
+                  ['==', ['em', -0.01], ['em', 0.01]]
+                ]
+              }
+
+      parse """
+              10% == 0.4%;
+              -.01% == .01%;
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['%', 10], ['%', 0.4]]
+                  ['==', ['%', -0.01], ['%', 0.01]]
+                ]
+              }
+    
+      parse """/* custom units */
+              10my-md == 0.4my-md;
+              -.01my-md == .01my-md;
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['my-md', 10], ['my-md', 0.4]]
+                  ['==', ['my-md', -0.01], ['my-md', 0.01]]
+                ]
+              }
+    
+    describe "/* Units with vars */", ->
+
+      parse """
+              x px == y em;
+            """
+            ,
+              {
+                commands: [
+                  ['==', ['px', ['get','x']], ['em', ['get','y']]]
+                ]
+              }
+      
+      parse [
+              """
+              x px == y    + z em;
+              x px == y vw + z em;
+              """
+              """
+              x  px == y         +   z   em;
+              x  px == y     vw  +   z   em;
+              """
+              """
+               (x)   px == (y       )  +   (z   )em;
+              ( x )  px == (y     vw)  +   (z   )em;
+              """
+            ]
+            ,
+              {
+                commands: [
+                  ['==', 
+                    ['px', ['get','x']], 
+                    ['+',
+                      ['get','y'],
+                      ['em',['get','z']],
+                    ]
+                  ]
+                  ['==', 
+                    ['px', ['get','x']], 
+                    ['+',
+                      ['vw',['get','y']],
+                      ['em',['get','z']],
+                    ]
+                  ]
+                ]
+              }
+        
+        parse [
+                """
+                shoe uk-foot-size == hand in + head ft * arm meter;
+                """
+                """
+                shoe uk-foot-size == hand in + (head ft * arm meter);
+                """
               ]
-            }
+              ,
+                {
+                  commands: [
+                    ['==', 
+                      ['uk-foot-size', ['get','shoe']], 
+                      ['+',
+                        ['in',['get','hand']],
+                        ['*',
+                          ['ft',['get','head']],
+                          ['meter',['get','arm']],
+                        ]
+                      ]
+                    ]
+                  ]
+                }
+        
+        parse [
+                """
+                shoe uk-foot-size == ((hand in + head) ft * arm) meter;
+                """
+              ]
+              ,
+                {
+                  commands: [
+                    ['==', 
+                      ['uk-foot-size', ['get','shoe']], 
+                      ['meter',['*',
+                        ['ft',['+',
+                          ['in',['get','hand']],
+                          ['get','head']
+                        ]]
+                        ['get','arm'],
+                      ]]
+                    ]
+                  ]
+                }
 
 
 

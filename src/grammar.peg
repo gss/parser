@@ -153,21 +153,38 @@ MultiplicativeOperator
   / "/" { return '/';   }
 
 ConstraintPrimaryExpression
-  = Var
+  = UnitVar
+  / Var
   / Literal
-  / "(" __ expression:ConstraintAdditiveExpression __ ")" {
+  / "(" __ expression:ConstraintAdditiveExpression __ ")" " "* u:Unit
+  {
+    return [u, expression];
+  }
+  / "(" __ expression:ConstraintAdditiveExpression __ ")" 
+  {
     return expression;
   }
 
 PrimaryExpression
-  = Var
+  = UnitVar
+  / Var
   / Literal
   / String
   / "true"        {return true;}
   / "false"       {return false;}
   / "null"        {return null;}
   / "undefined"   {return undefined;}
-  / "(" __ expression:Expression __ ")" { return expression; }
+  / "(" __ expression:Expression __ ")" " "* u:Unit
+  { 
+    return [u, expression];
+  }
+  / "(" __ expression:Expression __ ")" 
+  { 
+    return expression; 
+  }
+
+UnitVar
+  = v:Var " "+ u:Unit {return [u,v]}
 
 Var "variable"
   = negative:'-'? selector:GSSSelector? "[" varChars:BracketedVarChars+ "]" {
@@ -197,9 +214,11 @@ Literal
   / val:Numeric        { return val; }
 
 Unit
-  = "px" / "em" / "vw" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
-  / "cm" / "mm" / "in" / "pt" / "pc"
-  / &[^-] u:[a-zA-Z\-]+ {return u.join('');}
+  = "%"
+  / NotUnitPrefix u:[a-zA-Z\-]+ {return u.join('');}
+
+NotUnitPrefix
+  = &(!"-") &(!([oO][rR][ ])) &(!([aA][nN][dD][ ]))
 
 Numeric
   = Real / Integer / SignedReal / SignedInteger

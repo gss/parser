@@ -61,11 +61,7 @@ _rename2dTo1dProperty = (node, index1DPropertyName) ->
         _rename2dTo1dProperty subNode, index1DPropertyName
 
 _clone = (obj) ->
-  return obj  if obj is null or typeof (obj) isnt "object"
-  clonedObj = new obj.constructor()
-  for key of obj
-    clonedObj[key] = _clone(obj[key])
-  clonedObj
+  JSON.parse JSON.stringify obj
 
 propertyMapping =
   'bottom-left'   : ['left', 'bottom']

@@ -423,24 +423,19 @@ describe "twodunpacker", ->
 
   describe "Unpacking 2D variables", ->
 
-    twoDimensionsMappingTest 'expands to 1D variables',
-        commands:
-          [
-            ["==", ["get","size"], 100]
-          ]
-      ,
-        commands:
-          [
-            ["==", ["get","width"], 100]
-            ["==", ["get","height"], 100]
-          ]
-
-    twoDimensionsMappingTest 'expand to 1D variable name when within a ruleset',
+    twoDimensionsMappingTest 'respect the order of the constraints',
         commands:
           [
             ['rule', ['.', 'className'],
             	[
-            		  ["==", ["get","size"], 100]
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
+                ['==', ['get', ['&'], 'top'], ['get', ['#', 'some'], 'height']]
+                ['rule', ['.', 'className'],
+                	[
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'position']]
+                	]
+                ]
             	]
             ]
           ]
@@ -449,8 +444,17 @@ describe "twodunpacker", ->
           [
             ['rule', ['.', 'className'],
             	[
-            		["==", ["get","width"], 100]
-                ["==", ["get","height"], 100]
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
+                ['==', ['get', ['&'], 'top'], ['get', ['#', 'some'], 'height']]
+                ['rule', ['.', 'className'],
+                	[
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'x']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'y']]
+                	]
+                ]
             	]
             ]
           ]

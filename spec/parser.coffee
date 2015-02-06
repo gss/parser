@@ -6,13 +6,27 @@ else
 
 {expect, assert} = chai
 
-parse = (sources, expectation, pending) ->
-  itFn = if pending then xit else it
+ok = (args...) ->
+  args.push null
+  parse.apply @, args
+
+parse = (args...) ->
+  if args.length is 3
+    [name, sources, expectation] = args
+  else
+    [sources, expectation] = args
+      
+  itFn = it #if pending then xit else it
 
   if !(sources instanceof Array)
     sources = [sources]
+    
   sources.forEach (source) ->
-    describe source, ->
+    if name 
+      testName = name 
+    else 
+      testName = source.trim().split("\n")[0]
+    describe testName, ->
       result = null
 
       itFn 'ok ✓', ->
@@ -357,8 +371,9 @@ describe 'CCSS-to-AST', ->
               ['==',
                 ['get',
                   [
-                    [['tag','button'],['.','big']],
-                    ['.','text']
+                    ['tag','button'],
+                    ['.','big'],
+                    [['.','text']]
                   ],
                   'width'
                 ],
@@ -600,7 +615,7 @@ describe 'CCSS-to-AST', ->
                   [',',
                       ['.', 'btn0']
                       ['.', 'btn1']
-                      ['.', 'btn1']
+                      ['.', 'btn2']
                   ]
                   ['.', 'featured']
                 ],
@@ -708,7 +723,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==', ['get', [['*'], [' '], ['#', 'main'], [':not', ['.', 'disabled']], [' '], ['.', 'boxes'], ['[]', 'data-target']], 'width'], 100]
+              ['==', ['get', [['tag','*'], [' '], ['#', 'main'], [':not', ['.', 'disabled']], [' '], ['.', 'boxes'], ['[]', 'data-target']], 'width'], 100]
             ]
           }
 
@@ -1048,7 +1063,7 @@ describe 'CCSS-to-AST', ->
                   ",",
                   ["&"],
                   [["::scope"], [" "], [".", "box"]],
-                  [["&"], [".", "post"]],
+                  [["&"], [" "], [".", "post"]],
                   ["::scope"],
                   [["&"], [" "], ["virtual", "fling"]]
                 ],
@@ -2065,8 +2080,7 @@ describe 'CCSS-to-AST', ->
   describe '/* Parans */', ->
 
 
-    parse """
-            /* paran craziness */
+    parse """/* paran craziness */
             ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
           """
         ,
@@ -2106,19 +2120,8 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
 
   describe '/* API Hooks */', ->
-
-
-    parse """
-            @h (#left)(#right) !strong {}
-          """
-        ,
-          {
-            commands: [
-              ['==',['get',['#','left'],'right'],['get',['#','right'],'x'],'strong']
-            ]
-          }
-
-    parse """
+    
+    parse """/* VFL */
             @v (#top)(#bottom) !strong;
           """
         ,
@@ -2128,7 +2131,17 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    parse """
+    parse """/* VFL empty ruleset */
+            @h (#left)(#right) !strong {}
+          """
+        ,
+          {
+            commands: [
+              ['==',['get',['#','left'],'right'],['get',['#','right'],'x'],'strong']
+            ]
+          }
+
+    parse """/* VFL ruleset */
             @h (button.featured)-10-(#b2) {
               width: == 100;
               height: == &:next[height];
@@ -2152,8 +2165,7 @@ describe 'CCSS-to-AST', ->
           }
 
 
-    parse """
-
+    parse """/* splatted VFL ruleset */
               @v |(.post)...| in(::window) {
                   border-radius: == 4;
                   @h |(&)| in(::window);
@@ -2179,12 +2191,11 @@ describe 'CCSS-to-AST', ->
 
           }
 
-    parse """ // DO NOT special case how ::scope is prepended to rule selectors
-
+    parse "DO NOT special case how ::scope is prepended to rule selectors",
+          """
             @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual") {
                 &[width] == 10;
               }
-
           """,
           {
             commands: [].concat(
@@ -2197,6 +2208,8 @@ describe 'CCSS-to-AST', ->
           }
 
     parse """
+              /* VFL w/ ruleset + CCSS */
+              
               @v |
                   -10-
                   (#cover)
@@ -2235,114 +2248,113 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
 
   describe '/* Do Something... */', ->
+    
+    ok """ /* smoke test */
+        /* vars */
+        [gap] == 20 !require;
+        [flex-gap] >= [gap] * 2 !require;
+        [radius] == 10 !require;
+        [outer-radius] == [radius] * 2 !require;
+
+        /* elements */
+        #profile-card {
+          width: == ::window[width] - 480;
+          height: == ::window[height] - 480;
+          center-x: == ::window[center-x];
+          center-y: == ::window[center-y];
+          border-radius: == [outer-radius];
+        }
+
+        #avatar {
+          height: == 160 !require;
+          width: == ::[height];
+          border-radius: == ::[height] / 2;
+        }
+
+        #name {
+          height: == ::[intrinsic-height] !require;
+          width: == ::[intrinsic-width] !require;
+        }
+
+        #cover {
+          border-radius: == [radius];
+        }
+
+        button {
+          width: == ::[intrinsic-width] !require;
+          height: == ::[intrinsic-height] !require;
+          padding: == [gap];
+          padding-top: == [gap] / 2;
+          padding-bottom: == [gap] / 2;
+          border-radius: == [radius];
+        }
+
+        @h |~-~(#name)~-~| in(#cover) gap([gap]*2) !strong;
+
+        /* landscape profile-card */
+        @if #profile-card[width] >= #profile-card[height] {
+
+          @v |
+              -
+              (#avatar)
+              -
+              (#name)
+              -
+             |
+            in(#cover)
+            gap([gap]) outer-gap([flex-gap]) {
+              center-x: == #cover[center-x];
+          }
+
+          @h |-10-(#cover)-10-|
+            in(#profile-card);
+
+          @v |
+              -10-
+              (#cover)
+              -
+              (#follow)
+              -
+             |
+            in(#profile-card)
+            gap([gap]);
+
+          #follow[center-x] == #profile-card[center-x];
+
+          @h |-(#message)~-~(#follow)~-~(#following)-(#followers)-|
+            in(#profile-card)
+            gap([gap])
+            !strong {
+              &[top] == &:next[top];
+            }
+        }
+
+        /* portrait profile-card */
+        @else {
+          @v |
+              -
+              (#avatar)
+              -
+              (#name)
+              -
+              (#follow)
+              -
+              (#message)
+              -
+              (#following)
+              -
+              (#followers)
+              -
+             |
+            in(#cover)
+            gap([gap])
+            outer-gap([flex-gap]) {
+              center-x: == #profile-card[center-x];
+          }
+
+          @h |-10-(#cover)-10-| in(#profile-card);
+          @v |-10-(#cover)-10-| in(#profile-card);
+        }
 
 
-    parse """
-              /* vars */
-              [gap] == 20 !require;
-              [flex-gap] >= [gap] * 2 !require;
-              [radius] == 10 !require;
-              [outer-radius] == [radius] * 2 !require;
-
-              /* elements */
-              #profile-card {
-                width: == ::window[width] - 480;
-                height: == ::window[height] - 480;
-                center-x: == ::window[center-x];
-                center-y: == ::window[center-y];
-                border-radius: == [outer-radius];
-              }
-
-              #avatar {
-                height: == 160 !require;
-                width: == ::[height];
-                border-radius: == ::[height] / 2;
-              }
-
-              #name {
-                height: == ::[intrinsic-height] !require;
-                width: == ::[intrinsic-width] !require;
-              }
-
-              #cover {
-                border-radius: == [radius];
-              }
-
-              button {
-                width: == ::[intrinsic-width] !require;
-                height: == ::[intrinsic-height] !require;
-                padding: == [gap];
-                padding-top: == [gap] / 2;
-                padding-bottom: == [gap] / 2;
-                border-radius: == [radius];
-              }
-
-              @h |~-~(#name)~-~| in(#cover) gap([gap]*2) !strong;
-
-              /* landscape profile-card */
-              @if #profile-card[width] >= #profile-card[height] {
-
-                @v |
-                    -
-                    (#avatar)
-                    -
-                    (#name)
-                    -
-                   |
-                  in(#cover)
-                  gap([gap]) outer-gap([flex-gap]) {
-                    center-x: == #cover[center-x];
-                }
-
-                @h |-10-(#cover)-10-|
-                  in(#profile-card);
-
-                @v |
-                    -10-
-                    (#cover)
-                    -
-                    (#follow)
-                    -
-                   |
-                  in(#profile-card)
-                  gap([gap]);
-
-                #follow[center-x] == #profile-card[center-x];
-
-                @h |-(#message)~-~(#follow)~-~(#following)-(#followers)-|
-                  in(#profile-card)
-                  gap([gap])
-                  !strong {
-                    &[top] == &:next[top];
-                  }
-              }
-
-              /* portrait profile-card */
-              @else {
-                @v |
-                    -
-                    (#avatar)
-                    -
-                    (#name)
-                    -
-                    (#follow)
-                    -
-                    (#message)
-                    -
-                    (#following)
-                    -
-                    (#followers)
-                    -
-                   |
-                  in(#cover)
-                  gap([gap])
-                  outer-gap([flex-gap]) {
-                    center-x: == #profile-card[center-x];
-                }
-
-                @h |-10-(#cover)-10-| in(#profile-card);
-                @v |-10-(#cover)-10-| in(#profile-card);
-              }
-
-
-          """
+    """

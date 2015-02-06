@@ -263,7 +263,12 @@ __
 // ===================================================
 
 GSSSelector
-  = ctx:NoParanSelectorChain sel:SafeCSSSelector {return [ctx, sel] }
+  = ctx:NoParanSelectorChain sel:SafeCSSSelector 
+  {
+    if (!(ctx[0] instanceof Array)) {ctx = [ctx];}
+    if (sel[0] instanceof Array){ctx.push([sel]);} else {ctx.push([sel]);}     
+    return ctx;
+  }
   / SafeCSSSelector
   / left:SimpleSelectorChain _ {return left;}
 
@@ -276,13 +281,13 @@ CSSSelector
   / ComplexSelectorChain
 
 ComplexSelectorChain
-  = filters:ComplexSelector+  { return g.reverseFilterNest(filters);}
+  = filters:ComplexSelector+  { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 SimpleSelectorChain
-  = filters:SimpleSelector+  { return g.reverseFilterNest(filters);}
+  = filters:SimpleSelector+   { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 NoParanSelectorChain
-  = filters:NoParanSelector+  { return g.reverseFilterNest(filters);}
+  = filters:NoParanSelector+  { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 NoParanSelector "NoParanSelector"
   = SpecialSelector / VirtualSel / TagSel / IdSel / ClassSel / ReservedPseudoSel / PseudoSel
@@ -371,12 +376,18 @@ ReservedPseudos
 
 PseudoSel
   = colons:("::" / ":") name:SelectorName option:PseudoSelOption? {
-    if (option) {return [colons + name,option];}
+    if (option) {return [colons + name, option];}
     return [colons + name];
   }
 
 PseudoSelOption
-  = "(" option:[^)]* ")"       {return option.join(""); }
+  = "(" __ option:PseudoSelOptionParam __ ")"       {return option; }
+  / "(" __ ")"
+  
+PseudoSelOptionParam
+  = n:[0-9]+          {return Number(n.join(""));}
+  / CSSSelector
+  / string:[^)]+      {return string.join(""); }
 
 AttrSel
   = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["["+op.join("")+"]",left.join("").trim(),right.join("").trim()]; }
@@ -384,7 +395,7 @@ AttrSel
 
 
 SelectorName
-  = name:SelectorNameChars+    {return name.join("")}
+  = &[^0-9\-] name:SelectorNameChars+    {return name.join("")}
 
 SelectorNameChars
   = [a-zA-Z0-9\-_]

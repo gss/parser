@@ -717,6 +717,26 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
+    parse """/* pseudo selector options */
+            :sel(.thing.other:sel(.inner)):num(1401):string('hello'):empty()[width] == 100
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',
+                  [
+                    [':sel',[['.','thing'],['.','other'],[':sel',['.','inner']]]]
+                    [':num',1401]
+                    [':string',"'hello'"]
+                    [':empty']
+                  ], 
+                  'width'], 
+                100
+              ]
+            ]
+          }
+    
     parse """
             (* #main:not(.disabled) .boxes[data-target])[width] == 100
           """

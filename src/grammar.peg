@@ -382,7 +382,7 @@ PseudoSel
 
 PseudoSelOption
   = "(" __ option:PseudoSelOptionParam __ ")"       {return option; }
-  / "(" __ ")"
+  / "(" __ ")"    {return null;}
   
 PseudoSelOptionParam
   = n:[0-9]+          {return Number(n.join(""));}

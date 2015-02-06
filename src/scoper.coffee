@@ -41,10 +41,23 @@ _analyze = (node, buffer, bufferLengthMinus = 1) =>
     scope._unscopedVars = []
     buffer.push scope
 
-  else if name is 'get' or name is 'virtual'
+  else if name is 'get'
     currScope = buffer[buffer.length - bufferLengthMinus]
     if currScope
       if node.length is 2
+        node._varKey = node.toString()
+        currScope._unscopedVars.push node
+  
+  # is selector chain... dangerous assumption    
+  else if name instanceof Array 
+    for part in node
+      if part[0] is 'virtual'
+        part._dontHoist = true
+  
+  else if name is 'virtual'
+    currScope = buffer[buffer.length - bufferLengthMinus]
+    if currScope
+      if !node._dontHoist
         node._varKey = node.toString()
         currScope._unscopedVars.push node
 
@@ -85,4 +98,13 @@ _mutate = (node) =>
         if unscoped[1][0] isnt '^' # not already hoisted
           hoister = ['^']
           hoister.push(hoistLevel) if hoistLevel > 1
-          unscoped.splice 1, 0, hoister
+          unscopedCommand = unscoped[0]
+          if unscopedCommand is 'get'      
+            unscoped.splice 1, 0, hoister
+          else if unscopedCommand is 'virtual'            
+            # can't do the easy way:
+            # `unscoped = [hoister, unscoped]`
+            # because creates new pointer, so...
+            clone = unscoped.splice(0,2)
+            unscoped.push hoister
+            unscoped.push clone

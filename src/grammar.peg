@@ -197,8 +197,9 @@ Literal
   / val:Numeric        { return val; }
 
 Unit
-  = "px" / "em" / "vh" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
+  = "px" / "em" / "vw" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
   / "cm" / "mm" / "in" / "pt" / "pc"
+  / &[^-] u:[a-zA-Z\-]+ {return u.join('');}
 
 Numeric
   = Real / Integer / SignedReal / SignedInteger

@@ -2091,6 +2091,18 @@ describe 'CCSS-to-AST', ->
                 ['==', ['%', -0.01], ['%', 0.01]]
               ]
             }
+    
+    parse """/* custom units */
+            10my-md == 0.4my-md;
+            -.01my-md == .01my-md;
+          """
+          ,
+            {
+              commands: [
+                ['==', ['my-md', 10], ['my-md', 0.4]]
+                ['==', ['my-md', -0.01], ['my-md', 0.01]]
+              ]
+            }
 
 
 

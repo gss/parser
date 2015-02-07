@@ -275,7 +275,7 @@ describe "/* Expressions */", ->
             ]
           }
     
-    parse "function chain", 
+    parse "function sequence", 
           [
             "dance(1) jump(3) fall(6);"
             
@@ -290,7 +290,7 @@ describe "/* Expressions */", ->
             ]
           }
     
-    parse "nested function chains", 
+    parse "nested function sequence", 
           [
             "dance(step(1) step(2) step(3)) jump(4);"
             

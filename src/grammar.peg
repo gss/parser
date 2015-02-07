@@ -172,7 +172,7 @@ AnonymousStatement
   = funcs:Functions {return {commands:[funcs]};}
 
 Functions 
-  = FuncChain
+  = FuncSequence
   / Func
 
 Func
@@ -180,7 +180,7 @@ Func
   / name:[a-zA-Z\-]+ "(" __ param:FuncParam __ ")" {return [name.join(''), param];}
   / name:[a-zA-Z\-]+ "(" __ params:FuncParams __ ")" {return [name.join('')].concat(params);}
 
-FuncChain
+FuncSequence
   = head:Func tail:( " " " "? __ Func )+
     {  
       // TODO: not use `createSelectorCommaCommand`

@@ -28,6 +28,7 @@ Statements
 Statement
   = __ s:StatementTypes EOS __ { return s; }
 
+// Statements must return {command:[...]}
 StatementTypes
   = Ruleset  
   / InlineConstraintStatement
@@ -154,9 +155,10 @@ MultiplicativeOperator
   / "/" { return '/';   }
 
 ConstraintPrimaryExpression
-  = UnitVar
+  = Functions
+  / UnitVar
   / Var
-  / Literal
+  / Literal  
   / exp:ConstraintParanExpression " "* u:Unit {return [u, exp];}
   / ConstraintParanExpression
 
@@ -188,7 +190,7 @@ FuncChain
 
 FuncParam
   = Functions
-  / PrimaryExpression
+  / Expression
   / GSSSelector
 
 FuncParams

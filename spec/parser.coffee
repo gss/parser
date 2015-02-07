@@ -170,13 +170,17 @@ describe "/* Expressions */", ->
           }
 
   # ------------------------------------------------------------------
-  describe "Inline functions", ->
+  describe "Anonymous functions", ->
   
     parse ["""
             empty-func();
           """
           """
             empty-func(  );
+          """
+          """
+            empty-func(  
+            );
           """],
           {
             commands: [
@@ -191,6 +195,15 @@ describe "/* Expressions */", ->
           {
             commands: [
               ['number-func',10.22]
+            ]
+          }
+    
+    parse [
+            "math-func(10 + x * 2);"
+          ],
+          {
+            commands: [
+              ['math-func',['+',10,['*',['get','x'],2]]]
             ]
           }
   
@@ -293,6 +306,51 @@ describe "/* Expressions */", ->
                   ]
                 ]
                 ['jump',4]
+              ]
+            ]
+          }
+    
+  # ------------------------------------------------------------------
+  describe "Functions in Equations", ->
+  
+    parse ["""
+            x == my-spring(1);
+          """],
+          {
+            commands: [
+              ['==',
+                ['get','x']
+                ['my-spring',1]
+              ]
+            ]
+          }
+    
+    parse ["""
+            x == my-spring(1) + my-func(y);
+          """],
+          {
+            commands: [
+              ['==',
+                ['get','x']                
+                ['+'
+                  ['my-spring',1]
+                  ['my-func',['get','y']]
+                ]
+              ]
+            ]
+          }
+    
+    parse ["""
+            x := my-spring(1 + 2) + my-func(y);
+          """],
+          {
+            commands: [
+              ['=',
+                ['get',['&'],'x']           
+                ['+'
+                  ['my-spring',['+',1,2]]
+                  ['my-func',['get','y']]
+                ]
               ]
             ]
           }

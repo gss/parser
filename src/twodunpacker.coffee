@@ -8,10 +8,10 @@
 # the AST representing the constraint using 2d props.
 
 module.exports = (ast) ->
-    buffer = []
-    buffer2dExpansion ast, buffer
-    expandConstraintsWith2dProperties buffer
-    ast
+  buffer = []
+  buffer2dExpansion ast, buffer
+  expandConstraintsWith2dProperties buffer
+  ast
 
 buffer2dExpansion = (ast, buffer) ->
   if ast.commands?

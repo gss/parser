@@ -42,9 +42,9 @@ describe "Scoper", ->
   # var hoisting raw commands
   # ====================================================================
 
-  describe "var hoisting raw commands", ->
+  describe "/ var hoisting raw commands", ->
 
-    hoistTest 'hoist 1 level root before',
+    hoistTest '/ hoist 1 level root before',
         commands:
           [
             ['==',['get','foo'],100]
@@ -66,7 +66,7 @@ describe "Scoper", ->
           ]
 
 
-    hoistTest 'hoist 1 level root after',
+    hoistTest '/ hoist 1 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -87,7 +87,7 @@ describe "Scoper", ->
             ['==',['get','foo'],100]
           ]
 
-    hoistTest 'hoist 2 level before',
+    hoistTest '/ hoist 2 level before',
         commands:
           [
             ['==',['get','foo'],0]
@@ -119,7 +119,7 @@ describe "Scoper", ->
           ]
 
 
-    hoistTest 'hoist 2 level root after',
+    hoistTest '/ hoist 2 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -151,7 +151,7 @@ describe "Scoper", ->
           ]
 
 
-    hoistTest 'DONT already hoisted 2 level root after',
+    hoistTest '/ DONT already hoisted 2 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -183,7 +183,7 @@ describe "Scoper", ->
           ]
 
 
-    hoistTest 'conditionals',
+    hoistTest '/ conditionals',
         commands:
           [
             ['==',['get','foo'],0]
@@ -256,9 +256,9 @@ describe "Scoper", ->
   # virtual hoisting raw commands
   # ====================================================================
 
-  describe "virtual hoisting raw commands", ->
+  describe "/ virtual hoisting raw commands", ->
 
-    hoistTest 'hoist 1 level root before',
+    hoistTest '/ hoist 1 level root before',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -274,12 +274,12 @@ describe "Scoper", ->
             ['==',['get',['virtual','zone'],'foo'],100]
             ['rule',['.','box'],
               [
-                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                ['==',['get',[['^'], ['virtual','zone']],'foo'],100]
               ]
             ]
           ]
 
-    hoistTest 'hoist 1 level root after',
+    hoistTest '/ hoist 1 level root after',
         commands:
           [
             ['rule',['.','box'],
@@ -294,13 +294,13 @@ describe "Scoper", ->
           [
             ['rule',['.','box'],
               [
-                ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                ['==',['get',[['^'],['virtual','zone']],'foo'],100]
               ]
             ]
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
 
-    hoistTest 'virtual defined in ruleset selector',
+    hoistTest '/ virtual defined in ruleset selector',
         commands:
           [
             ['rule',['.','box'],
@@ -325,12 +325,12 @@ describe "Scoper", ->
               [
                 ['rule',['virtual','zone'],
                   [
-                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                    ['==',['get',[['^'],['virtual','zone']],'foo'],100]
                   ]
                 ]
                 ['rule',['.','big'],
                   [
-                    ['==',['get',['virtual',['^'],'zone'],'foo'],100]
+                    ['==',['get',[['^'],['virtual','zone']],'foo'],100]
                   ]
                 ]
               ]
@@ -338,7 +338,7 @@ describe "Scoper", ->
           ]
 
 
-    hoistTest 'Dont hoist root',
+    hoistTest '/ Dont hoist root',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -349,7 +349,7 @@ describe "Scoper", ->
             ['==',['get',['virtual','zone'],'foo'],100]
           ]
 
-    hoistTest 'Dont consider ruleset selector child scope',
+    hoistTest '/ Dont consider ruleset selector child scope',
         commands:
           [
             ['==',['get',['virtual','zone'],'foo'],100]
@@ -370,7 +370,7 @@ describe "Scoper", ->
             ]
           ]
 
-    hoistTest '4 level',
+    hoistTest '/ 4 level',
         commands:
           [
             ['rule', ['.','ready']
@@ -378,10 +378,10 @@ describe "Scoper", ->
                 ['==',['get',['virtual','zone'],'foo'],100]
                 ['rule', ['virtual','zone']
                   [
-                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                    ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
                     ['rule', ['virtual','zone']
                       [
-                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
+                        ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
                         ['rule', ['virtual','zone']
                           [
                             ['==',['get',['virtual','zone'],'foo'],100]
@@ -402,13 +402,13 @@ describe "Scoper", ->
                 ['==',['get',['virtual','zone'],'foo'],100]
                 ['rule', ['virtual','zone']
                   [
-                    ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                    ['rule', ['virtual',['^'],'zone']
+                    ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
+                    ['rule', [['^'],['virtual','zone']]
                       [
-                        ['==',['get',['virtual',['.','box'],'zone'],'foo'],100]
-                        ['rule', ['virtual',['^',2],'zone']
+                        ['==',['get',[['.','box'],['virtual','zone']],'foo'],100]
+                        ['rule', [['^',2],['virtual','zone']]
                           [
-                            ['==',['get',['virtual',['^',3],'zone'],'foo'],100]
+                            ['==',['get',[['^',3],['virtual','zone']],'foo'],100]
                           ]
                         ]
                       ]
@@ -424,9 +424,9 @@ describe "Scoper", ->
   # manual & auto hoisting source equivalence
   # ====================================================================
 
-  describe "manual & auto hoisting source equivalence", ->
+  describe "/ manual & auto hoisting source equivalence", ->
 
-    equivalent "1 level basic",
+    equivalent "/ 1 level basic",
       """
         foo == bar;
         .box {
@@ -440,7 +440,7 @@ describe "Scoper", ->
         }
       """
 
-    equivalent "3 level with virtuals",
+    equivalent "/ 3 level with virtuals",
       """
         .wrap {
           my-size == 100;
@@ -480,7 +480,7 @@ describe "Scoper", ->
         }
       """
 
-    equivalent "3 level moderate",
+    equivalent "/ 3 level moderate",
       """
 
         @if foo > 20 {

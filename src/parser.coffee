@@ -12,14 +12,14 @@ ErrorReporter = require 'error-reporter'
 
 parse = (source) ->
   results = null
-
+  
   try
     results = pegparser.parse source
   catch error
     errorReporter = new ErrorReporter source
     {message, line:lineNumber, column:columnNumber} = error
     errorReporter.reportError message, lineNumber, columnNumber
-
+  
   return scoper twoDimensionUnpacker results
 
 vflHook = (name,terms,commands=[]) ->

@@ -28,10 +28,12 @@ Statements
 Statement
   = __ s:StatementTypes EOS __ { return s; }
 
+// Statements must return {command:[...]}
 StatementTypes
-  = Ruleset
+  = Ruleset  
   / InlineConstraintStatement
   / InlineSet
+  / AnonymousStatement
   / ConstraintStatement
   / Virtual
   / IfElseStatement
@@ -89,7 +91,6 @@ Directive "Directive"
   / "@" name:[^ {}]+ terms:[^;]+ &";"
     {return g.directive(name.join(''),terms.join('').trim());}
 
-
 Expression
   = AndOrExpression
 
@@ -115,6 +116,7 @@ DualOperator
 
 ConstraintOperator "Constraint Operator"
   = "=="          { return "==";  }
+  / "="           { return "=";  }
   / ("<=" / "=<") { return "<="; }
   / (">=" / "=>") { return ">="; }
   / "<"           { return "<";  }
@@ -153,21 +155,77 @@ MultiplicativeOperator
   / "/" { return '/';   }
 
 ConstraintPrimaryExpression
-  = Var
-  / Literal
-  / "(" __ expression:ConstraintAdditiveExpression __ ")" {
+  = Functions
+  / UnitVar
+  / Var
+  / Literal  
+  / exp:ConstraintParanExpression " "* u:Unit {return [u, exp];}
+  / ConstraintParanExpression
+
+ConstraintParanExpression
+  = "(" __ expression:ConstraintAdditiveExpression __ ")" 
+  {
     return expression;
   }
 
+AnonymousStatement
+  = funcs:Functions {return {commands:[funcs]};}
+
+Functions 
+  = FuncSequence
+  / Func
+
+Func
+  = name:[a-zA-Z\-]+ "(" __ ")" {return [name.join('')];}
+  / name:[a-zA-Z\-]+ "(" __ param:FuncParam __ ")" {return [name.join(''), param];}
+  / name:[a-zA-Z\-]+ "(" __ params:FuncParams __ ")" {return [name.join('')].concat(params);}
+
+FuncSequence
+  = head:Func tail:( " " " "? __ Func )+
+    {  
+      // TODO: not use `createSelectorCommaCommand`
+      var command = g.createSelectorCommaCommand(head, tail); 
+      return command.slice(1,command.length);
+    }
+
+FuncParam
+  = Functions
+  / Expression
+  / GSSSelector
+
+FuncParams
+  = head:FuncParam tail:( __ "," __ FuncParam )+
+    { 
+      // TODO: not use `createSelectorCommaCommand`
+      var command = g.createSelectorCommaCommand(head, tail); 
+      return command.slice(1,command.length);
+    }
+
+
+
 PrimaryExpression
-  = Var
+  = UnitVar
+  / Var
   / Literal
   / String
   / "true"        {return true;}
   / "false"       {return false;}
   / "null"        {return null;}
   / "undefined"   {return undefined;}
-  / "(" __ expression:Expression __ ")" { return expression; }
+  / exp:ParanExpression " "* u:Unit
+  { 
+    return [u, exp];
+  }
+  / ParanExpression
+
+ParanExpression
+  = "(" __ expression:Expression __ ")" 
+  { 
+    return expression; 
+  }
+
+UnitVar
+  = v:Var " "+ u:Unit {return [u,v]}
 
 Var "variable"
   = negative:'-'? selector:GSSSelector? "[" varChars:BracketedVarChars+ "]" {
@@ -197,8 +255,11 @@ Literal
   / val:Numeric        { return val; }
 
 Unit
-  = "px" / "em" / "vh" / "vh" / "%" / "rem"  / "ex" / "ch" / "vmin" / "vmax"
-  / "cm" / "mm" / "in" / "pt" / "pc"
+  = "%"
+  / NotUnitPrefix u:[a-zA-Z\-]+ {return u.join('');}
+
+NotUnitPrefix
+  = &(!"-") &(!([oO][rR][ ])) &(!([aA][nN][dD][ ]))
 
 Numeric
   = Real / Integer / SignedReal / SignedInteger
@@ -263,7 +324,12 @@ __
 // ===================================================
 
 GSSSelector
-  = ctx:NoParanSelectorChain sel:SafeCSSSelector {return [ctx, sel] }
+  = ctx:NoParanSelectorChain sel:SafeCSSSelector 
+  {
+    if (!(ctx[0] instanceof Array)) {ctx = [ctx];}
+    if (sel[0] instanceof Array){ctx.push([sel]);} else {ctx.push([sel]);}     
+    return ctx;
+  }
   / SafeCSSSelector
   / left:SimpleSelectorChain _ {return left;}
 
@@ -276,13 +342,13 @@ CSSSelector
   / ComplexSelectorChain
 
 ComplexSelectorChain
-  = filters:ComplexSelector+  { return g.reverseFilterNest(filters);}
+  = filters:ComplexSelector+  { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 SimpleSelectorChain
-  = filters:SimpleSelector+  { return g.reverseFilterNest(filters);}
+  = filters:SimpleSelector+   { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 NoParanSelectorChain
-  = filters:NoParanSelector+  { return g.reverseFilterNest(filters);}
+  = filters:NoParanSelector+  { if (filters.length === 1 ) {return filters[0];} return filters;}
 
 NoParanSelector "NoParanSelector"
   = SpecialSelector / VirtualSel / TagSel / IdSel / ClassSel / ReservedPseudoSel / PseudoSel
@@ -371,12 +437,18 @@ ReservedPseudos
 
 PseudoSel
   = colons:("::" / ":") name:SelectorName option:PseudoSelOption? {
-    if (option) {return [colons + name,option];}
+    if (option) {return [colons + name, option];}
     return [colons + name];
   }
 
 PseudoSelOption
-  = "(" option:[^)]* ")"       {return option.join(""); }
+  = "(" __ option:PseudoSelOptionParam __ ")"       {return option; }
+  / "(" __ ")"    {return null;}
+  
+PseudoSelOptionParam
+  = n:[0-9]+          {return Number(n.join(""));}
+  / CSSSelector
+  / string:[^)]+      {return string.join(""); }
 
 AttrSel
   = "[" left:[^~|=!\^$&\*\]]+ op:[~|=!^$&*]+ right:[^\]]+ "]"        {return ["["+op.join("")+"]",left.join("").trim(),right.join("").trim()]; }
@@ -384,7 +456,7 @@ AttrSel
 
 
 SelectorName
-  = name:SelectorNameChars+    {return name.join("")}
+  = &[^0-9\-] name:SelectorNameChars+    {return name.join("")}
 
 SelectorNameChars
   = [a-zA-Z0-9\-_]

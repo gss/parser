@@ -6,13 +6,29 @@ else
 
 {expect, assert} = chai
 
-parse = (sources, expectation, pending) ->
-  itFn = if pending then xit else it
+ok = (args...) ->
+  args.push null
+  parse.apply @, args
+
+parse = (args...) ->
+  if args.length is 3
+    [name, sources, expectation] = args
+  else
+    [sources, expectation] = args
+      
+  itFn = it #if pending then xit else it
 
   if !(sources instanceof Array)
     sources = [sources]
+    
   sources.forEach (source) ->
-    describe source, ->
+    if name 
+      testName = name
+      if sources.length > 1
+        testName += " - #{sources.indexOf(source) + 1}"
+    else 
+      testName = source.trim().split("\n")[0]
+    describe testName, ->
       result = null
 
       itFn 'ok ✓', ->
@@ -64,15 +80,18 @@ expectError = (source, message, pending) ->
       expect(exercise).to.throw Error, message
 
 
-describe 'CCSS-to-AST', ->
-  it 'should provide a parse method', ->
+describe 'Parser', ->
+  
+  it 'existential', ->
     expect(parser.parse).to.be.a 'function'
 
-  # Basics
-  # ====================================================================
 
+# ====================================================================
+describe "/* Expressions */", ->        
+  
+  # ------------------------------------------------------------------
   describe "/* Basics */", ->
-
+  
     parse """
             foo == var;
           """
@@ -150,59 +169,257 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-
-  # Strength
-  # ====================================================================
-
-  describe "/* Strength */", ->
-
-    parse """
-            4 == 5 == 6 !strong10 // w/ strength and weight
+  # ------------------------------------------------------------------
+  describe "Anonymous functions", ->
+  
+    parse ["""
+            empty-func();
           """
-        ,
+          """
+            empty-func(  );
+          """
+          """
+            empty-func(  
+            );
+          """],
           {
             commands: [
-              ['==', 4, 5, 'strong', 10]
-              ['==', 5, 6, 'strong', 10]
+              ['empty-func']
+            ]
+          }
+  
+    parse [
+            "number-func(10.22);"
+            "  number-func(  10.22  )  ;"
+          ],
+          {
+            commands: [
+              ['number-func',10.22]
+            ]
+          }
+    
+    parse [
+            "math-func(10 + x * 2);"
+          ],
+          {
+            commands: [
+              ['math-func',['+',10,['*',['get','x'],2]]]
+            ]
+          }
+  
+    parse "selector-func(#foo.bar);",
+          {
+            commands: [
+              ['selector-func',[['#','foo'],['.','bar']]] 
+            ]
+          }
+    
+    parse "var-func(my-var);",
+          {
+            commands: [
+              ['var-func',['get','my-var']] 
+            ]
+          }
+    
+    parse "vars-func(my-var, #box[x], .foo.bar[x]);",
+          {
+            commands: [
+              ['vars-func',
+                ['get','my-var'],
+                ['get',['#','box'],'x'],
+                ['get',[['.','foo'],['.','bar']],'x']
+              ] 
+            ]
+          }
+    
+    parse "nested functions", 
+          [
+            "outer(mid(inner()));"
+            """
+            outer(
+              mid(
+                inner( 
+                )
+              )
+            )
+            """
+          ],
+          {
+            commands: [
+              ['outer',
+                ['mid'
+                  ['inner']
+                ]
+              ] 
+            ]
+          }
+    
+    parse "functions as many params", 
+          [
+            "outer(inner(1),inner(2),inner(3));"
+            """
+            outer(
+              inner( 1 ),
+              inner( 2 ),
+              inner( 3 )
+            )
+            """
+          ],
+          {
+            commands: [
+              ['outer',
+                ['inner',1]
+                ['inner',2]
+                ['inner',3]
+              ] 
+            ]
+          }
+    
+    parse "function sequence", 
+          [
+            "dance(1) jump(3) fall(6);"
+            
+          ],
+          {
+            commands: [
+              [ # chain
+                ['dance',1]
+                ['jump',3]
+                ['fall',6]
+              ]
+            ]
+          }
+    
+    parse "nested function sequence", 
+          [
+            "dance(step(1) step(2) step(3)) jump(4);"
+            
+          ],
+          {
+            commands: [
+              [ # chain
+                ['dance',
+                  [ # chain
+                    ['step',1]
+                    ['step',2]
+                    ['step',3]
+                  ]
+                ]
+                ['jump',4]
+              ]
+            ]
+          }
+    
+  # ------------------------------------------------------------------
+  describe "Functions in Equations", ->
+  
+    parse ["""
+            x == my-spring(1);
+          """],
+          {
+            commands: [
+              ['==',
+                ['get','x']
+                ['my-spring',1]
+              ]
+            ]
+          }
+    
+    parse ["""
+            x == my-spring(1) + my-func(y);
+          """],
+          {
+            commands: [
+              ['==',
+                ['get','x']                
+                ['+'
+                  ['my-spring',1]
+                  ['my-func',['get','y']]
+                ]
+              ]
+            ]
+          }
+    
+    parse ["""
+            x := my-spring(1 + 2) + my-func(y);
+          """],
+          {
+            commands: [
+              ['=',
+                ['get',['&'],'x']           
+                ['+'
+                  ['my-spring',['+',1,2]]
+                  ['my-func',['get','y']]
+                ]
+              ]
+            ]
+          }
+  
+  # ------------------------------------------------------------------
+  describe '/* Parans */', ->
+
+    parse """
+            ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
+          """,
+          {
+            commands: [
+              ['==',
+                ['+',['get', ['#', 'box1'], 'width'], ['get', ['virtual', 'area'], 'width']],
+                ['+',['get', ['#', 'box2'], 'width'], ['get', ['::window'], 'width']],
+              ]
             ]
           }
 
-    parse """
-            div[width] == 100 !strong
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', ['tag', 'div'], 'width'], 100, 'strong']
-            ]
-          }
 
-    # custom strengths accepted & lower cased
-    parse """
-            4 == 5 == 6 !my-custom-strength99;
-            4 == 5 == 6 !My-CUSTOM-strengtH99;
-          """
-        ,
-          {
-            commands: [
-              ['==', 4, 5, 'my-custom-strength', 99]
-              ['==', 5, 6, 'my-custom-strength', 99]
-              ['==', 4, 5, 'my-custom-strength', 99]
-              ['==', 5, 6, 'my-custom-strength', 99]
-            ]
-          }
+# ====================================================================
+describe "/* Strength */", ->
 
-    expectError '[a] == [b] !stron88afdklj23'
-    expectError '[a] == [b] !strong0.5'
+  parse """
+          4 == 5 == 6 !strong10 // w/ strength and weight
+        """,
+        {
+          commands: [
+            ['==', 4, 5, 'strong', 10]
+            ['==', 5, 6, 'strong', 10]
+          ]
+        }
 
-    #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+  parse """
+          div[width] == 100 !strong
+        """,
+        {
+          commands: [
+            ['==', ['get', ['tag', 'div'], 'width'], 100, 'strong']
+          ]
+        }
+
+  # custom strengths accepted & lower cased
+  parse """
+          4 == 5 == 6 !my-custom-strength99;
+          4 == 5 == 6 !My-CUSTOM-strengtH99;
+        """,
+        {
+          commands: [
+            ['==', 4, 5, 'my-custom-strength', 99]
+            ['==', 5, 6, 'my-custom-strength', 99]
+            ['==', 4, 5, 'my-custom-strength', 99]
+            ['==', 5, 6, 'my-custom-strength', 99]
+          ]
+        }
+
+  expectError '[a] == [b] !stron88afdklj23'
+  expectError '[a] == [b] !strong0.5'
+
+  #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
 
 
 
+  
 
-  # New Pseudos
-  # ====================================================================
+# ====================================================================
+describe '/* Selectors */', ->
 
+  # ------------------------------------------------------------------
   describe '/* New Pseudos */', ->
 
     parse [
@@ -212,19 +429,17 @@ describe 'CCSS-to-AST', ->
             """
               &width == ::parent[width]
             """
-          ]
-        ,
+          ],
           {
             commands: [
               ['==', ['get',['&'],'width'], ['get',['::parent'],'width']]
             ]
           }
 
-    # viewport gets normalized to window
-    parse """
+    
+    parse "viewport gets normalized to window", """
             ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
-          """
-        ,
+          """,
           {
             commands: [
               ['==', ['get',['::scope'],'width'],    ['get',['&'],'width' ]]
@@ -234,8 +449,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    # normalize ::this selector
-    parse [
+    parse "normalize ::this selector", [
             """
               &width == &x == &y
             """
@@ -246,8 +460,7 @@ describe 'CCSS-to-AST', ->
               /* parans ignored */
               (::)[width] == (::this)[x] == (&)[y]
             """
-          ]
-        ,
+          ],
           {
             commands: [
               ['==', ['get',['&'],'width'],    ['get',['&'],'x']]
@@ -255,8 +468,7 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-    # global scope selector
-    parse [
+    parse "global scope selector", [
             """
               $width == $y
             """
@@ -328,11 +540,7 @@ describe 'CCSS-to-AST', ->
           }
 
 
-
-
-  # Selectors as selector call context
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe '/* Selectors as selector call context */', ->
 
     parse """
@@ -342,8 +550,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',[['&'],['.','box']],'width'],
-                ['get',[['::parent'],['.','thing']],'width']
+                ['get',[['&'],[['.','box']]],'width'],
+                ['get',[['::parent'],[['.','thing']]],'width']
               ]
             ]
           }
@@ -357,8 +565,9 @@ describe 'CCSS-to-AST', ->
               ['==',
                 ['get',
                   [
-                    ['.',['tag','button'],'big'],
-                    ['.','text']
+                    ['tag','button'],
+                    ['.','big'],
+                    [['.','text']]
                   ],
                   'width'
                 ],
@@ -368,22 +577,8 @@ describe 'CCSS-to-AST', ->
           }
 
 
-
-  # Virtuals
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe '/ "Virtuals" /', ->
-
-    parse """
-            @virtual "Zone";
-          """
-        ,
-          {
-            commands: [
-              ['virtual','Zone']
-            ]
-          }
-
 
     parse """
             "Zone"[width] == 100;
@@ -413,273 +608,280 @@ describe 'CCSS-to-AST', ->
           }
 
 
-  # Selector Splats
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe '/* Selector Splats */', ->
-
-    parse [
-            """
-              "col1...5"[x] == 0; // virtual splats
-            """,
-            """
-              ("col1","col2","col3","col4","col5")[x] == 0;
-            """
-          ]
-        ,
-          {
-            commands: [
-              ['==',
-                ['get',
-                  [',',
-                    ['virtual','col1']
-                    ['virtual','col2']
-                    ['virtual','col3']
-                    ['virtual','col4']
-                    ['virtual','col5']
+    
+    # ................................................................
+    describe '/* Basics */', ->
+      
+      parse [
+              """
+                "col1...5"[x] == 0; // virtual splats
+              """,
+              """
+                ("col1","col2","col3","col4","col5")[x] == 0;
+              """
+            ]
+          ,
+            {
+              commands: [
+                ['==',
+                  ['get',
+                    [',',
+                      ['virtual','col1']
+                      ['virtual','col2']
+                      ['virtual','col3']
+                      ['virtual','col4']
+                      ['virtual','col5']
+                    ],
+                    'x'
                   ],
-                  'x'
+                  0
+                ]
+              ]
+            }
+
+      equivalent "/* Virtual Splats Constraints */",
+        '"col-1...4"[x] == 0;',
+        '("col-1","col-2","col-3","col-4")[x] == 0;',
+        '("col-1","col-2...3","col-4")[x] == 0;',
+        '("col-1...2","col-3...3","col-4...4")[x] == 0;'
+
+
+      equivalent "/* Virtual Splats Rulesets */", """
+          "col1...5" { x: == 0; }
+        """,
+        """
+          "col1...1","col2...2","col3...3","col4...4","col5...5" { &[x] == 0; }
+        """,
+        """
+          "col1","col2","col3","col4","col5" { &[x] == 0; }
+        """,
+        """
+          "col1","col2...4","col5" { &[x] == 0; }
+        """,
+        """
+          "col1...3","col4...5" { &[x] == 0; }
+        """
+
+      parse '"zone-1-1...3"[x] == 0',
+        {
+          commands: [
+            ['==',
+              ['get',
+                [',',
+                  ['virtual','zone-1-1']
+                  ['virtual','zone-1-2']
+                  ['virtual','zone-1-3']
                 ],
-                0
+                'x'
+              ],
+              0
+            ]
+          ]
+        }
+
+      parse '"zone-1...3-1...3"[x] == 0',
+        {
+          commands: [
+            ['==',
+              ['get',
+                [',',
+                  ['virtual','zone-1-1']
+                  ['virtual','zone-1-2']
+                  ['virtual','zone-1-3']
+                  ['virtual','zone-2-1']
+                  ['virtual','zone-2-2']
+                  ['virtual','zone-2-3']
+                  ['virtual','zone-3-1']
+                  ['virtual','zone-3-2']
+                  ['virtual','zone-3-3']
+                ],
+                'x'
+              ],
+              0
+            ]
+          ]
+        }
+
+      parse '"zone-1...3-2"[x] == 0',
+        {
+          commands: [
+            ['==',
+              ['get',
+                [',',
+                  ['virtual','zone-1-2']
+                  ['virtual','zone-2-2']
+                  ['virtual','zone-3-2']
+                ],
+                'x'
+              ],
+              0
+            ]
+          ]
+        }
+
+      parse "#box-2...6[x] == 0",
+        {
+          commands: [
+            ['==',
+              ['get',
+                [',',
+                  ['#','box-2']
+                  ['#','box-3']
+                  ['#','box-4']
+                  ['#','box-5']
+                  ['#','box-6']
+                ],
+                'x'
+              ],
+              0
+            ]
+          ]
+        }
+
+      parse "#cell-x1...2-y1...2-z1...2[z] == 0",
+        {
+          commands: [
+            ['==',
+              ['get',
+                [',',
+                  ['#','cell-x1-y1-z1']
+                  ['#','cell-x1-y1-z2']
+                  ['#','cell-x1-y2-z1']
+                  ['#','cell-x1-y2-z2']
+                  ['#','cell-x2-y1-z1']
+                  ['#','cell-x2-y1-z2']
+                  ['#','cell-x2-y2-z1']
+                  ['#','cell-x2-y2-z2']
+                ],
+                'z'
+              ],
+              0
+            ]
+          ]
+        }
+
+      parse [
+          ".btn0...2.featured[x]                <= 0"
+          "((.btn0, .btn1, .btn2).featured)[x]  <= 0"
+        ]
+        {
+          commands: [
+            ['<=',
+              ['get',
+                [
+                  [',',
+                    ['.','btn0']
+                    ['.','btn1']
+                    ['.','btn2']
+                  ],
+                  ['.', 'featured']
+                ],
+              'x'],
+              0
+            ]
+          ]
+        }
+
+    # ................................................................
+    describe '/* scoped splats */', ->
+
+      parse ".parent.btn0...2.featured[x] <= 0",
+        {
+          commands: [
+              ['<=',
+                ['get',
+                  [
+                    ['.', 'parent']
+                    [',',
+                        ['.', 'btn0']
+                        ['.', 'btn1']
+                        ['.', 'btn2']
+                    ]
+                    ['.', 'featured']
+                  ],
+                'x'],
+              0
               ]
             ]
-          }
+        }
 
-    equivalent "/* Virtual Splats Constraints */",
-      '"col-1...4"[x] == 0;',
-      '("col-1","col-2","col-3","col-4")[x] == 0;',
-      '("col-1","col-2...3","col-4")[x] == 0;',
-      '("col-1...2","col-3...3","col-4...4")[x] == 0;'
+      parse "$.btn0...2[x] <= 0",
+
+        {
+          commands: [
+            ['<=',
+              ['get',
+                [
+                  ['$'],
+                  [',',
+                      ['.','btn0']
+                      ['.','btn1']
+                      ['.','btn2']
+                  ]
+                ],
+              'x'],
+              0
+            ]
+          ]
+        }
 
 
-    equivalent "/* Virtual Splats Rulesets */", """
-        "col1...5" { x: == 0; }
-      """,
-      """
-        "col1...1","col2...2","col3...3","col4...4","col5...5" { &[x] == 0; }
-      """,
-      """
-        "col1","col2","col3","col4","col5" { &[x] == 0; }
-      """,
-      """
-        "col1","col2...4","col5" { &[x] == 0; }
-      """,
-      """
-        "col1...3","col4...5" { &[x] == 0; }
-      """
-
-    parse '"zone-1-1...3"[x] == 0',
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['virtual','zone-1-1']
-                ['virtual','zone-1-2']
-                ['virtual','zone-1-3']
+      parse '$"zone-1...3-2"[x] == 0',
+        {
+          commands: [
+            ['==',
+              ['get',
+                [
+                  ['$'],
+                  [',',
+                    ['virtual','zone-1-2']
+                    ['virtual','zone-2-2']
+                    ['virtual','zone-3-2']
+                  ],
+                ],
+                'x'
               ],
-              'x'
-            ],
-            0
+              0
+            ]
           ]
-        ]
-      }
+        }
 
-    parse '"zone-1...3-1...3"[x] == 0',
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['virtual','zone-1-1']
-                ['virtual','zone-1-2']
-                ['virtual','zone-1-3']
-                ['virtual','zone-2-1']
-                ['virtual','zone-2-2']
-                ['virtual','zone-2-3']
-                ['virtual','zone-3-1']
-                ['virtual','zone-3-2']
-                ['virtual','zone-3-3']
-              ],
-              'x'
-            ],
-            0
+    # ................................................................
+    describe '/* Special Splat Optimizations */', ->
+
+      parse [
+          '"col1...3":first[x] == 0'
+          '(("col1", "col2", "col3"):first)[x] == 0'
+        ]
+        {
+          commands: [
+            ['==',
+              ['get',
+                ['virtual','col1']
+              'x'],
+              0
+            ]
           ]
-        ]
-      }
+        }
 
-    parse '"zone-1...3-2"[x] == 0',
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['virtual','zone-1-2']
-                ['virtual','zone-2-2']
-                ['virtual','zone-3-2']
-              ],
-              'x'
-            ],
-            0
+      parse [
+          '"col1...3":last[x] == 0'
+          '(("col1", "col2", "col3"):last)[x] == 0',
+        ]
+        {
+          commands: [
+            ['==',
+              ['get',
+                ['virtual','col3']
+              'x'],
+              0
+            ]
           ]
-        ]
-      }
+        }
 
-    parse "#box-2...6[x] == 0",
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['#','box-2']
-                ['#','box-3']
-                ['#','box-4']
-                ['#','box-5']
-                ['#','box-6']
-              ],
-              'x'
-            ],
-            0
-          ]
-        ]
-      }
-
-    parse "#cell-x1...2-y1...2-z1...2[z] == 0",
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['#','cell-x1-y1-z1']
-                ['#','cell-x1-y1-z2']
-                ['#','cell-x1-y2-z1']
-                ['#','cell-x1-y2-z2']
-                ['#','cell-x2-y1-z1']
-                ['#','cell-x2-y1-z2']
-                ['#','cell-x2-y2-z1']
-                ['#','cell-x2-y2-z2']
-              ],
-              'z'
-            ],
-            0
-          ]
-        ]
-      }
-
-    parse [
-        ".btn0...2.featured[x]                <= 0"
-        "((.btn0, .btn1, .btn2).featured)[x]  <= 0"
-      ]
-      {
-        commands: [
-          ['<=',
-            ['get',
-              ['.',
-                [',',
-                  ['.','btn0']
-                  ['.','btn1']
-                  ['.','btn2']
-                ]
-              'featured']
-            'x'],
-            0
-          ]
-        ]
-      }
-
-  describe '/* scoped splats */', ->
-
-    parse ".parent.btn0...2.featured[x] <= 0",
-      {
-        commands: [
-          ['<=',
-            ['get',
-              ['.',
-                [',',
-                  ['.',['.','parent'],'btn0']
-                  ['.',['.','parent'],'btn1']
-                  ['.',['.','parent'],'btn2']
-                ]
-              'featured']
-            'x'],
-            0
-          ]
-        ]
-      }
-
-    parse "$.btn0...2[x] <= 0",
-
-      {
-        commands: [
-          ['<=',
-            ['get',
-              [',',
-                ['.',['$'],'btn0']
-                ['.',['$'],'btn1']
-                ['.',['$'],'btn2']
-              ]
-            'x'],
-            0
-          ]
-        ]
-      }
-
-    parse '$"zone-1...3-2"[x] == 0',
-      {
-        commands: [
-          ['==',
-            ['get',
-              [',',
-                ['virtual',['$'],'zone-1-2']
-                ['virtual',['$'],'zone-2-2']
-                ['virtual',['$'],'zone-3-2']
-              ],
-              'x'
-            ],
-            0
-          ]
-        ]
-      }
-
-  describe '/* Special Cased Optimizations */', ->
-
-    parse [
-        '"col1...3":first[x] == 0'
-        '(("col1", "col2", "col3"):first)[x] == 0'
-      ]
-      {
-        commands: [
-          ['==',
-            ['get',
-              ['virtual','col1']
-            'x'],
-            0
-          ]
-        ]
-      }
-
-    parse [
-        '"col1...3":last[x] == 0'
-        '(("col1", "col2", "col3"):last)[x] == 0',
-      ]
-      {
-        commands: [
-          ['==',
-            ['get',
-              ['virtual','col3']
-            'x'],
-            0
-          ]
-        ]
-      }
-
-
-
-
-
-  # Adv Selectors
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe '/* Advanced Selectors */', ->
 
     parse """
@@ -688,73 +890,37 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
+              ['==', ['get', [["tag", "html"], [" "], ["#","main"], [" "], [".","boxes"]],'width',], 100]
+            ]
+          }
+
+    parse """/* pseudo selector options */
+            :sel(.thing.other:sel(.inner)):num(1401):string('hello'):empty()[width] == 100
+          """
+        ,
+          {
+            commands: [
+              ['==', 
+                ['get',
                   [
-                     ".",
-                     [
-                        " ",
-                        [
-                           "#",
-                           [
-                              " ",
-                              [
-                                 "tag",
-                                 "html"
-                              ]
-                           ],
-                           "main"
-                        ]
-                     ],
-                     "boxes"
-                  ],
-                  'width',
-                ],
+                    [':sel',[['.','thing'],['.','other'],[':sel',['.','inner']]]]
+                    [':num',1401]
+                    [':string',"'hello'"]
+                    [':empty']
+                  ], 
+                  'width'], 
                 100
               ]
             ]
           }
-
+  
     parse """
             (* #main:not(.disabled) .boxes[data-target])[width] == 100
           """
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
-                  [
-                     "[]",
-                     [
-                        ".",
-                        [
-                           " ",
-                           [
-                              ":not",
-                              [
-                                 "#",
-                                 [
-                                    " ",
-                                    [
-                                       "tag",
-                                       "*"
-                                    ]
-                                 ],
-                                 "main"
-                              ],
-                              ".disabled"
-                           ]
-                        ],
-                        "boxes"
-                     ],
-                     "data-target",
-                  ],
-                  'width',
-                ],
-                100
-              ]
+              ['==', ['get', [['tag','*'], [' '], ['#', 'main'], [':not', ['.', 'disabled']], [' '], ['.', 'boxes'], ['[]', 'data-target']], 'width'], 100]
             ]
           }
 
@@ -765,32 +931,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              [
-                '==',
-                [
-                  'get',
-                  [':get',
-                    ['tag',
-                      [' ',
-                        ['tag',
-                          ['!',
-                            ['.',
-                              ['tag',
-                                ['!>',
-                                  ['tag',
-                                    'header']
-                                ]
-                                'h2']
-                              'gizoogle']
-                          ]
-                          'section']
-                      ]
-                      'div']
-                    "'parentNode'"],
-                  'target-size',
-                ],
-                100
-              ]
+              ['==', ['get', [['tag', 'header'], ['!>'], ['tag', 'h2'], ['.', 'gizoogle'], ['!'], ['tag', 'section'], [' '], ['tag', 'div'], [':get', "'parentNode'"]], 'target-size'], 100]
             ]
           }
 
@@ -800,10 +941,7 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                ['get',['.',['&'],'featured'],'width'],
-                100
-              ]
+              ['==', ['get', [['&'], ['.','featured']], 'width'], 100]
             ]
           }
 
@@ -815,11 +953,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['virtual',['&'],'column2'],'width'],
+                ['get',[['&'], ['virtual','column2']],'width'],
                 100
               ],
               ['==',
-                ['get',['virtual',['&'],'column2'],'width'],
+                ['get',[['&'], ['virtual','column2']],'width'],
                 100
               ]
             ]
@@ -833,11 +971,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',[':next',['&']],'x'],
+                ['get',[['&'], [':next']],'x'],
                 666
               ],
               ['==',
-                ['get',[':previous',['&']],'x'],
+                ['get',[['&'], [':previous']],'x'],
                 111
               ]
             ]
@@ -850,8 +988,8 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['==',
-                ['get',['.',[':next',['&']],    'selected'], 'width'],
-                ['get',['.',[':previous',['&']],'selected'], 'width']
+                ['get',[['&'], [':next'], ['.', 'selected']], 'width'],
+                ['get',[['&'], [':previous'], ['.', 'selected']], 'width']
               ]
             ]
           }
@@ -885,34 +1023,9 @@ describe 'CCSS-to-AST', ->
         ,
           {
             commands: [
-              ['==',
-                [
-                  'get',
-                  [
-                     ":first",
-                     [
-                        "tag",
-                        [
-                           "~",
-                           [
-                              "[]",
-                              [
-                                 "::parent"
-                              ],
-                              "disabled"
-                           ],
-                        ],
-                        "li"
-                     ]
-                    ],
-                  'width',
-                ],
-                100
-              ]
+              ['==', ['get', [['::parent'], ['[]', 'disabled'], ['~'], ['tag', 'li'], [':first']], 'width'], 100]
             ]
           }
-
-    # comma seperated
 
     parse """
         ((#a, #b).c, (#x, #y).z)[a-z] == 0;
@@ -920,37 +1033,27 @@ describe 'CCSS-to-AST', ->
       {
         commands: [
           ['==',
-            [
-              'get',
-              [
-                ','
+            ['get',
+              [',',
                 [
-                  '.'
-                  [
-                     ",",
-                     ["#","a"]
-                     ["#","b"]
+                  [',',
+                    ['#', 'a'], ['#', 'b']
                   ],
-                  'c'
-                ]
+                  ['.', 'c']
+                ],
                 [
-                  '.'
-                  [
-                     ",",
-                     ["#","x"]
-                     ["#","y"]
+                  [',',
+                    ['#', 'x'], ['#', 'y']
                   ],
-                  'z'
+                  ['.', 'z']
                 ]
-              ]
-              'a-z',
+              ],
+              'a-z'
             ],
             0
           ]
         ]
       }
-
-
 
     parse [ """
               (&"grid", .that"grid" , .box ,.thing)[width] == 100
@@ -971,8 +1074,8 @@ describe 'CCSS-to-AST', ->
                   'get',
                   [
                      ",",
-                     ["virtual",["&"],"grid"],
-                     ["virtual",[".","that"],"grid"]
+                     [["&"], ["virtual","grid"]],
+                     [[".","that"], ["virtual","grid"]]
                      [".","box"]
                      [".","thing"]
                   ],
@@ -984,22 +1087,40 @@ describe 'CCSS-to-AST', ->
           }
 
 
+# ====================================================================
+describe "/* Rulesets */", ->
 
+  # ------------------------------------------------------------------
+  describe "/* inline ruleset statements */", ->
 
-  # Inline Statements
-  # ====================================================================
-
-  describe "/* inline statements */", ->
-
-    parse """
+    parse ["""
             x: == 100;
+            x: =  100;
+            x: <= 100;
+            x: <  100;
+            x: >= 100;
+            x: >  100;
           """
+          """
+            x :== 100;
+            x :=  100;
+            x :<= 100;
+            x :<  100;
+            x :>= 100;
+            x :>  100;
+          """]
         ,
           {
             commands: [
               ['==',['get',['&'],'x'],100]
+              ['=', ['get',['&'],'x'],100]
+              ['<=',['get',['&'],'x'],100]
+              ['<', ['get',['&'],'x'],100]
+              ['>=',['get',['&'],'x'],100]
+              ['>', ['get',['&'],'x'],100]
             ]
           }
+        
     parse """
             y: 100px;
           """
@@ -1033,12 +1154,10 @@ describe 'CCSS-to-AST', ->
               ]
             ]
           }
+  
 
-
-  # Rulesets
-  # ====================================================================
-
-  describe "/* Rulesets */", ->
+  # ------------------------------------------------------------------
+  describe "/* Ruleset Basics */", ->
 
     parse """
           #box.class {
@@ -1051,7 +1170,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ['.',['#','box'],'class']
+                [['#','box'], ['.', 'class']]
                 [
                   ['set','color','blue']
                   ['==',['get',['&'],'x'],100]
@@ -1070,8 +1189,8 @@ describe 'CCSS-to-AST', ->
             commands: [
               ['rule',
                 [',',
-                  ['.',['.','class'],'foo'],
-                  ['.',['.','class'],'bar']
+                  [['.','class'], ['.','foo']]
+                  [['.','class'], ['.','bar']]
                 ]
                 [
                   ['set','color','blue']
@@ -1098,11 +1217,11 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["tag",[">",['.',['tag','article'],'featured']],"img"]
+                [['tag', 'article'], ['.', 'featured'], ['>'], ['tag', 'img']]
                 [
                   ['set','color','black']
                   ['rule',
-                    ['virtual',['.','bg'],'face']
+                    [['.','bg'],['virtual','face']]
                     [
                       ['==',
                         ['get',['&'],'x']
@@ -1125,7 +1244,7 @@ describe 'CCSS-to-AST', ->
           {
             commands: [
               ['rule',
-                ["tag",[">",['.',['tag','article'],'featured']],"img"]
+                [['tag', 'article'], ['.', 'featured'], ['>'], ['tag', 'img']]
                 []
               ]
             ]
@@ -1151,42 +1270,11 @@ describe 'CCSS-to-AST', ->
                 "rule",
                 [
                   ",",
-                  [
-                    "&"
-                  ],
-                  [
-                    ".",
-                    [
-                      " ",
-                      [
-                        "::scope"
-                      ]
-                    ],
-                    "box"
-                  ],
-                  [
-                    ".",
-                    [
-                      " ",
-                      [
-                        "&"
-                      ]
-                    ]
-                    "post"
-                  ],
-                  [
-                    "::scope"
-                  ],
-                  [
-                    "virtual",
-                    [
-                      " ",
-                      [
-                        "&"
-                      ]
-                    ],
-                    "fling"
-                  ]
+                  ["&"],
+                  [["::scope"], [" "], [".", "box"]],
+                  [["&"], [" "], [".", "post"]],
+                  ["::scope"],
+                  [["&"], [" "], ["virtual", "fling"]]
                 ],
                 []
               ]
@@ -1195,69 +1283,64 @@ describe 'CCSS-to-AST', ->
 
 
 
-  # Directives
-  # ====================================================================
+# ====================================================================
+describe "/* Directives */", ->
 
-  describe "/* Directives */", ->
+  parse """
+        @my-custom-directive blah blah blah {
+          color: blue;
+        }
+        """,
+        {
+          commands: [
+            ['directive',
+              'my-custom-directive',
+              'blah blah blah',
+              [
+                ['set','color','blue']
+              ]
+            ]
+          ]
+        }
 
-    parse """
-          @my-custom-directive blah blah blah {
-            color: blue;
+  parse """
+        @my-custom-directive blah blah blah {
+          @my-other-directive blah... {
           }
-          """
-        ,
-          {
-            commands: [
-              ['directive',
-                'my-custom-directive',
-                'blah blah blah',
-                [
-                  ['set','color','blue']
+        }
+        """
+      ,
+        {
+          commands: [
+            [ 'directive',
+              'my-custom-directive',
+              'blah blah blah',
+              [
+                [ 'directive',
+                  'my-other-directive',
+                  'blah...',
+                  []
                 ]
               ]
             ]
-          }
+          ]
+        }
 
-    parse """
-          @my-custom-directive blah blah blah {
-            @my-other-directive blah... {
-            }
-          }
-          """
-        ,
-          {
-            commands: [
-              [ 'directive',
-                'my-custom-directive',
-                'blah blah blah',
-                [
-                  [ 'directive',
-                    'my-other-directive',
-                    'blah...',
-                    []
-                  ]
-                ]
-              ]
+  parse """
+        @my-custom-directive blah blah blah;
+        """
+      ,
+        {
+          commands: [
+            [ 'directive',
+              'my-custom-directive',
+              'blah blah blah'
             ]
-          }
-
-    parse """
-          @my-custom-directive blah blah blah;
-          """
-        ,
-          {
-            commands: [
-              [ 'directive',
-                'my-custom-directive',
-                'blah blah blah'
-              ]
-            ]
-          }
+          ]
+        }
 
 
-  # If Else
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe "/* If Else */", ->
 
     parse """
@@ -1546,7 +1629,6 @@ describe 'CCSS-to-AST', ->
             ]
           }
 
-
     conditionCommands = [
         "&&"
         ['!=', ['get',['#','box'],'right'], ['get',['#','box2'],'x']],
@@ -1636,10 +1718,7 @@ describe 'CCSS-to-AST', ->
     #      }
 
 
-
-  # Stays
-  # ====================================================================
-
+  # ------------------------------------------------------------------
   describe "/* Stays */", ->
 
     parse """
@@ -1662,500 +1741,275 @@ describe 'CCSS-to-AST', ->
           }
 
 
-  # Prop Normalization
-  # ====================================================================
 
-  describe "/* Normalize Prop Names */", ->
+# ====================================================================
+describe "/* Normalize Prop Names */", ->
 
-    parse """
-            #b[left] == [left];
-            [left-col] == [col-left];
-          """
+  parse """
+          #b[left] == [left];
+          [left-col] == [col-left];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get', ['#', 'b'], 'x'], ['get', 'left']]
+            ['==', ['get', 'left-col'], ['get', 'col-left']]
+          ]
+        }
+  parse """
+          #b[top] == [top];
+        """
+      ,
+        {
+          commands: [
+            ['==',['get',['#','b'],'y'],['get','top']]
+          ]
+        }
+
+  parse """
+          [right] == ::window[right];
+        """
+      ,
+        {
+          commands: [
+            ['==',['get','right'],['get',['::window'],'width']]
+          ]
+        }
+  parse """
+          [left] == ::window[left];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get','left'], ['get',['::window'],'x']]
+          ]
+        }
+  parse """
+          [top] == ::window[top];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get', 'top'], ['get',['::window'],'y']]
+          ]
+        }
+  parse """
+          [bottom] == ::window[bottom];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get','bottom'], ['get',['::window'],'height']]
+          ]
+        }
+
+  parse """
+          #b[cx] == [cx];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get',['#', 'b'],'center-x'], ['get', 'cx']]
+          ]
+        }
+  parse """
+          #b[cy] == [cy];
+        """
+      ,
+        {
+          commands: [
+            ['==', ['get',['#', 'b'],'center-y'], ['get', 'cy']]
+          ]
+        }
+
+
+# ====================================================================
+describe '/* Decimals & Negatives */', ->
+
+  parse """
+          [left] == 0.4; // with leading zero
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'b'], 'x'], ['get', 'left']]
-              ['==', ['get', 'left-col'], ['get', 'col-left']]
-            ]
-          }
-    parse """
-            #b[top] == [top];
-          """
-        ,
-          {
-            commands: [
-              ['==',['get',['#','b'],'y'],['get','top']]
-            ]
-          }
-
-    parse """
-            [right] == ::window[right];
-          """
-        ,
-          {
-            commands: [
-              ['==',['get','right'],['get',['::window'],'width']]
-            ]
-          }
-    parse """
-            [left] == ::window[left];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get','left'], ['get',['::window'],'x']]
-            ]
-          }
-    parse """
-            [top] == ::window[top];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', 'top'], ['get',['::window'],'y']]
-            ]
-          }
-    parse """
-            [bottom] == ::window[bottom];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get','bottom'], ['get',['::window'],'height']]
-            ]
-          }
-
-    parse """
-            #b[cx] == [cx];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get',['#', 'b'],'center-x'], ['get', 'cx']]
-            ]
-          }
-    parse """
-            #b[cy] == [cy];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get',['#', 'b'],'center-y'], ['get', 'cy']]
-            ]
-          }
-
-
-
-  # 2D
-  # ====================================================================
-
-  describe '/* 2D */', ->
-
-    parse """
-            #box1[size] == #box2[size];
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', ['#', 'box1'], 'width' ], ['get', ['#', 'box2'], 'width' ]]
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'height']]
+              ['==', ['get', 'left'], 0.4]
             ]
           }
 
-    parse """
-            "box1"[size] == "box2"[size];
-          """
+  parse """
+          [left] == .4; // without leading zero
+          [left] == .004;
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['virtual', 'box1'], 'width' ], ['get', ['virtual', 'box2'], 'width' ]]
-              ['==', ['get', ['virtual', 'box1'], 'height'], ['get', ['virtual', 'box2'], 'height']]
+              ['==', ['get', 'left'], 0.4  ]
+              ['==', ['get', 'left'], 0.004]
             ]
           }
 
-    parse """
-            #box1[position] == #box2[position];
-          """
+  parse """
+          [left] == 0 - 1; // negative via additive expression
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'x'], ['get', ['#', 'box2'], 'x']]
-              ['==', ['get', ['#', 'box1'], 'y'], ['get', ['#', 'box2'], 'y']]
+              ['==', ['get', 'left'], ['-', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[top-right] == #box2[center];
-          """
+  parse """
+          [left] == (0 - 1); // negative via additive expression with parentheses
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'right'], ['get', ['#', 'box2'], 'center-x']]
-              ['==', ['get', ['#', 'box1'], 'top'  ], ['get', ['#', 'box2'], 'center-y']]
+              ['==', ['get', 'left'], ['-', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[bottom-right] == #box2[center];
-          """
+  parse """
+          [left] == 0-1; // negative via additive expression without spaces
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'right' ], ['get', ['#', 'box2'], 'center-x']]
-              ['==', ['get', ['#', 'box1'], 'bottom'], ['get', ['#', 'box2'], 'center-y']]
+              ['==', ['get', 'left'], ['-', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[bottom-left] == #box2[center];
-          """
+  parse """
+          [left] == -1; // negative without additive expression
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'left'  ], ['get', ['#', 'box2'], 'center-x']]
-              ['==', ['get', ['#', 'box1'], 'bottom'], ['get', ['#', 'box2'], 'center-y']]
+              ['==', ['get', 'left'], -1]
             ]
           }
 
-    parse """
-            #box1[top-left] == #box2[center];
-          """
+  parse """
+          [left] == -0.4; // negative floating point with leading zero
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'left'], ['get', ['#', 'box2'], 'center-x']]
-              ['==', ['get', ['#', 'box1'], 'top' ], ['get', ['#', 'box2'], 'center-y']]
+              ['==', ['get', 'left'], -0.4]
             ]
           }
 
-    parse """
-            #box1[size] == #box2[intrinsic-size];
-          """
+  parse """
+          [left] == -.4; // negative floating point without leading zero
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'width' ], ['get', ['#', 'box2'], 'intrinsic-width' ]]
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'intrinsic-height']]
+              ['==', ['get', 'left'], -0.4]
             ]
           }
 
-    parse """
-            #box1[top-left] == #box2[bottom-right];
-          """
+  parse """
+          [left] == 0 + 1; // positive via additive expression
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'left'], ['get', ['#', 'box2'], 'right' ]]
-              ['==', ['get', ['#', 'box1'], 'top' ], ['get', ['#', 'box2'], 'bottom']]
+              ['==', ['get', 'left'], ['+', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[size] == #box2[width];
-          """
+  parse """
+          [left] == (0 + 1); // positive via additive expression with parentheses
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'width' ], ['get', ['#', 'box2'], 'width']]
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'width']]
+              ['==', ['get', 'left'], ['+', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[size] == #box2[height];
-          """
+  parse """
+          [left] == 0+1; // positive via additive expression without spaces
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'width' ], ['get', ['#', 'box2'], 'height']]
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'height']]
+              ['==', ['get', 'left'], ['+', 0, 1]]
             ]
           }
 
-    parse """
-            #box1[width] == #box2[size];
-          """
+  parse """
+          [left] == +1; // positive without additive expression
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'width'], ['get', ['#', 'box2'], 'width' ]]
-              ['==', ['get', ['#', 'box1'], 'width'], ['get', ['#', 'box2'], 'height']]
+              ['==', ['get', 'left'], 1]
             ]
           }
 
-    parse """
-            #box1[height] == #box2[size];
-          """
+  parse """
+          [left] == +0.4; // positive floating point with leading zero
+        """
         ,
           {
             commands: [
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'width' ]]
-              ['==', ['get', ['#', 'box1'], 'height'], ['get', ['#', 'box2'], 'height']]
+              ['==', ['get', 'left'], 0.4]
+            ]
+          }
+
+  parse """
+          [left] == +.4; // positive floating point without leading zero
+        """
+        ,
+          {
+            commands: [
+              ['==', ['get', 'left'], 0.4]
             ]
           }
 
     parse """
-            @-gss-stay #box[size];
-          """
-        ,
-          {
-
-            commands: [
-              ['stay', ['get', ['#','box'], 'width' ]]
-              ['stay', ['get', ['#','box'], 'height']]
-            ]
-          }
-
-    parse """
-            #box[size] == 100; // 2D var == number
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', ['#', 'box'], 'width' ], 100]
-              ['==', ['get', ['#', 'box'], 'height'], 100]
-            ]
-          }
-
-    parse """
-            [square-size] ==  100;
-            #box[size] == [square-size]; // 2D var == var
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', 'square-size'], 100]
-              ['==', ['get', ['#', 'box'], 'width' ], ['get', 'square-size']]
-              ['==', ['get', ['#', 'box'], 'height'], ['get', 'square-size']]
-            ]
-          }
-
-    parse """
-            #box[$square-size] ==  100;
-            #box[size] == #box[$square-size]; // 2Dvar == element var
-          """
-        ,
-          {
-            commands: [
-              ['==', ['get', ['#', 'box'], '$square-size'], 100]
-              ['==', ['get', ['#', 'box'], 'width'       ], ['get', ['#', 'box'], '$square-size']]
-              ['==', ['get', ['#', 'box'], 'height'      ], ['get', ['#', 'box'], '$square-size']]
-            ]
-          }
-
-    parse """
-            "box1"[top-right] + 2 == "box2"[center] / 4;
-          """
-        ,
-          {
-            commands: [
-              ['==', ['+', ['get', ['virtual', 'box1'], 'right'], 2], ['/', ['get', ['virtual', 'box2'], 'center-x'], 4]]
-              ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], 2], ['/', ['get', ['virtual', 'box2'], 'center-y'], 4]]
-            ]
-          }
-
-    parse """
-            "box1"[top-right] + "box2"[center] ==  4;
-          """
-        ,
-          {
-            commands: [
-              ['==', ['+', ['get', ['virtual', 'box1'], 'right'], ['get', ['virtual', 'box2'], 'center-x'] ], 4]
-              ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], ['get', ['virtual', 'box2'], 'center-y'] ], 4]
-            ]
-          }
-
-  # Numbers
-  # ====================================================================
-
-  describe '/* Decimals & Negatives */', ->
-
-    parse """
-            [left] == 0.4; // with leading zero
+            -[x] == -[y]; // unary minus
           """
           ,
             {
               commands: [
-                ['==', ['get', 'left'], 0.4]
+                ['==', ['-',0,['get', 'x']], ['-',0,['get','y']]]
               ]
             }
 
     parse """
-            [left] == .4; // without leading zero
-            [left] == .004;
+            -1 - -[x] == -[y] - -1; // minus unary minus
           """
           ,
             {
               commands: [
-                ['==', ['get', 'left'], 0.4  ]
-                ['==', ['get', 'left'], 0.004]
-              ]
-            }
-
-    parse """
-            [left] == 0 - 1; // negative via additive expression
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['-', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == (0 - 1); // negative via additive expression with parentheses
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['-', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == 0-1; // negative via additive expression without spaces
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['-', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == -1; // negative without additive expression
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], -1]
-              ]
-            }
-
-    parse """
-            [left] == -0.4; // negative floating point with leading zero
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], -0.4]
-              ]
-            }
-
-    parse """
-            [left] == -.4; // negative floating point without leading zero
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], -0.4]
-              ]
-            }
-
-    parse """
-            [left] == 0 + 1; // positive via additive expression
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['+', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == (0 + 1); // positive via additive expression with parentheses
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['+', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == 0+1; // positive via additive expression without spaces
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], ['+', 0, 1]]
-              ]
-            }
-
-    parse """
-            [left] == +1; // positive without additive expression
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], 1]
-              ]
-            }
-
-    parse """
-            [left] == +0.4; // positive floating point with leading zero
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], 0.4]
-              ]
-            }
-
-    parse """
-            [left] == +.4; // positive floating point without leading zero
-          """
-          ,
-            {
-              commands: [
-                ['==', ['get', 'left'], 0.4]
-              ]
-            }
-
-      parse """
-              -[x] == -[y]; // unary minus
-            """
-            ,
-              {
-                commands: [
-                  ['==', ['-',0,['get', 'x']], ['-',0,['get','y']]]
+                ['==',
+                  ['-', -1, ['-',0,['get', 'x']]],
+                  ['-', ['-',0,['get','y']], -1]
                 ]
-              }
+              ]
+            }
 
-      parse """
-              -1 - -[x] == -[y] - -1; // minus unary minus
-            """
-            ,
-              {
-                commands: [
-                  ['==',
-                    ['-', -1, ['-',0,['get', 'x']]],
-                    ['-', ['-',0,['get','y']], -1]
-                  ]
+    parse """
+            -1 + -[x] == -[y] - -[x]; // unary minus - unary minus
+          """
+          ,
+            {
+              commands: [
+                ['==',
+                  ['+', -1, ['-',0,['get', 'x']]],
+                  ['-', ['-',0,['get','y']], ['-',0,['get', 'x']]]
                 ]
-              }
-
-      parse """
-              -1 + -[x] == -[y] - -[x]; // unary minus - unary minus
-            """
-            ,
-              {
-                commands: [
-                  ['==',
-                    ['+', -1, ['-',0,['get', 'x']]],
-                    ['-', ['-',0,['get','y']], ['-',0,['get', 'x']]]
-                  ]
-                ]
-              }
+              ]
+            }
 
 
-
-
-
-  # Units
-  # ====================================================================
-
-  describe '/* Units */', ->
+# ====================================================================
+describe '/* Units */', ->
+  
+  # ------------------------------------------------------------------
+  describe "/* Units with numbers */", ->
 
     parse """
             10px == 0.4px;
@@ -2192,335 +2046,221 @@ describe 'CCSS-to-AST', ->
                 ['==', ['%', -0.01], ['%', 0.01]]
               ]
             }
-
-
-
-  # Parans
-  # ====================================================================
-
-  describe '/* Parans */', ->
-
-
-    parse """
-            /* paran craziness */
-            ((((#box1)[width]) + (("area")[width]))) == ((((#box2)[width]) + ((::window)[width])));
+  
+    parse """/* custom units */
+            10my-md == 0.4my-md;
+            -.01my-md == .01my-md;
           """
-        ,
-          {
-            commands: [
-              ['==',
-                ['+',['get', ['#', 'box1'], 'width'], ['get', ['virtual', 'area'   ], 'width']],
-                ['+',['get', ['#', 'box2'], 'width'], ['get', ['::window'], 'width']],
+          ,
+            {
+              commands: [
+                ['==', ['my-md', 10], ['my-md', 0.4]]
+                ['==', ['my-md', -0.01], ['my-md', 0.01]]
               ]
-            ]
-          }
-
-    #parse """
-    #        /* 2D expressions w/ paran craziness */
-    #        ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));
-    #      """
-    #    ,
-    #      {
-    #        commands: [
-    #          ['==',
-    #            ['+',['get', 'width', ['#', 'box1']], ['get', 'width', ['virtual', 'area']]],
-    #            ['+',['get', 'width', ['#', 'box2']], ['get', 'width', ['::window']]],
-    #          ],
-    #          ['==',
-    #            ['+',['get', 'height', ['#', 'box1']], ['get', 'height', ['virtual', 'area']]],
-    #            ['+',['get', 'height', ['#', 'box2']], ['get', 'height', ['::window']]],
-    #          ]
-    #        ]
-    #      }
-
-
-
-
-
-
-  # Plugins
-  # ====================================================================
-
-  describe '/* API Hooks */', ->
-
-
-    parse """
-            @h (#left)(#right) !strong {}
-          """
-        ,
-          {
-            commands: [
-              ['==',['get',['#','left'],'right'],['get',['#','right'],'x'],'strong']
-            ]
-          }
-
-    parse """
-            @v (#top)(#bottom) !strong;
-          """
-        ,
-          {
-            commands: [
-              ['==',['get',['#','top'],'bottom'],['get',['#','bottom'],'y'],'strong']
-            ]
-          }
-
-    parse """
-            @h (button.featured)-10-(#b2) {
-              width: == 100;
-              height: == &:next[height];
             }
+  
+  # ------------------------------------------------------------------
+  describe "/* Units with vars */", ->
+
+    parse """
+            x px == y em;
           """
-        ,
-          {
-            commands: [
-              ['==',
-                ['+', ['get',['.',['tag','button'],'featured'],'right'], 10],
-                ['get',['#','b2'],'x']
+          ,
+            {
+              commands: [
+                ['==', ['px', ['get','x']], ['em', ['get','y']]]
               ]
-              ['rule',
-                [',',
-                  ['.'
-                    ['tag'
-                    'button']
-                  'featured']
-                  ,
-                  ['#',
-                  'b2']
-                ],
-                parser.parse("width: == 100; height: == &:next[height];").commands
-              ]
-            ]
-          }
-
-
-    parse """
-
-              @v |(.post)...| in(::window) {
-                  border-radius: == 4;
-                  @h |(&)| in(::window);
-                  opacity: == .5;
-                }
-
-          """,
-          {
-            commands: [].concat(
-                parser.parse("@v |(.post)...| in(::window);").commands
-              ).concat (
-                [['rule',
-                  ['.','post'],
-                  [].concat(
-                    parser.parse("border-radius: == 4;").commands
-                  ).concat(
-                    parser.parse("@h |(&)| in(::window);").commands
-                  ).concat(
-                    parser.parse("opacity: == .5;").commands
-                  )
-                ]]
-              )
-
-          }
-
-    parse """ // DO NOT special case how ::scope is prepended to rule selectors
-
-            @h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual") {
-                &[width] == 10;
-              }
-
-          """,
-          {
-            commands: [].concat(
-                parser.parse('@h (&)(::scope .box)(.post)(::scope)(::this "fling")(.outie .innie)("virtual");').commands
-              ).concat(parser.parse("""
-                ::this, ::scope .box, .post, ::scope, ::this "fling", .outie .innie, "virtual" {
-                  width: == 10;
-                }
-              """).commands)
-          }
-
-    parse """
-              @v |
-                  -10-
-                  (#cover)
-                in(#profile-card);
-
-              #follow[center-x] == #profile-card[center-x];
-
-              @h |-10-(#message)
-                in(#profile-card) {
-                  &[top] == &:next[top];
-                }
-
-              #follow[center-y] == #profile-card[center-y];
-
-          """,
-          {
-            commands: [].concat(
-                parser.parse("@v |-10-(#cover) in(#profile-card);").commands
-              ).concat (
-                parser.parse("#follow[center-x] == #profile-card[center-x];").commands
-              ).concat (
-                parser.parse("""@h |-10-(#message)
-                in(#profile-card) {
-                  &[top] == &:next[top];
-                }""").commands
-              ).concat (
-                parser.parse("#follow[center-y] == #profile-card[center-y];").commands
-              )
-
-          }
-
-
-
-
-  # Should do something...
-  # ====================================================================
-
-  describe '/* Do Something... */', ->
-
-
-    parse """
-              /* vars */
-              [gap] == 20 !require;
-              [flex-gap] >= [gap] * 2 !require;
-              [radius] == 10 !require;
-              [outer-radius] == [radius] * 2 !require;
-
-              /* elements */
-              #profile-card {
-                width: == ::window[width] - 480;
-                height: == ::window[height] - 480;
-                center-x: == ::window[center-x];
-                center-y: == ::window[center-y];
-                border-radius: == [outer-radius];
-              }
-
-              #avatar {
-                height: == 160 !require;
-                width: == ::[height];
-                border-radius: == ::[height] / 2;
-              }
-
-              #name {
-                height: == ::[intrinsic-height] !require;
-                width: == ::[intrinsic-width] !require;
-              }
-
-              #cover {
-                border-radius: == [radius];
-              }
-
-              button {
-                width: == ::[intrinsic-width] !require;
-                height: == ::[intrinsic-height] !require;
-                padding: == [gap];
-                padding-top: == [gap] / 2;
-                padding-bottom: == [gap] / 2;
-                border-radius: == [radius];
-              }
-
-              @h |~-~(#name)~-~| in(#cover) gap([gap]*2) !strong;
-
-              /* landscape profile-card */
-              @if #profile-card[width] >= #profile-card[height] {
-
-                @v |
-                    -
-                    (#avatar)
-                    -
-                    (#name)
-                    -
-                   |
-                  in(#cover)
-                  gap([gap]) outer-gap([flex-gap]) {
-                    center-x: == #cover[center-x];
-                }
-
-                @h |-10-(#cover)-10-|
-                  in(#profile-card);
-
-                @v |
-                    -10-
-                    (#cover)
-                    -
-                    (#follow)
-                    -
-                   |
-                  in(#profile-card)
-                  gap([gap]);
-
-                #follow[center-x] == #profile-card[center-x];
-
-                @h |-(#message)~-~(#follow)~-~(#following)-(#followers)-|
-                  in(#profile-card)
-                  gap([gap])
-                  !strong {
-                    &[top] == &:next[top];
-                  }
-              }
-
-              /* portrait profile-card */
-              @else {
-                @v |
-                    -
-                    (#avatar)
-                    -
-                    (#name)
-                    -
-                    (#follow)
-                    -
-                    (#message)
-                    -
-                    (#following)
-                    -
-                    (#followers)
-                    -
-                   |
-                  in(#cover)
-                  gap([gap])
-                  outer-gap([flex-gap]) {
-                    center-x: == #profile-card[center-x];
-                }
-
-                @h |-10-(#cover)-10-| in(#profile-card);
-                @v |-10-(#cover)-10-| in(#profile-card);
-              }
-
-
-          """
-
-    parse """
-          x == 100;
-          .root {
-            ^x == 100;
-            .branch {
-              ^^x == 100;
-              .leaf {
-                ^^^x == 100;
-              }
             }
+    
+    parse [
+            """
+            x px == y    + z em;
+            x px == y vw + z em;
+            """
+            """
+            x  px == y         +   z   em;
+            x  px == y     vw  +   z   em;
+            """
+            """
+             (x)   px == (y       )  +   (z   )em;
+            ( x )  px == (y     vw)  +   (z   )em;
+            """
+          ]
+          ,
+            {
+              commands: [
+                ['==', 
+                  ['px', ['get','x']], 
+                  ['+',
+                    ['get','y'],
+                    ['em',['get','z']],
+                  ]
+                ]
+                ['==', 
+                  ['px', ['get','x']], 
+                  ['+',
+                    ['vw',['get','y']],
+                    ['em',['get','z']],
+                  ]
+                ]
+              ]
+            }
+      
+      parse [
+              """
+              shoe uk-foot-size == hand in + head ft * arm meter;
+              """
+              """
+              shoe uk-foot-size == hand in + (head ft * arm meter);
+              """
+            ]
+            ,
+              {
+                commands: [
+                  ['==', 
+                    ['uk-foot-size', ['get','shoe']], 
+                    ['+',
+                      ['in',['get','hand']],
+                      ['*',
+                        ['ft',['get','head']],
+                        ['meter',['get','arm']],
+                      ]
+                    ]
+                  ]
+                ]
+              }
+      
+      parse [
+              """
+              shoe uk-foot-size == ((hand in + head) ft * arm) meter;
+              """
+            ]
+            ,
+              {
+                commands: [
+                  ['==', 
+                    ['uk-foot-size', ['get','shoe']], 
+                    ['meter',['*',
+                      ['ft',['+',
+                        ['in',['get','hand']],
+                        ['get','head']
+                      ]]
+                      ['get','arm'],
+                    ]]
+                  ]
+                ]
+              }
+
+        
+# ====================================================================
+describe '/* Smoke Tests */', ->
+  
+  ok """/* kitchen sink */
+      /* vars */
+      [gap] == 20 !require;
+      [flex-gap] >= [gap] * 2 !require;
+      [radius] == 10 !require;
+      [outer-radius] == [radius] * 2 !require;
+
+      /* elements */
+      #profile-card {
+        width: == ::window[width] - 480;
+        height: == ::window[height] - 480;
+        center-x: == ::window[center-x];
+        center-y: == ::window[center-y];
+        border-radius: == [outer-radius];
+      }
+
+      #avatar {
+        height: == 160 !require;
+        width: == ::[height];
+        border-radius: == ::[height] / 2;
+      }
+
+      #name {
+        height: == ::[intrinsic-height] !require;
+        width: == ::[intrinsic-width] !require;
+      }
+
+      #cover {
+        border-radius: == [radius];
+      }
+
+      button {
+        width: == ::[intrinsic-width] !require;
+        height: == ::[intrinsic-height] !require;
+        padding: == [gap];
+        padding-top: == [gap] / 2;
+        padding-bottom: == [gap] / 2;
+        border-radius: == [radius];
+      }
+
+      @h |~-~(#name)~-~| in(#cover) gap([gap]*2) !strong;
+
+      /* landscape profile-card */
+      @if #profile-card[width] >= #profile-card[height] {
+
+        @v |
+            -
+            (#avatar)
+            -
+            (#name)
+            -
+           |
+          in(#cover)
+          gap([gap]) outer-gap([flex-gap]) {
+            center-x: == #cover[center-x];
+        }
+
+        @h |-10-(#cover)-10-|
+          in(#profile-card);
+
+        @v |
+            -10-
+            (#cover)
+            -
+            (#follow)
+            -
+           |
+          in(#profile-card)
+          gap([gap]);
+
+        #follow[center-x] == #profile-card[center-x];
+
+        @h |-(#message)~-~(#follow)~-~(#following)-(#followers)-|
+          in(#profile-card)
+          gap([gap])
+          !strong {
+            &[top] == &:next[top];
           }
-          $x == 100;
+      }
+
+      /* portrait profile-card */
+      @else {
+        @v |
+            -
+            (#avatar)
+            -
+            (#name)
+            -
+            (#follow)
+            -
+            (#message)
+            -
+            (#following)
+            -
+            (#followers)
+            -
+           |
+          in(#cover)
+          gap([gap])
+          outer-gap([flex-gap]) {
+            center-x: == #profile-card[center-x];
+        }
+
+        @h |-10-(#cover)-10-| in(#profile-card);
+        @v |-10-(#cover)-10-| in(#profile-card);
+      }
 
 
-          """
-
-  #describe 'PRINT', ->
-  #  it 'PRINT', ->
-  #    console.log(JSON.stringify(parser.parse("""
-  #         .wrap {
-  #           my-size == 100;
-  #           "target" {
-  #             width: == &height == my-size;
-  #             center-y: == ::window[center-y];
-  #             center-x: ==        ^[center-x];
-  #           }
-  #           .thing {
-  #             width: == &height == my-size;
-  #             center: == "target"[center];
-  #             .other {
-  #               width: == &height == my-size / 2;
-  #               center: == "target"[center];
-  #             }
-  #           }
-  #         }
-  #      """),1,1))
+  """

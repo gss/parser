@@ -29,9 +29,10 @@ Statement
   = __ s:StatementTypes EOS __ { return s; }
 
 StatementTypes
-  = Ruleset
+  = Ruleset  
   / InlineConstraintStatement
   / InlineSet
+  / AnonymousStatement
   / ConstraintStatement
   / Virtual
   / IfElseStatement
@@ -88,7 +89,6 @@ Directive "Directive"
     {return g.directive(name.join(''),terms.join('').trim(),s.commands);}
   / "@" name:[^ {}]+ terms:[^;]+ &";"
     {return g.directive(name.join(''),terms.join('').trim());}
-
 
 Expression
   = AndOrExpression
@@ -157,14 +157,49 @@ ConstraintPrimaryExpression
   = UnitVar
   / Var
   / Literal
-  / "(" __ expression:ConstraintAdditiveExpression __ ")" " "* u:Unit
-  {
-    return [u, expression];
-  }
-  / "(" __ expression:ConstraintAdditiveExpression __ ")" 
+  / exp:ConstraintParanExpression " "* u:Unit {return [u, exp];}
+  / ConstraintParanExpression
+
+ConstraintParanExpression
+  = "(" __ expression:ConstraintAdditiveExpression __ ")" 
   {
     return expression;
   }
+
+AnonymousStatement
+  = funcs:Functions {return {commands:[funcs]};}
+
+Functions 
+  = FuncChain
+  / Func
+
+Func
+  = name:[a-zA-Z\-]+ "(" __ ")" {return [name.join('')];}
+  / name:[a-zA-Z\-]+ "(" __ param:FuncParam __ ")" {return [name.join(''), param];}
+  / name:[a-zA-Z\-]+ "(" __ params:FuncParams __ ")" {return [name.join('')].concat(params);}
+
+FuncChain
+  = head:Func tail:( " " " "? __ Func )+
+    {  
+      // TODO: not use `createSelectorCommaCommand`
+      var command = g.createSelectorCommaCommand(head, tail); 
+      return command.slice(1,command.length);
+    }
+
+FuncParam
+  = Functions
+  / PrimaryExpression
+  / GSSSelector
+
+FuncParams
+  = head:FuncParam tail:( __ "," __ FuncParam )+
+    { 
+      // TODO: not use `createSelectorCommaCommand`
+      var command = g.createSelectorCommaCommand(head, tail); 
+      return command.slice(1,command.length);
+    }
+
+
 
 PrimaryExpression
   = UnitVar
@@ -175,11 +210,14 @@ PrimaryExpression
   / "false"       {return false;}
   / "null"        {return null;}
   / "undefined"   {return undefined;}
-  / "(" __ expression:Expression __ ")" " "* u:Unit
+  / exp:ParanExpression " "* u:Unit
   { 
-    return [u, expression];
+    return [u, exp];
   }
-  / "(" __ expression:Expression __ ")" 
+  / ParanExpression
+
+ParanExpression
+  = "(" __ expression:Expression __ ")" 
   { 
     return expression; 
   }

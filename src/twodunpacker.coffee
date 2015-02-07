@@ -20,7 +20,6 @@ analyze = (ast, buffer) ->
       _analyze node, ast.commands, true, buffer
 
 _analyze = (node, commands, firstLevelCmd, buffer) =>
-
   if node.length >= 2
     commandName = node[0]
     headNode = node[1]

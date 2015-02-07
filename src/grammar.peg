@@ -115,6 +115,7 @@ DualOperator
 
 ConstraintOperator "Constraint Operator"
   = "=="          { return "==";  }
+  / "="           { return "=";  }
   / ("<=" / "=<") { return "<="; }
   / (">=" / "=>") { return ">="; }
   / "<"           { return "<";  }

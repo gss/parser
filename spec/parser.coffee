@@ -390,17 +390,6 @@ describe 'CCSS-to-AST', ->
   describe '/ "Virtuals" /', ->
 
     parse """
-            @virtual "Zone";
-          """
-        ,
-          {
-            commands: [
-              ['virtual','Zone']
-            ]
-          }
-
-
-    parse """
             "Zone"[width] == 100;
           """
         ,
@@ -702,7 +691,7 @@ describe 'CCSS-to-AST', ->
 
 
 
-  # Adv Selectors
+  # Advanced Selectors
   # ====================================================================
 
   describe '/* Advanced Selectors */', ->
@@ -880,8 +869,6 @@ describe 'CCSS-to-AST', ->
         ]
       }
 
-
-
     parse [ """
               (&"grid", .that"grid" , .box ,.thing)[width] == 100
             """
@@ -920,49 +907,70 @@ describe 'CCSS-to-AST', ->
   # ====================================================================
 
   describe "/* inline statements */", ->
+    
+    describe "equations", ->
 
-    parse """
-            x: == 100;
-          """
-        ,
-          {
-            commands: [
-              ['==',['get',['&'],'x'],100]
-            ]
-          }
-    parse """
-            y: 100px;
-          """
-        ,
-          {
-            commands: [
-              ['set','y','100px']
-            ]
-          }
-
-    parse """
-
-            x  :<= &[y];
-
-            y  : 100px;
-
-            z  :>= &[y];
-
-          """
-        ,
-          {
-            commands: [
-              ['<=',
-                ['get',['&'],'x']
-                ['get',['&'],'y']
+      parse ["""
+              x: == 100;
+              x: =  100;
+              x: <= 100;
+              x: <  100;
+              x: >= 100;
+              x: >  100;
+            """
+            """
+              x :== 100;
+              x :=  100;
+              x :<= 100;
+              x :<  100;
+              x :>= 100;
+              x :>  100;
+            """]
+          ,
+            {
+              commands: [
+                ['==',['get',['&'],'x'],100]
+                ['=', ['get',['&'],'x'],100]
+                ['<=',['get',['&'],'x'],100]
+                ['<', ['get',['&'],'x'],100]
+                ['>=',['get',['&'],'x'],100]
+                ['>', ['get',['&'],'x'],100]
               ]
-              ['set','y','100px']
-              ['>=',
-                ['get',['&'],'z']
-                ['get',['&'],'y']
+            }
+            
+      parse """
+              y: 100px;
+            """
+          ,
+            {
+              commands: [
+                ['set','y','100px']
               ]
-            ]
-          }
+            }
+
+      parse """
+
+              x  :<= &[y];
+
+              y  : 100px;
+
+              z  :>= &[y];
+
+            """
+          ,
+            {
+              commands: [
+                ['<=',
+                  ['get',['&'],'x']
+                  ['get',['&'],'y']
+                ]
+                ['set','y','100px']
+                ['>=',
+                  ['get',['&'],'z']
+                  ['get',['&'],'y']
+                ]
+              ]
+            }
 
 
   # Rulesets

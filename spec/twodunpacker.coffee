@@ -27,16 +27,16 @@ parse = (args...) ->
     [name, sources, expectation] = args
   else
     [sources, expectation] = args
-      
+
   itFn = it #if pending then xit else it
 
   if !(sources instanceof Array)
     sources = [sources]
-    
+
   sources.forEach (source) ->
-    if name 
-      testName = name 
-    else 
+    if name
+      testName = name
+    else
       testName = source.trim().split("\n")[0]
     describe testName, ->
       result = null
@@ -74,9 +74,9 @@ describe "twodunpacker", ->
 
   it 'existential', ->
     expect(twodunpack).to.exist
-  
+
   describe "2D command transformation", ->
-  
+
     # inline 2d mapping
     # ====================================================================
 
@@ -490,11 +490,49 @@ describe "twodunpacker", ->
               	]
               ]
             ]
-  
+
   # string parsing
   # ====================================================================
 
   describe '/* 2D string parsing */', ->
+
+  describe "Unpacking 2D variables", ->
+
+    twoDimensionsMappingTest 'respect the order of the constraints',
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
+                ['==', ['get', ['&'], 'top'], ['get', ['#', 'some'], 'height']]
+                ['rule', ['.', 'className'],
+                	[
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'size']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'position']]
+                	]
+                ]
+            	]
+            ]
+          ]
+      ,
+        commands:
+          [
+            ['rule', ['.', 'className'],
+            	[
+            		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
+                ['==', ['get', ['&'], 'top'], ['get', ['#', 'some'], 'height']]
+                ['rule', ['.', 'className'],
+                	[
+                		['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'width']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'height']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'x']]
+                    ['==', ['get', ['&'], 'width'], ['get', ['#', 'some'], 'y']]
+                	]
+                ]
+            	]
+            ]
+          ]
 
     parse """
             #box1[size] == #box2[size];
@@ -709,7 +747,7 @@ describe "twodunpacker", ->
               ['==', ['+', ['get', ['virtual', 'box1'], 'top'  ], ['get', ['virtual', 'box2'], 'center-y'] ], 4]
             ]
           }
-    
+
     parse """
             /* 2D expressions w/ paran craziness */
             ((((#box1)[size]) + (("area")[size]))) == ((((#box2)[size]) + ((::window)[size])));

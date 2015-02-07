@@ -1,109 +1,67 @@
 # 2D Unpacker
 # =====================================================
-#
 # Unpack 2D properties from the AST.
-#
 # Example: size becomes width and height.
 #
 # Takes a GSS command array, or AST, search for
-# 2D properties and expand them.
+# 2D properties and expand them by duplicating in the commands
+# the AST representing the constraint using 2d props.
 
 module.exports = (ast) ->
-    buffer = []
-    analyze ast, buffer
-    expand2dProperties buffer
-    ast
+  buffer = []
+  buffer2dExpansion ast, buffer
+  expandConstraintsWith2dProperties buffer
+  ast
 
-analyze = (ast, buffer) ->
+buffer2dExpansion = (ast, buffer) ->
   if ast.commands?
     for node in ast.commands
-      _analyze node, ast.commands, true, buffer
+      _buffer2dExpansion node, ast.commands, buffer
 
-_analyze = (node, commands, firstLevelCmd, buffer) =>
-  if node.length >= 2
-    commandName = node[0]
-    headNode = node[1]
-    tailNode = node[2] if node.length >= 3
-
-    if commandName == 'rule'
-      _unpackRuleset2dConstraints node, tailNode, commands, buffer
-
+_buffer2dExpansion = (node, commands, buffer) =>
+  if node.length > 1
+    if node[0] == 'rule'
+      _unpackRuleset2dConstraints node, node[2], buffer
     else
-      _traverseAstFor2DProperties node, headNode, commands, buffer, true
+      for childNode, i in node[1..node.length]
+        if _traverseAstFor2DProperties childNode
+          if commands then buffer.push { toExpand: { commands: commands, constraint: node }}
+          return true
+  return false
 
-      if tailNode?
-        _traverseAstFor2DProperties node, tailNode, commands, buffer
+_unpackRuleset2dConstraints = (node, commands, buffer) =>
+  for constraint, i in commands[0..node.length]
+      _buffer2dExpansion constraint, commands, buffer
 
-      if !node._has2dProperty && (headNode._has2dProperty or (tailNode? and tailNode._has2dProperty))
-        node._has2dProperty = true
-
-      if firstLevelCmd and node._has2dProperty
-        _addConstraintForUnpacking commands, node, buffer
-
-_unpackRuleset2dConstraints = (node, tailNode, commands, buffer) =>
-  for subCommand, i in tailNode[0..node.length]
-    if subCommand instanceof Array
-      _analyze subCommand, commands, false, buffer
-
-      if subCommand._has2dProperty
-        _addConstraintForUnpacking tailNode, subCommand, buffer
-
-_traverseAstFor2DProperties = (parentNode, node, commands, buffer, isHeadConstraint) =>
+_traverseAstFor2DProperties = (node) =>
   if node instanceof Array and node.length > 0
-    nodeLastItem = node[node.length - 1]
-    if nodeLastItem not instanceof Array and propertyMapping[nodeLastItem]?
-      node._has2dProperty = true
-      node._2DPropertyName = nodeLastItem
+    if node[node.length - 1] not instanceof Array and propertyMapping[node[node.length - 1]]?
+      return true
     else
-      _analyze node, commands, false, buffer
+      return _buffer2dExpansion node
+  return false
 
-    if node._has2dProperty?
-      parentNode._has2dHeadNode = node._has2dProperty if isHeadConstraint
-      parentNode._has2dTailNode = node._has2dProperty if not isHeadConstraint
-
-_addConstraintForUnpacking = (commands, node, buffer) =>
-      buffer.push
-        toExpand:
-          parent: commands
-          nodeWith2DProp: node
-
-expand2dProperties = (buffer) ->
-  for expandNode in buffer
-    clonedConstraint = _clone expandNode.toExpand.nodeWith2DProp
+expandConstraintsWith2dProperties = (buffer) ->
+  for expansionItem in buffer
+    clonedConstraint = _clone expansionItem.toExpand.constraint
     #insert in the commands by respecting the order of the constraints
-    insertionIndex = (expandNode.toExpand.parent.indexOf expandNode.toExpand.nodeWith2DProp) + 1
-    expandNode.toExpand.parent.splice insertionIndex, 0, clonedConstraint
+    insertionIndex = 1 + (expansionItem.toExpand.commands.indexOf expansionItem.toExpand.constraint)
+    expansionItem.toExpand.commands.splice insertionIndex, 0, clonedConstraint
 
-    _routeTraversalFor2DExpansion expandNode.toExpand.nodeWith2DProp, 0
-    _routeTraversalFor2DExpansion clonedConstraint, 1
+    _rename2dTo1dProperty expansionItem.toExpand.constraint, 0
+    _rename2dTo1dProperty clonedConstraint, 1
 
-_routeTraversalFor2DExpansion = (node, index1DPropertyName) ->
-  if node._has2dHeadNode
-    _changePropertyName node[1], index1DPropertyName
-  if node._has2dTailNode
-    _changePropertyName node[2], index1DPropertyName
-
-  _removeTempState node
-
-_changePropertyName = (node, onedPropIndex) =>
-  if node instanceof Array
-    if node[node.length - 1] == node._2DPropertyName
-      node[node.length - 1] = propertyMapping[node._2DPropertyName][onedPropIndex]
-    else
-      _routeTraversalFor2DExpansion node, onedPropIndex
+_rename2dTo1dProperty = (node, index1DPropertyName) ->
+  for subNode, i in node[1..node.length]
+    if subNode instanceof Array
+      if propertyMapping[subNode[subNode.length - 1]]
+        #replace 2d by 1d property name
+        subNode[subNode.length - 1] = propertyMapping[subNode[subNode.length - 1]][index1DPropertyName]
+      else
+        _rename2dTo1dProperty subNode, index1DPropertyName
 
 _clone = (obj) ->
-  return obj  if obj is null or typeof (obj) isnt "object"
-  temp = new obj.constructor()
-  for key of obj
-    temp[key] = _clone(obj[key])
-  temp
-
-_removeTempState = (node) ->
-  delete node._has2dHeadNode
-  delete node._has2dTailNode
-  delete node._2DPropertyName
-  delete node._has2dProperty
+  JSON.parse JSON.stringify obj
 
 propertyMapping =
   'bottom-left'   : ['left', 'bottom']

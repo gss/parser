@@ -199,6 +199,16 @@ describe "/* Expressions */", ->
           }
     
     parse [
+            "string-func('hello');"
+            "  string-func(  'hello'  )  ;"
+          ],
+          {
+            commands: [
+              ['string-func','hello']
+            ]
+          }
+    
+    parse [
             "math-func(10 + x * 2);"
           ],
           {
@@ -1413,7 +1423,7 @@ describe "/* Directives */", ->
                 ['&&',['!=',['get','x'],20],['==',['get','y'],200]]
                 []
                 [
-                  true
+                  true  
                   []
                 ]
               ]

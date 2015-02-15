@@ -189,8 +189,8 @@ FuncSequence
     }
 
 FuncParam
-  = Functions
-  / Expression
+  = UnaryOperation 
+  / Expression  
   / GSSSelector
 
 FuncParams
@@ -201,10 +201,18 @@ FuncParams
       return command.slice(1,command.length);
     }
 
+UnaryOperation
+  = op:UnaryOperator __ e:Expression {return [op,e]}
 
+UnaryOperator
+  =  op:( "- " / "*" / "+" / '/' / "==" / ">=" / "=>" / "<=" / "=<" / "=" / ">" / "<" / "%" )
+    {
+      return op.trim();
+    }
 
 PrimaryExpression
-  = UnitVar
+  = Functions
+  / UnitVar
   / Var
   / Literal
   / String

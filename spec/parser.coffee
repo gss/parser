@@ -275,17 +275,37 @@ describe "/* Expressions */", ->
             ]
           }
     
-    parse "function sequence", 
+    parse "functions as many params", 
           [
-            "dance(1) jump(3) fall(6);"
-            
+            "outer(inner(1),inner(2),inner(3));"
+            """
+            outer(
+              inner( 1 ),
+              inner( 2 ),
+              inner( 3 )
+            )
+            """
+          ],
+          {
+            commands: [
+              ['outer',
+                ['inner',1]
+                ['inner',2]
+                ['inner',3]
+              ] 
+            ]
+          }
+    
+    parse "unary operators as params", 
+          [
+            "dance(< 1, >= 1) jump(== 2) fall(+ 3, * 3, - my-func(1), / my-var);"
           ],
           {
             commands: [
               [ # chain
-                ['dance',1]
-                ['jump',3]
-                ['fall',6]
+                ['dance',['<',1],['>=',1]]
+                ['jump',['==',2]]
+                ['fall',['+',3],['*',3],['-',['my-func',1]],['/',['get','my-var']]]
               ]
             ]
           }

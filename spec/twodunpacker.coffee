@@ -765,3 +765,30 @@ describe "twodunpacker", ->
               ]
             ]
           }
+
+describe "Multiple constraints before 2d unpacking", ->
+
+    parse """
+         .media {
+            width: == &[height];
+            border-top-width: == &[height];
+            border-right-width: == &[width];
+            div[width] == &[width];
+            div[center] == &[center];
+          }
+      """
+    ,
+      {
+        commands: [
+            ['rule', ['.', 'media'],
+              [
+                ['==', ['get', ['&'], 'width'], ['get', ['&'], 'height']]
+                ["==", ['get', ['&'], 'border-top-width'], ['get', ['&'], 'height']]
+                ["==", ['get', ['&'], 'border-right-width'], ['get', ['&'], 'width']]
+                ["==", ['get', ['tag', 'div'], 'width'], ['get', ['&'], 'width']]
+                ["==", ['get', ['tag', 'div'], 'center-x'], ['get', ['&'], 'center-x']]
+                ["==", ['get', ['tag', 'div'], 'center-y'], ['get', ['&'], 'center-y']]
+              ]
+            ]
+        ]
+      }

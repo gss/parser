@@ -30,7 +30,7 @@ _buffer2dExpansion = (node, commands, buffer) =>
   return false
 
 _unpackRuleset2dConstraints = (node, commands, buffer) =>
-  for constraint, i in commands[0..node.length]
+  for constraint, i in commands[0..commands.length]
       _buffer2dExpansion constraint, commands, buffer
 
 _traverseAstFor2DProperties = (node) =>

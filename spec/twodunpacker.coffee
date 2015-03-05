@@ -766,29 +766,23 @@ describe "twodunpacker", ->
             ]
           }
 
-describe "Multiple constraints before 2d unpacking", ->
+describe "2d unpacking intrinsic with combination selector", ->
 
     parse """
-         .media {
-            width: == &[height];
-            border-top-width: == &[height];
-            border-right-width: == &[width];
-            div[width] == &[width];
-            div[center] == &[center];
-          }
+         h1, h2, p {
+          size: == &[intrinsic-size];
+          text-align: center;
+        }
       """
     ,
       {
         commands: [
-            ['rule', ['.', 'media'],
-              [
-                ['==', ['get', ['&'], 'width'], ['get', ['&'], 'height']]
-                ["==", ['get', ['&'], 'border-top-width'], ['get', ['&'], 'height']]
-                ["==", ['get', ['&'], 'border-right-width'], ['get', ['&'], 'width']]
-                ["==", ['get', ['tag', 'div'], 'width'], ['get', ['&'], 'width']]
-                ["==", ['get', ['tag', 'div'], 'center-x'], ['get', ['&'], 'center-x']]
-                ["==", ['get', ['tag', 'div'], 'center-y'], ['get', ['&'], 'center-y']]
-              ]
+            ["rule", [",",["tag","h1"],["tag","h2"],["tag","p"]],
+                [
+                  ["==",["get",["&"],"width"],["get",["&"],"intrinsic-width"]],
+                  ["==",["get",["&"],"height"],["get",["&"],"intrinsic-height"]],
+                  ["set","text-align","center"]
+                ]
             ]
         ]
       }

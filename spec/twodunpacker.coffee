@@ -786,3 +786,45 @@ describe "2d unpacking intrinsic with combination selector", ->
             ]
         ]
       }
+
+describe "2d unpacking nesting rulesets with left hand size property", ->
+
+      parse """
+          body {
+            width: == 1000;
+            height: == 1000;
+            font-size: == 14;
+            line-height: == 20;
+
+             .text-with-image {
+                img {
+                  size: == 400;
+                }
+            }
+          }
+        """
+      ,
+        {
+          commands:
+            [
+              ['rule', ['tag', 'body'],
+                [
+                  ["==", ['get', ['&'], 'width'], 1000],
+                  ["==", ['get', ['&'], 'height'], 1000],
+                  ["==", ['get', ['&'], 'font-size'], 14],
+                  ["==", ['get', ['&'], 'line-height'], 20],
+
+                  ['rule', ['.', 'text-with-image'],
+                    [
+                      ['rule', ['tag', 'img'],
+                        [
+                          ['==', ['get', ['&'], 'width'], 400]
+                          ['==', ['get', ['&'], 'height'], 400]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+        }

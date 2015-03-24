@@ -30,7 +30,7 @@ Statement
 
 // Statements must return {command:[...]}
 StatementTypes
-  = Ruleset  
+  = Ruleset
   / InlineConstraintStatement
   / InlineSet
   / AnonymousStatement
@@ -158,20 +158,24 @@ ConstraintPrimaryExpression
   = Functions
   / UnitVar
   / Var
-  / Literal  
+  / Literal
   / exp:ConstraintParanExpression " "* u:Unit {return [u, exp];}
   / ConstraintParanExpression
 
 ConstraintParanExpression
-  = "(" __ expression:ConstraintAdditiveExpression __ ")" 
+  = "(" __ expression:ConstraintAdditiveExpression __ ")"
   {
     return expression;
   }
 
 AnonymousStatement
-  = funcs:Functions {return {commands:[funcs]};}
+  // strength & weight treated as sequenced function
+  = funcs:FuncSequence  __ sw:StrengthAndWeight {return {commands:[funcs.concat([['strength'].concat(sw)])]};}
+  / func:Func           __ sw:StrengthAndWeight {return {commands:[[func, ['strength'].concat(sw)]]};}
+  / funcs:Functions {return {commands:[funcs]};}
 
-Functions 
+
+Functions
   = FuncSequence
   / Func
 
@@ -181,23 +185,23 @@ Func
   / name:[a-zA-Z\-]+ "(" __ params:FuncParams __ ")" {return [name.join('')].concat(params);}
 
 FuncSequence
-  = head:Func tail:( " " " "? __ Func )+
-    {  
+  = head:Func tail:( (" " / LineTerminatorSequence) " "? __ Func )+
+    {
       // TODO: not use `createSelectorCommaCommand`
-      var command = g.createSelectorCommaCommand(head, tail); 
+      var command = g.createSelectorCommaCommand(head, tail);
       return command.slice(1,command.length);
     }
 
 FuncParam
-  = UnaryOperation 
-  / Expression  
+  = UnaryOperation
+  / Expression
   / GSSSelector
 
 FuncParams
   = head:FuncParam tail:( __ "," __ FuncParam )+
-    { 
+    {
       // TODO: not use `createSelectorCommaCommand`
-      var command = g.createSelectorCommaCommand(head, tail); 
+      var command = g.createSelectorCommaCommand(head, tail);
       return command.slice(1,command.length);
     }
 
@@ -221,15 +225,15 @@ PrimaryExpression
   / "null"        {return null;}
   / "undefined"   {return undefined;}
   / exp:ParanExpression " "* u:Unit
-  { 
+  {
     return [u, exp];
   }
   / ParanExpression
 
 ParanExpression
-  = "(" __ expression:Expression __ ")" 
-  { 
-    return expression; 
+  = "(" __ expression:Expression __ ")"
+  {
+    return expression;
   }
 
 UnitVar
@@ -332,10 +336,10 @@ __
 // ===================================================
 
 GSSSelector
-  = ctx:NoParanSelectorChain sel:SafeCSSSelector 
+  = ctx:NoParanSelectorChain sel:SafeCSSSelector
   {
     if (!(ctx[0] instanceof Array)) {ctx = [ctx];}
-    if (sel[0] instanceof Array){ctx.push([sel]);} else {ctx.push([sel]);}     
+    if (sel[0] instanceof Array){ctx.push([sel]);} else {ctx.push([sel]);}
     return ctx;
   }
   / SafeCSSSelector
@@ -452,7 +456,7 @@ PseudoSel
 PseudoSelOption
   = "(" __ option:PseudoSelOptionParam __ ")"       {return option; }
   / "(" __ ")"    {return null;}
-  
+
 PseudoSelOptionParam
   = n:[0-9]+          {return Number(n.join(""));}
   / CSSSelector

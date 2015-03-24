@@ -15,18 +15,18 @@ parse = (args...) ->
     [name, sources, expectation] = args
   else
     [sources, expectation] = args
-      
+
   itFn = it #if pending then xit else it
 
   if !(sources instanceof Array)
     sources = [sources]
-    
+
   sources.forEach (source) ->
-    if name 
+    if name
       testName = name
       if sources.length > 1
         testName += " - #{sources.indexOf(source) + 1}"
-    else 
+    else
       testName = source.trim().split("\n")[0]
     describe testName, ->
       result = null
@@ -81,17 +81,17 @@ expectError = (source, message, pending) ->
 
 
 describe 'Parser', ->
-  
+
   it 'existential', ->
     expect(parser.parse).to.be.a 'function'
 
 
 # ====================================================================
-describe "/* Expressions */", ->        
-  
+describe "/* Expressions */", ->
+
   # ------------------------------------------------------------------
   describe "/* Basics */", ->
-  
+
     parse """
             foo == var;
           """
@@ -171,7 +171,7 @@ describe "/* Expressions */", ->
 
   # ------------------------------------------------------------------
   describe "Anonymous functions", ->
-  
+
     parse ["""
             empty-func();
           """
@@ -179,7 +179,7 @@ describe "/* Expressions */", ->
             empty-func(  );
           """
           """
-            empty-func(  
+            empty-func(
             );
           """],
           {
@@ -187,7 +187,7 @@ describe "/* Expressions */", ->
               ['empty-func']
             ]
           }
-  
+
     parse [
             "number-func(10.22);"
             "  number-func(  10.22  )  ;"
@@ -197,7 +197,7 @@ describe "/* Expressions */", ->
               ['number-func',10.22]
             ]
           }
-    
+
     parse [
             "string-func('hello');"
             "  string-func(  'hello'  )  ;"
@@ -207,7 +207,7 @@ describe "/* Expressions */", ->
               ['string-func','hello']
             ]
           }
-    
+
     parse [
             "math-func(10 + x * 2);"
           ],
@@ -216,21 +216,21 @@ describe "/* Expressions */", ->
               ['math-func',['+',10,['*',['get','x'],2]]]
             ]
           }
-  
+
     parse "selector-func(#foo.bar);",
           {
             commands: [
-              ['selector-func',[['#','foo'],['.','bar']]] 
+              ['selector-func',[['#','foo'],['.','bar']]]
             ]
           }
-    
+
     parse "var-func(my-var);",
           {
             commands: [
-              ['var-func',['get','my-var']] 
+              ['var-func',['get','my-var']]
             ]
           }
-    
+
     parse "vars-func(my-var, #box[x], .foo.bar[x]);",
           {
             commands: [
@@ -238,17 +238,17 @@ describe "/* Expressions */", ->
                 ['get','my-var'],
                 ['get',['#','box'],'x'],
                 ['get',[['.','foo'],['.','bar']],'x']
-              ] 
+              ]
             ]
           }
-    
-    parse "nested functions", 
+
+    parse "nested functions",
           [
             "outer(mid(inner()));"
             """
             outer(
               mid(
-                inner( 
+                inner(
                 )
               )
             )
@@ -260,11 +260,11 @@ describe "/* Expressions */", ->
                 ['mid'
                   ['inner']
                 ]
-              ] 
+              ]
             ]
           }
-    
-    parse "functions as many params", 
+
+    parse "functions as many params",
           [
             "outer(inner(1),inner(2),inner(3));"
             """
@@ -281,11 +281,11 @@ describe "/* Expressions */", ->
                 ['inner',1]
                 ['inner',2]
                 ['inner',3]
-              ] 
+              ]
             ]
           }
-    
-    parse "functions as many params", 
+
+    parse "functions as many params",
           [
             "outer(inner(1),inner(2),inner(3));"
             """
@@ -302,11 +302,11 @@ describe "/* Expressions */", ->
                 ['inner',1]
                 ['inner',2]
                 ['inner',3]
-              ] 
+              ]
             ]
           }
-    
-    parse "unary operators as params", 
+
+    parse "unary operators as params",
           [
             "dance(< 1, >= 1) jump(== 2) fall(+ 3, * 3, - my-func(1), / my-var);"
           ],
@@ -319,11 +319,22 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-    
-    parse "nested function sequence", 
+
+    parse "nested function sequence",
           [
-            "dance(step(1) step(2) step(3)) jump(4);"
-            
+            "dance(step(1) step(2) step(3)) jump(4);",
+            """
+              dance(
+                step(1)
+                step(2)
+                step(3)
+              )
+              jump(4);
+            """
+            """
+              dance(step(1) step(2) step(3))
+              jump(4);
+            """
           ],
           {
             commands: [
@@ -339,10 +350,10 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-    
+
   # ------------------------------------------------------------------
   describe "Functions in Equations", ->
-  
+
     parse ["""
             x == my-spring(1);
           """],
@@ -354,14 +365,14 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-    
+
     parse ["""
             x == my-spring(1) + my-func(y);
           """],
           {
             commands: [
               ['==',
-                ['get','x']                
+                ['get','x']
                 ['+'
                   ['my-spring',1]
                   ['my-func',['get','y']]
@@ -369,14 +380,14 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-    
+
     parse ["""
             x := my-spring(1 + 2) + my-func(y);
           """],
           {
             commands: [
               ['=',
-                ['get',['&'],'x']           
+                ['get',['&'],'x']
                 ['+'
                   ['my-spring',['+',1,2]]
                   ['my-func',['get','y']]
@@ -384,14 +395,14 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-    
+
     parse ["""
             x = a(#box[width]) b(1);
           """],
           {
             commands: [
               ['=',
-                ['get','x']           
+                ['get','x']
                 [
                   ['a',['get',['#','box'],'width']]
                   ['b',1]
@@ -399,7 +410,7 @@ describe "/* Expressions */", ->
               ]
             ]
           }
-  
+
   # ------------------------------------------------------------------
   describe '/* Parans */', ->
 
@@ -417,49 +428,90 @@ describe "/* Expressions */", ->
 
 
 # ====================================================================
-describe "/* Strength */", ->
+describe "/* Strength & Weight", ->
 
-  parse """
-          4 == 5 == 6 !strong10 // w/ strength and weight
-        """,
-        {
-          commands: [
-            ['==', 4, 5, 'strong', 10]
-            ['==', 5, 6, 'strong', 10]
+  describe " in constraints */", ->
+
+    parse """
+            4 == 5 == 6 !strong10 // w/ strength and weight
+          """,
+          {
+            commands: [
+              ['==', 4, 5, 'strong', 10]
+              ['==', 5, 6, 'strong', 10]
+            ]
+          }
+
+    parse """
+            div[width] == 100 !strong
+          """,
+          {
+            commands: [
+              ['==', ['get', ['tag', 'div'], 'width'], 100, 'strong']
+            ]
+          }
+
+    # custom strengths accepted & lower cased
+    parse """
+            4 == 5 == 6 !my-custom-strength99;
+            4 == 5 == 6 !My-CUSTOM-strengtH99;
+          """,
+          {
+            commands: [
+              ['==', 4, 5, 'my-custom-strength', 99]
+              ['==', 5, 6, 'my-custom-strength', 99]
+              ['==', 4, 5, 'my-custom-strength', 99]
+              ['==', 5, 6, 'my-custom-strength', 99]
+            ]
+          }
+
+    expectError '[a] == [b] !stron88afdklj23'
+    expectError '[a] == [b] !strong0.5'
+
+    #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+
+  describe " in inline statements */", ->
+
+    parse [
+            """
+              my-func(1) !strong90;
+            """,
+            """
+              my-func(1)
+              !strong90;
+            """,
           ]
-        }
+          {
+            commands: [
+              [
+                ['my-func',1]
+                ['strength','strong',90]
+              ]
+            ]
+          }
 
-  parse """
-          div[width] == 100 !strong
-        """,
-        {
-          commands: [
-            ['==', ['get', ['tag', 'div'], 'width'], 100, 'strong']
+    parse [
+            """
+              my-func(1) my-other(1) !strong90;
+            """,
+            """
+              my-func(1)
+              my-other(1)
+              !strong90;
+            """
           ]
-        }
-
-  # custom strengths accepted & lower cased
-  parse """
-          4 == 5 == 6 !my-custom-strength99;
-          4 == 5 == 6 !My-CUSTOM-strengtH99;
-        """,
-        {
-          commands: [
-            ['==', 4, 5, 'my-custom-strength', 99]
-            ['==', 5, 6, 'my-custom-strength', 99]
-            ['==', 4, 5, 'my-custom-strength', 99]
-            ['==', 5, 6, 'my-custom-strength', 99]
-          ]
-        }
-
-  expectError '[a] == [b] !stron88afdklj23'
-  expectError '[a] == [b] !strong0.5'
-
-  #expectError '[a] == [b] !stron', 'Invalid Strength or Weight'
+          {
+            commands: [
+              [
+                ['my-func',1]
+                ['my-other',1]
+                ['strength','strong',90]
+              ]
+            ]
+          }
 
 
 
-  
 
 # ====================================================================
 describe '/* Selectors */', ->
@@ -481,7 +533,7 @@ describe '/* Selectors */', ->
             ]
           }
 
-    
+
     parse "viewport gets normalized to window", """
             ::scope[width] == ::this[width] == ::document[width] == ::viewport[width] == ::window[height]
           """,
@@ -655,10 +707,10 @@ describe '/* Selectors */', ->
 
   # ------------------------------------------------------------------
   describe '/* Selector Splats */', ->
-    
+
     # ................................................................
     describe '/* Basics */', ->
-      
+
       parse [
               """
                 "col1...5"[x] == 0; // virtual splats
@@ -945,20 +997,20 @@ describe '/* Selectors */', ->
         ,
           {
             commands: [
-              ['==', 
+              ['==',
                 ['get',
                   [
                     [':sel',[['.','thing'],['.','other'],[':sel',['.','inner']]]]
                     [':num',1401]
                     [':string',"'hello'"]
                     [':empty']
-                  ], 
-                  'width'], 
+                  ],
+                  'width'],
                 100
               ]
             ]
           }
-  
+
     parse """
             (* #main:not(.disabled) .boxes[data-target])[width] == 100
           """
@@ -1165,7 +1217,7 @@ describe "/* Rulesets */", ->
               ['>', ['get',['&'],'x'],100]
             ]
           }
-        
+
     parse """
             y: 100px;
           """
@@ -1199,7 +1251,7 @@ describe "/* Rulesets */", ->
               ]
             ]
           }
-  
+
 
   # ------------------------------------------------------------------
   describe "/* Ruleset Basics */", ->
@@ -1423,7 +1475,7 @@ describe "/* Directives */", ->
                 ['&&',['!=',['get','x'],20],['==',['get','y'],200]]
                 []
                 [
-                  true  
+                  true
                   []
                 ]
               ]
@@ -2052,7 +2104,7 @@ describe '/* Decimals & Negatives */', ->
 
 # ====================================================================
 describe '/* Units */', ->
-  
+
   # ------------------------------------------------------------------
   describe "/* Units with numbers */", ->
 
@@ -2091,7 +2143,7 @@ describe '/* Units */', ->
                 ['==', ['%', -0.01], ['%', 0.01]]
               ]
             }
-  
+
     parse """/* custom units */
             10my-md == 0.4my-md;
             -.01my-md == .01my-md;
@@ -2103,7 +2155,7 @@ describe '/* Units */', ->
                 ['==', ['my-md', -0.01], ['my-md', 0.01]]
               ]
             }
-  
+
   # ------------------------------------------------------------------
   describe "/* Units with vars */", ->
 
@@ -2116,7 +2168,7 @@ describe '/* Units */', ->
                 ['==', ['px', ['get','x']], ['em', ['get','y']]]
               ]
             }
-    
+
     parse [
             """
             x px == y    + z em;
@@ -2134,15 +2186,15 @@ describe '/* Units */', ->
           ,
             {
               commands: [
-                ['==', 
-                  ['px', ['get','x']], 
+                ['==',
+                  ['px', ['get','x']],
                   ['+',
                     ['get','y'],
                     ['em',['get','z']],
                   ]
                 ]
-                ['==', 
-                  ['px', ['get','x']], 
+                ['==',
+                  ['px', ['get','x']],
                   ['+',
                     ['vw',['get','y']],
                     ['em',['get','z']],
@@ -2150,7 +2202,7 @@ describe '/* Units */', ->
                 ]
               ]
             }
-      
+
       parse [
               """
               shoe uk-foot-size == hand in + head ft * arm meter;
@@ -2162,8 +2214,8 @@ describe '/* Units */', ->
             ,
               {
                 commands: [
-                  ['==', 
-                    ['uk-foot-size', ['get','shoe']], 
+                  ['==',
+                    ['uk-foot-size', ['get','shoe']],
                     ['+',
                       ['in',['get','hand']],
                       ['*',
@@ -2174,7 +2226,7 @@ describe '/* Units */', ->
                   ]
                 ]
               }
-      
+
       parse [
               """
               shoe uk-foot-size == ((hand in + head) ft * arm) meter;
@@ -2183,8 +2235,8 @@ describe '/* Units */', ->
             ,
               {
                 commands: [
-                  ['==', 
-                    ['uk-foot-size', ['get','shoe']], 
+                  ['==',
+                    ['uk-foot-size', ['get','shoe']],
                     ['meter',['*',
                       ['ft',['+',
                         ['in',['get','hand']],
@@ -2196,10 +2248,10 @@ describe '/* Units */', ->
                 ]
               }
 
-        
+
 # ====================================================================
 describe '/* Smoke Tests */', ->
-  
+
   ok """/* kitchen sink */
       /* vars */
       [gap] == 20 !require;

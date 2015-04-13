@@ -1332,11 +1332,24 @@ describe "/* Rulesets */", ->
             ]
           }
 
-    parse """
-          article.featured > img {
+    parse [
+            """
+            article.featured > img {
 
-          }
-          """
+            }
+            """,
+            """
+            article.featured > img 
+              {
+
+              }
+            """,
+            """
+            article.featured > img{}
+            """,
+            "article.featured > img{}",
+            "article.featured     >    img       {}   "
+          ]
         ,
           {
             commands: [

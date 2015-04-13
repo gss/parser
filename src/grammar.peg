@@ -380,7 +380,7 @@ ComplexSelector
 Combinator "Combinator"
   = _ c:[><+~!]+ _           {return c.join('');}
   // TODO: &[^... used for rulesets & other stuff...
-  / " "+ &[^{,)]                     {return " "}
+  / " "+ __ &[^{,)]                     {return " "}
 
 SplattedName
   = splats:Splat+ postfix:SplatNameChar*

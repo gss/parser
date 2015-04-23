@@ -69,6 +69,7 @@ propertyMapping =
   center          : ['center-x', 'center-y']
   'intrinsic-size': ['intrinsic-width', 'intrinsic-height']
   position        : ['x', 'y']
+  scale           : ['scale-x', 'scale-y']
   size            : ['width', 'height']
   'top-left'      : ['left', 'top']
   'top-right'     : ['right', 'top']
